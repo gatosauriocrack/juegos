@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabla de Récords Globales</title>
     <style>
-        /* Estilos basados en tu paleta de colores */
+        /* Paleta de colores */
         :root {
             --color-naranja-principal: #EA7900;
             --color-fondo: #282c34;
@@ -27,11 +27,39 @@
             padding-bottom: 5px;
             margin-bottom: 20px;
         }
+        
+        /* --- Contenedores y Filtro --- */
+        #filter-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 10px 0 20px 0;
+            text-align: center;
+        }
+        #speedFilter {
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid var(--color-naranja-principal);
+            background-color: var(--color-tablero);
+            color: var(--color-texto);
+            font-size: 1em;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px; 
+            appearance: none; 
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23EA7900%22%20d%3D%22M287%2C188.7L146.2%2C47.9L5.4%2C188.7h281.6z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            text-align: center;
+            text-align-last: center;
+        }
+        
+        /* --- Estilos de Tabla --- */
         #records-table {
             width: 100%;
             max-width: 600px;
             border-collapse: separate;
-            border-spacing: 0 10px; /* Espacio entre filas */
+            border-spacing: 0 10px; 
         }
         #records-table th, #records-table td {
             padding: 15px;
@@ -42,7 +70,7 @@
             color: var(--color-fondo);
             font-size: 1.1em;
             border-radius: 5px 5px 0 0;
-            position: sticky; /* Fija la cabecera */
+            position: sticky; 
             top: 0;
             z-index: 10;
         }
@@ -56,22 +84,41 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
         }
-        /* Estilos específicos para la posición */
         #records-table td:first-child {
             font-weight: bold;
             color: var(--color-naranja-principal);
         }
-        /* Estilo para el mensaje de carga/error */
         #message {
-            color: var(--color-naranja-claro);
+            color: var(--color-naranja-principal);
             font-size: 1.2em;
             margin-top: 20px;
+        }
+
+        /* --- MEDIA QUERY (Responsive Móvil) --- */
+        @media (max-width: 650px) {
+            #records-table {
+                font-size: 0.9em;
+                max-width: 100%;
+            }
+            #records-table th, #records-table td {
+                padding: 10px 5px;
+            }
         }
     </style>
 </head>
 <body>
     <h1>🐍 Tabla de Récords Globales 🏆</h1>
     
+    <div id="filter-container">
+        <label for="speedFilter" style="margin-right: 10px;">Filtrar por Velocidad:</label>
+        <select id="speedFilter" onchange="filterAndDisplayRecords()">
+            <option value="All">Todas las Velocidades</option>
+            <option value="Lento">Lento (Fácil)</option>
+            <option value="Normal" selected>Normal (Medio)</option>
+            <option value="Rápido">Rápido (Difícil)</option>
+        </select>
+    </div>
+
     <p id="message">Cargando récords...</p>
 
     <table id="records-table">
@@ -88,48 +135,89 @@
     </table>
 
     <script>
-        // *** REEMPLAZA ESTA URL CON LA URL DE TU SERVICIO RENDER ***
-        const RENDER_API_URL = "TU_URL_DE_RENDER_AQUI"; 
-        // *********************************************************
+        // *** IMPORTANTE: REEMPLAZA ESTA URL CON LA TUYA ***
+        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
+        // *************************************************
 
         const tbody = document.querySelector('#records-table tbody');
         const messageElement = document.getElementById('message');
+        const speedFilter = document.getElementById('speedFilter');
+        
+        // Variable global para almacenar todos los récords obtenidos del servidor
+        let allRecords = []; 
 
+        /**
+         * Filtra la variable global 'allRecords' y muestra los resultados
+         * en la tabla según el filtro de velocidad seleccionado.
+         */
+        function filterAndDisplayRecords() {
+            const selectedSpeed = speedFilter.value;
+            
+            // 1. Filtrar los récords
+            const filteredRecords = allRecords.filter(record => {
+                if (selectedSpeed === 'All') {
+                    return true;
+                }
+                return record.speed === selectedSpeed;
+            });
+            
+            // 2. Ordenar por puntaje (descendente)
+            filteredRecords.sort((a, b) => b.score - a.score);
+
+            // 3. Mostrar solo los 10 primeros de ese filtro
+            const recordsToShow = filteredRecords.slice(0, 10);
+            
+            tbody.innerHTML = ""; // Limpiar tabla
+            
+            if (allRecords.length === 0) {
+                 messageElement.textContent = "Aún no hay récords registrados.";
+                 return;
+            }
+
+            if (recordsToShow.length === 0) {
+                messageElement.textContent = `No hay récords para la velocidad "${selectedSpeed}".`;
+                return;
+            }
+            
+            messageElement.textContent = ""; 
+
+            recordsToShow.forEach((record, index) => {
+                const row = tbody.insertRow();
+                row.insertCell().textContent = index + 1; // Posición
+                row.insertCell().textContent = record.username;
+                row.insertCell().textContent = record.score;
+                row.insertCell().textContent = record.speed;
+            });
+        }
+
+        /**
+         * Conecta con el servidor de Render para obtener todos los récords.
+         */
         async function fetchRecords() {
             try {
                 messageElement.textContent = "Intentando despertar el servidor (Render) y cargar los récords...";
                 const response = await fetch(`${RENDER_API_URL}/get_records`);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`Error HTTP: ${response.status}`);
                 }
                 
                 const data = await response.json();
                 
-                messageElement.textContent = ""; // Ocultar mensaje si todo va bien
-                tbody.innerHTML = ""; // Limpiar tabla
+                // Guardar todos los récords globales en la variable global
+                allRecords = data.highscores; 
                 
-                if (data.highscores.length === 0) {
-                    messageElement.textContent = "Aún no hay récords registrados. ¡Sé el primero!";
-                    return;
-                }
-
-                data.highscores.forEach((record, index) => {
-                    const row = tbody.insertRow();
-                    row.insertCell().textContent = index + 1; // Posición
-                    row.insertCell().textContent = record.username;
-                    row.insertCell().textContent = record.score;
-                    row.insertCell().textContent = record.speed;
-                });
+                // Mostrar la vista por defecto (Normal, en este caso)
+                filterAndDisplayRecords(); 
 
             } catch (error) {
                 console.error("Error al obtener récords:", error);
-                messageElement.textContent = `Error al conectar con el servidor: ${error.message}. Intenta recargar en un momento.`;
+                messageElement.textContent = `Error al conectar con el servidor. Render podría estar inactivo: ${error.message}`;
             }
         }
 
         fetchRecords();
-        // Recargar cada minuto para mostrar nuevos récords automáticamente
+        // Recargar cada minuto para actualizar la tabla
         setInterval(fetchRecords, 60000); 
     </script>
 </body>
