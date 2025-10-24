@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Récords Globales</title>
+    <style>
+        /* Estilos basados en tu paleta de colores */
+        :root {
+            --color-naranja-principal: #EA7900;
+            --color-fondo: #282c34;
+            --color-tablero: #3b4252;
+            --color-texto: #e0e0e0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-fondo);
+            color: var(--color-texto);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: var(--color-naranja-principal);
+            border-bottom: 3px solid var(--color-naranja-principal);
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        #records-table {
+            width: 100%;
+            max-width: 600px;
+            border-collapse: separate;
+            border-spacing: 0 10px; /* Espacio entre filas */
+        }
+        #records-table th, #records-table td {
+            padding: 15px;
+            text-align: left;
+        }
+        #records-table th {
+            background-color: var(--color-naranja-principal);
+            color: var(--color-fondo);
+            font-size: 1.1em;
+            border-radius: 5px 5px 0 0;
+            position: sticky; /* Fija la cabecera */
+            top: 0;
+            z-index: 10;
+        }
+        #records-table tr {
+            background-color: var(--color-tablero);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        #records-table tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+        /* Estilos específicos para la posición */
+        #records-table td:first-child {
+            font-weight: bold;
+            color: var(--color-naranja-principal);
+        }
+        /* Estilo para el mensaje de carga/error */
+        #message {
+            color: var(--color-naranja-claro);
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🐍 Tabla de Récords Globales 🏆</h1>
+    
+    <p id="message">Cargando récords...</p>
+
+    <table id="records-table">
+        <thead>
+            <tr>
+                <th>Posición</th>
+                <th>Usuario</th>
+                <th>Puntaje</th>
+                <th>Velocidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+
+    <script>
+        // *** REEMPLAZA ESTA URL CON LA URL DE TU SERVICIO RENDER ***
+        const RENDER_API_URL = "TU_URL_DE_RENDER_AQUI"; 
+        // *********************************************************
+
+        const tbody = document.querySelector('#records-table tbody');
+        const messageElement = document.getElementById('message');
+
+        async function fetchRecords() {
+            try {
+                messageElement.textContent = "Intentando despertar el servidor (Render) y cargar los récords...";
+                const response = await fetch(`${RENDER_API_URL}/get_records`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                messageElement.textContent = ""; // Ocultar mensaje si todo va bien
+                tbody.innerHTML = ""; // Limpiar tabla
+                
+                if (data.highscores.length === 0) {
+                    messageElement.textContent = "Aún no hay récords registrados. ¡Sé el primero!";
+                    return;
+                }
+
+                data.highscores.forEach((record, index) => {
+                    const row = tbody.insertRow();
+                    row.insertCell().textContent = index + 1; // Posición
+                    row.insertCell().textContent = record.username;
+                    row.insertCell().textContent = record.score;
+                    row.insertCell().textContent = record.speed;
+                });
+
+            } catch (error) {
+                console.error("Error al obtener récords:", error);
+                messageElement.textContent = `Error al conectar con el servidor: ${error.message}. Intenta recargar en un momento.`;
+            }
+        }
+
+        fetchRecords();
+        // Recargar cada minuto para mostrar nuevos récords automáticamente
+        setInterval(fetchRecords, 60000); 
+    </script>
+</body>
+</html>
