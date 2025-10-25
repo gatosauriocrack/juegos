@@ -155,7 +155,7 @@
             color: var(--color-fondo);
         }
 
-        /* ⭐️ ESTILOS DEL NUEVO BOTÓN DE CLASIFICACIÓN (ESQUINA SUPERIOR DERECHA) */
+        /* ⭐️ ESTILOS DEL BOTÓN DE CLASIFICACIÓN */
         #btnClasificatoria {
             position: absolute;
             top: 15px;
@@ -222,9 +222,56 @@
             border-left: 20px solid var(--color-fondo);
             margin-left: 5px;
         }
+
+        /* 🟢 NUEVOS ESTILOS PARA LA NOTIFICACIÓN ANIMADA 🔴 */
+        #notification-icon {
+            position: fixed; /* Lo hace flotante sobre todo */
+            top: 10px;
+            right: 10px;
+            width: 50px;
+            height: 50px;
+            display: none; /* Inicialmente oculto */
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            border-radius: 50%;
+            color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 2000; /* Asegura que esté por encima de todos los elementos */
+            transform: scale(0.5); /* Punto de inicio para la animación */
+            opacity: 0;
+            transition: background-color 0.2s ease, opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Clases para estados */
+        .success {
+            background-color: #4CAF50; /* Verde */
+            border: 2px solid #388E3C;
+        }
+        .error {
+            background-color: #F44336; /* Rojo */
+            border: 2px solid #D32F2F;
+        }
+
+        /* Animación para aparecer y desaparecer */
+        @keyframes scale-in-out {
+            0% { transform: scale(0.5); opacity: 0; }
+            20% { transform: scale(1.2); opacity: 1; }
+            40% { transform: scale(1); opacity: 1; }
+            80% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.5); opacity: 0; }
+        }
+
+        .show-animation {
+            animation: scale-in-out 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+        }
+
     </style>
 </head>
 <body>
+    
+    <div id="notification-icon"></div>
+
     <div id="scoreContainer">
         <div id="score">Puntuación: 0</div>
         <div id="highScore">Mejor: 0</div>
@@ -313,6 +360,9 @@
         const finalHighScoreValueElement = document.getElementById('finalHighScoreValue');
         const playAgainBtn = document.getElementById('playAgainBtn');
         const sessionStatusElement = document.getElementById('sessionStatus');
+        
+        // 🟢 NUEVA REFERENCIA AL ICONO DE NOTIFICACIÓN
+        const notificationIcon = document.getElementById('notification-icon');
 
         // Variables Globales de Sesión
         let currentUser = null;
@@ -349,6 +399,36 @@
             }
         }
         
+        // 🟢 FUNCIÓN PARA MOSTRAR LA NOTIFICACIÓN ANIMADA
+        let notificationTimeout;
+        function showNotification(isSuccess) {
+            // Limpiar cualquier animación y timeout previo
+            clearTimeout(notificationTimeout);
+            notificationIcon.style.display = 'none';
+            notificationIcon.classList.remove('success', 'error', 'show-animation');
+
+            // Configurar el icono y la clase
+            if (isSuccess) {
+                notificationIcon.innerHTML = '✔'; // Palomita verde
+                notificationIcon.classList.add('success');
+            } else {
+                notificationIcon.innerHTML = '✖'; // Tache rojo
+                notificationIcon.classList.add('error');
+            }
+
+            // Mostrar y aplicar animación
+            notificationIcon.style.display = 'flex';
+            // Usar setTimeout para asegurar que la animación se reinicie
+            setTimeout(() => {
+                notificationIcon.classList.add('show-animation');
+            }, 50); // Pequeño retraso para que el navegador reconozca el reinicio
+
+            // Ocultar el icono después de que termine la animación (2.5 segundos)
+            notificationTimeout = setTimeout(() => {
+                notificationIcon.style.display = 'none';
+            }, 2500);
+        }
+
         // --- LÓGICA DE SESIÓN Y ENVÍO GLOBAL ---
         
         function loadSession() {
@@ -405,17 +485,18 @@
                     }
 
                     sessionStatusElement.style.color = 'lightgreen';
-                    alert(`¡Éxito! Bienvenido, ${currentUser}. Ahora tus récords se enviarán.`);
+                    alert(`¡Éxito! Bienvenido, ${currentUser}. Ahora tus récords se enviarán.`); // Alerta de autenticación se mantiene
                     document.getElementById('authModal').style.display = 'none';
                 } else {
-                    alert(`Error de autenticación: ${result.message}`);
+                    alert(`Error de autenticación: ${result.message}`); // Alerta de autenticación se mantiene
                 }
             } catch (error) {
-                alert("Error de conexión con el servidor. Render podría estar inactivo. Intenta de nuevo.");
+                alert("Error de conexión con el servidor. Render podría estar inactivo. Intenta de nuevo."); // Alerta de error se mantiene
                 console.error("Error de autenticación/registro:", error);
             }
         }
 
+        // 🟢 FUNCIÓN MODIFICADA PARA USAR showNotification()
         async function sendRecordToServer(score, speed) {
             if (!currentToken) {
                 console.log("No hay sesión iniciada, récord no enviado globalmente.");
@@ -438,17 +519,22 @@
                     });
 
                     if (response.ok) {
-                        alert(`Récord de ${score} enviado globalmente (${isRetry ? 'después de reintento' : 'con éxito'}).`);
+                        // 🟢 ÉXITO: Mostrar palomita verde
+                        showNotification(true); 
+                        console.log(`Récord de ${score} enviado globalmente (${isRetry ? 'después de reintento' : 'con éxito'}).`);
                     } else {
                         const errorResult = await response.json();
-                        alert(`Error al enviar récord global: ${errorResult.message}`);
+                        // 🔴 ERROR: Mostrar tache rojo
+                        showNotification(false);
+                        console.error(`Error al enviar récord global: ${errorResult.message}`);
                     }
                 } catch (error) {
                     if (!isRetry) {
                         console.warn("Fallo de red. Intentando reintentar en 3 segundos (Render podría estar despertando)...");
                         setTimeout(() => attemptSend(true), 3000); 
                     } else {
-                        alert("Error crítico de red. No se pudo enviar el récord global.");
+                        // 🔴 ERROR CRÍTICO: Mostrar tache rojo
+                        showNotification(false);
                         console.error("Fallo en el reintento:", error);
                     }
                 }
@@ -457,7 +543,7 @@
             attemptSend(false);
         }
         
-        // --- FUNCIONES DEL JUEGO (sin cambios) ---
+        // --- FUNCIONES DEL JUEGO (resto sin cambios) ---
 
         function placeFood() {
             let newFoodPos;
@@ -662,7 +748,7 @@
             // 1. Guardar High Score Local
             saveHighScore(score);
             
-            // 2. Enviar Récord Global (con reintento si Render está durmiendo)
+            // 2. Enviar Récord Global (usará la nueva función)
             sendRecordToServer(score, gameSpeedName);
             
             // Mostrar el modal
@@ -695,7 +781,7 @@
             startModal.style.display = 'flex'; // Volver al menú de velocidad
         });
         
-        // ⭐️ Botón para abrir la Tabla Clasificatoria
+        // Botón para abrir la Tabla Clasificatoria
         document.getElementById('btnClasificatoria').addEventListener('click', () => {
             window.open(CLASIFICACION_URL, '_blank');
         });
