@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Naranja Deluxe</title>
+    <style>
+        /* Estilos CSS Minimalistas */
+        :root {
+            --color-naranja-principal: #EA7900;
+            --color-naranja-claro: #ffb86c;
+            --color-fondo: #282c34;
+            --color-tablero: #3b4252;
+            --color-sombra-naranja: #a45400;
+            --color-texto: #e0e0e0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: var(--color-fondo);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--color-texto);
+            gap: 15px;
+            touch-action: manipulation; 
+        }
+        #scoreContainer {
+            display: flex;
+            justify-content: space-between;
+            width: 375px; 
+            max-width: 90vw;
+            margin-bottom: 5px;
+        }
+        #score, #highScore {
+            font-size: 1.5em; 
+            font-weight: bold;
+            color: var(--color-naranja-claro);
+        }
+        #gameCanvas {
+            width: 375px; 
+            height: 375px;
+            border: 8px solid var(--color-naranja-principal);
+            background-color: var(--color-tablero);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        /* --- ESTILOS DE CONTROL TÁCTIL (GRANDES Y COMPACTOS) --- */
+        #controls {
+            display: grid;
+            grid-template-areas: 
+                ". up ." 
+                "left . right" 
+                ". down .";
+            gap: 1px; 
+            margin-top: 1px; 
+            width: 300px; 
+            max-width: 90vw;
+        }
+        .control-btn {
+            width: 100px;
+            height: 100px;
+            font-size: 2.2em; 
+            font-weight: bold;
+            background-color: var(--color-naranja-principal);
+            color: var(--color-fondo);
+            border: none;
+            border-radius: 15px; 
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 6px var(--color-sombra-naranja); 
+            transition: all 0.15s ease-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .control-btn:hover { background-color: #ff8c00; }
+        .control-btn:active {
+            background-color: var(--color-sombra-naranja);
+            box-shadow: 0 3px #884800; 
+            transform: translateY(3px);
+        }
+        #up { grid-area: up; }
+        #down { grid-area: down; }
+        #left { grid-area: left; }
+        #right { grid-area: right; }
+
+        /* --- Estilos de Modales (General) --- */
+        .game-modal {
+            display: none;
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .modal-content {
+            background-color: var(--color-tablero);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+        }
+        .modal-content h2 {
+            font-size: 3em;
+            color: var(--color-naranja-principal);
+            margin: 0 0 10px 0;
+        }
+        .modal-score {
+            font-size: 1.5em;
+            color: var(--color-naranja-claro);
+            margin-bottom: 30px;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* --- Estilos del Menú de Inicio y Autenticación --- */
+        #startModal button, #authModal button {
+            padding: 15px 30px;
+            margin: 10px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+            background-color: var(--color-naranja-principal);
+            color: var(--color-fondo);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px var(--color-sombra-naranja);
+            transition: all 0.1s;
+        }
+        #startModal button:active, #authModal button:active {
+            box-shadow: 0 1px var(--color-sombra-naranja);
+            transform: translateY(3px);
+        }
+        #authModal input {
+            padding: 10px; 
+            margin: 5px; 
+            border-radius: 5px; 
+            border: 1px solid #ccc; 
+            width: 80%;
+            background-color: #f0f0f0;
+            color: var(--color-fondo);
+        }
+
+        /* Estilos de Game Over */
+        #playAgainBtn {
+            padding: 0;
+            width: 70px;
+            height: 70px;
+            background-color: var(--color-naranja-principal);
+            color: var(--color-fondo);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 5px var(--color-sombra-naranja);
+            transition: all 0.15s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #playAgainBtn:active {
+            box-shadow: 0 2px var(--color-sombra-naranja);
+            transform: translateY(3px);
+        }
+        #playAgainBtn .play-icon {
+            width: 0;
+            height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 20px solid var(--color-fondo);
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="scoreContainer">
+        <div id="score">Puntuación: 0</div>
+        <div id="highScore">Mejor: 0</div>
+    </div>
+    <canvas id="gameCanvas" width="375" height="375"></canvas> 
+
+    <div id="controls">
+        <button id="up" class="control-btn">↑</button>
+        <button id="left" class="control-btn">←</button>
+        <button id="right" class="control-btn">→</button>
+        <button id="down" class="control-btn">↓</button>
+    </div>
+
+    <div id="startModal" class="game-modal" style="display: flex;">
+        <div class="modal-content">
+            <h2>Snake Naranja</h2>
+            <p style="color: var(--color-texto); margin-bottom: 20px;">Selecciona la velocidad:</p>
+            <button onclick="showCountdown(200, 'Lento')">Lento (Fácil)</button>
+            <button onclick="showCountdown(100, 'Normal')">Normal (Medio)</button>
+            <button onclick="showCountdown(60, 'Rápido')">Rápido (Difícil)</button>
+            
+            <hr style="width: 100%; margin: 20px 0; border-top: 1px solid #555;">
+            
+            <p style="color: var(--color-texto); margin-bottom: 10px;">Récords Globales:</p>
+            <button onclick="document.getElementById('authModal').style.display = 'flex';" style="background-color: #007bff; color: white; padding: 10px 20px;">
+                Iniciar Sesión
+            </button>
+            <p style="margin-top: 10px; font-size: 0.9em; color: var(--color-naranja-claro);"><span id="sessionStatus">Sesión: No iniciada</span></p>
+        </div>
+    </div>
+    
+    <div id="authModal" class="game-modal">
+        <div class="modal-content">
+            <h2>Iniciar Sesión/Registro</h2>
+            <div style="margin-bottom: 20px;">
+                <input type="text" id="authUsername" placeholder="Nombre de Usuario">
+                <input type="password" id="authPassword" placeholder="Contraseña">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="handleAuthentication(false)" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px;">Iniciar Sesión</button>
+                <button onclick="handleAuthentication(true)" style="padding: 10px 20px; background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; border-radius: 5px;">Registrarse</button>
+            </div>
+            <p style="margin-top: 15px; font-size: 0.8em; color: #aaa;">Solo necesitas iniciar sesión una vez.</p>
+            <button onclick="document.getElementById('authModal').style.display = 'none';" style="margin-top: 20px; padding: 8px 15px; background-color: #555; color: white; font-size: 1em;">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="gameOverModal" class="game-modal">
+        <div class="modal-content">
+            <h2>¡Game Over!</h2>
+            <div class="modal-score">Puntuación Final: <span id="finalScoreValue">0</span></div>
+            <div class="modal-score" style="margin-top: -20px; color: var(--color-naranja-principal);">Mejor Puntaje Local: <span id="finalHighScoreValue">0</span></div>
+            <button id="playAgainBtn">
+                <div class="play-icon"></div>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // *** IMPORTANTE: REEMPLAZA ESTA URL ***
+        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
+        // ************************************
+
+        const canvas = document.getElementById('gameCanvas');
+        canvas.width = 375; 
+        canvas.height = 375; 
+        
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const startModal = document.getElementById('startModal');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScoreValueElement = document.getElementById('finalScoreValue');
+        const finalHighScoreValueElement = document.getElementById('finalHighScoreValue');
+        const playAgainBtn = document.getElementById('playAgainBtn');
+        const sessionStatusElement = document.getElementById('sessionStatus');
+
+        // Variables Globales de Sesión
+        let currentUser = null;
+        let currentToken = null;
+        let gameSpeedName = 'Normal'; 
+
+        // Configuración del juego
+        const tileCount = 25; 
+        const gridSize = canvas.width / tileCount; 
+        let snake = [{ x: 12, y: 12 }]; 
+        let food = { x: 5, y: 5 }; 
+        let velocityX = 0;
+        let velocityY = 0;
+        let score = 0;
+        let gameSpeed = 100; 
+        let intervalId;
+        let gameRunning = false;
+        
+        const directionQueue = []; 
+        let currentDirection = 'ArrowRight'; 
+
+        // --- LÓGICA DE HIGH SCORE LOCAL ---
+        function loadHighScore() {
+            const high = localStorage.getItem('snakeHighScore') || 0;
+            highScoreElement.textContent = `Mejor: ${high}`;
+            return parseInt(high);
+        }
+
+        function saveHighScore(newScore) {
+            const currentHigh = loadHighScore();
+            if (newScore > currentHigh) {
+                localStorage.setItem('snakeHighScore', newScore);
+                highScoreElement.textContent = `Mejor: ${newScore}`;
+            }
+        }
+        
+        // --- LÓGICA DE SESIÓN Y ENVÍO GLOBAL ---
+
+        async function handleAuthentication(isRegister) {
+            const authUsername = document.getElementById('authUsername').value;
+            const authPassword = document.getElementById('authPassword').value;
+
+            if (!authUsername || !authPassword) {
+                 alert("Por favor, introduce usuario y contraseña.");
+                 return;
+            }
+
+            const endpoint = isRegister ? 'register' : 'login';
+            const body = { username: authUsername, password: authPassword };
+            const url = `${RENDER_API_URL}/${endpoint}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    currentUser = authUsername;
+                    currentToken = result.token;
+                    sessionStatusElement.textContent = `Sesión: ${currentUser}`;
+                    sessionStatusElement.style.color = 'lightgreen';
+                    alert(`¡Éxito! Bienvenido, ${currentUser}. Ahora tus récords se enviarán.`);
+                    document.getElementById('authModal').style.display = 'none';
+                } else {
+                    alert(`Error de autenticación: ${result.message}`);
+                }
+            } catch (error) {
+                alert("Error de conexión con el servidor. Render podría estar inactivo. Intenta de nuevo.");
+                console.error("Error de autenticación/registro:", error);
+            }
+        }
+
+        async function sendRecordToServer(score, speed) {
+            if (!currentToken) {
+                console.log("No hay sesión iniciada, récord no enviado globalmente.");
+                return;
+            }
+
+            const url = `${RENDER_API_URL}/submit_record`;
+            const body = { 
+                token: currentToken, 
+                score: score,
+                speed: speed
+            };
+
+            const attemptSend = async (isRetry = false) => {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+
+                    if (response.ok) {
+                        alert(`Récord de ${score} enviado globalmente (${isRetry ? 'después de reintento' : 'con éxito'}).`);
+                    } else {
+                        const errorResult = await response.json();
+                        alert(`Error al enviar récord global: ${errorResult.message}`);
+                    }
+                } catch (error) {
+                    if (!isRetry) {
+                        console.warn("Fallo de red. Intentando reintentar en 3 segundos (Render podría estar despertando)...");
+                        setTimeout(() => attemptSend(true), 3000); 
+                    } else {
+                        alert("Error crítico de red. No se pudo enviar el récord global.");
+                        console.error("Fallo en el reintento:", error);
+                    }
+                }
+            };
+
+            attemptSend(false);
+        }
+        
+        // --- FUNCIONES DEL JUEGO ---
+
+        function placeFood() {
+            let newFoodPos;
+            do {
+                newFoodPos = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+            } while (snake.some(part => part.x === newFoodPos.x && part.y === newFoodPos.y));
+            
+            food = newFoodPos;
+        }
+        
+        function updateVelocity() {
+            if (directionQueue.length > 0) {
+                const nextKey = directionQueue.shift(); 
+                
+                switch (nextKey) {
+                    case 'ArrowUp':
+                        if (currentDirection !== 'ArrowDown') { velocityX = 0; velocityY = -1; currentDirection = 'ArrowUp'; }
+                        break;
+                    case 'ArrowDown':
+                        if (currentDirection !== 'ArrowUp') { velocityX = 0; velocityY = 1; currentDirection = 'ArrowDown'; }
+                        break;
+                    case 'ArrowLeft':
+                        if (currentDirection !== 'ArrowRight') { velocityX = -1; velocityY = 0; currentDirection = 'ArrowLeft'; }
+                        break;
+                    case 'ArrowRight':
+                        if (currentDirection !== 'ArrowLeft') { velocityX = 1; velocityY = 0; currentDirection = 'ArrowRight'; }
+                        break;
+                }
+            }
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            updateVelocity(); 
+
+            const head = { x: snake[0].x + velocityX, y: snake[0].y + velocityY };
+
+            // Colisiones
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount || snake.slice(1).some(part => part.x === head.x && part.y === head.y)) {
+                gameOver();
+                return;
+            }
+
+            snake.unshift(head);
+
+            // Comida
+            if (head.x === food.x && head.y === food.y) {
+                score += 1;
+                scoreElement.textContent = `Puntuación: ${score}`;
+                placeFood();
+            } else {
+                snake.pop();
+            }
+
+            drawGame();
+        }
+
+        function drawGame() {
+            ctx.fillStyle = '#3b4252';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar cuadrícula
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'; 
+            ctx.lineWidth = 1;
+            for (let i = 0; i < tileCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0);
+                ctx.lineTo(i * gridSize, canvas.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize);
+                ctx.lineTo(canvas.width, i * gridSize);
+                ctx.stroke();
+            }
+
+            // Dibujar comida
+            ctx.fillStyle = '#ffb86c';
+            ctx.beginPath();
+            ctx.arc(food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2, gridSize / 2 * 0.7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Dibujar víbora
+            snake.forEach((part, index) => {
+                ctx.fillStyle = '#EA7900';
+                ctx.strokeStyle = '#282c34';
+                ctx.lineWidth = 2; 
+
+                const x = part.x * gridSize;
+                const y = part.y * gridSize;
+                const radius = gridSize / 4; 
+
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + gridSize - radius, y);
+                ctx.quadraticCurveTo(x + gridSize, y, x + gridSize, y + radius);
+                ctx.lineTo(x + gridSize, y + gridSize - radius);
+                ctx.quadraticCurveTo(x + gridSize, y + gridSize, x + gridSize - radius, y + gridSize);
+                ctx.lineTo(x + radius, y + gridSize);
+                ctx.quadraticCurveTo(x, y + gridSize, x, y + gridSize - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Ojos (código simplificado para brevedad)
+                if (index === 0) {
+                    ctx.fillStyle = 'white';
+                    const eyeSize = gridSize * 0.15;
+                    const offset = gridSize * 0.35;
+                    const center = { x: x + gridSize / 2, y: y + gridSize / 2 };
+
+                    let vx = velocityX;
+                    let vy = velocityY;
+                    if (vx === 0 && vy === 0) { vx = 1; } 
+
+                    let eye1 = { x: center.x, y: center.y };
+                    let eye2 = { x: center.x, y: center.y };
+
+                    if (vx === 1) { eye1.x += offset / 2; eye1.y -= offset / 2; eye2.x += offset / 2; eye2.y += offset / 2; } 
+                    else if (vx === -1) { eye1.x -= offset / 2; eye1.y -= offset / 2; eye2.x -= offset / 2; eye2.y += offset / 2; } 
+                    else if (vy === -1) { eye1.x -= offset / 2; eye1.y -= offset / 2; eye2.x += offset / 2; eye2.y -= offset / 2; } 
+                    else if (vy === 1) { eye1.x -= offset / 2; eye1.y += offset / 2; eye2.x += offset / 2; eye2.y += offset / 2; }
+
+                    ctx.beginPath(); ctx.arc(eye1.x, eye1.y, eyeSize, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(eye2.x, eye2.y, eyeSize, 0, Math.PI * 2); ctx.fill();
+                }
+            });
+        }
+
+        function changeDirection(key) {
+            if (!gameRunning) return;
+            if (directionQueue.length < 2) {
+                directionQueue.push(key);
+            }
+        }
+
+        function drawCountdown(count) {
+            drawGame(); 
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = "bold 100px 'Segoe UI', Arial";
+            ctx.fillStyle = 'white';
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            if (count > 0) {
+                ctx.fillText(count, canvas.width / 2, canvas.height / 2);
+            } else if (count === 0) {
+                ctx.font = "bold 50px 'Segoe UI', Arial";
+                ctx.fillText("¡GO!", canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function showCountdown(speed, speedName) {
+            startModal.style.display = 'none';
+            gameSpeed = speed;
+            gameSpeedName = speedName; // Guardar el nombre para el récord global
+            let count = 3;
+            
+            currentDirection = 'ArrowRight'; 
+            velocityX = 1; 
+            velocityY = 0;
+            
+            snake = [{ x: 12, y: 12 }];
+            placeFood();
+            drawGame();
+
+            const countdownInterval = setInterval(() => {
+                drawCountdown(count);
+                count--;
+                
+                if (count < 0) {
+                    clearInterval(countdownInterval);
+                    startGame(gameSpeed);
+                }
+            }, 1000);
+        }
+
+        function startGame(speed) {
+            if (gameRunning) return;
+            
+            score = 0;
+            scoreElement.textContent = `Puntuación: 0`;
+            gameRunning = true;
+            directionQueue.length = 0; 
+            
+            intervalId = setInterval(gameLoop, speed); 
+            drawGame(); 
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(intervalId);
+            
+            // 1. Guardar High Score Local
+            saveHighScore(score);
+            
+            // 2. Enviar Récord Global (con reintento si Render está durmiendo)
+            sendRecordToServer(score, gameSpeedName);
+            
+            // Mostrar el modal
+            finalScoreValueElement.textContent = score;
+            finalHighScoreValueElement.textContent = loadHighScore();
+            gameOverModal.style.display = 'flex';
+        }
+        
+        // Manejar eventos de botones y teclado
+        document.addEventListener('keydown', (event) => {
+            if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+                event.preventDefault();
+                if (gameRunning) {
+                     changeDirection(event.key);
+                } else if (startModal.style.display === 'flex') {
+                    // Si está en el menú, cualquier flecha inicia en Normal
+                    showCountdown(100, 'Normal');
+                }
+            }
+        });
+
+        document.getElementById('up').addEventListener('click', () => changeDirection('ArrowUp'));
+        document.getElementById('down').addEventListener('click', () => changeDirection('ArrowDown'));
+        document.getElementById('left').addEventListener('click', () => changeDirection('ArrowLeft'));
+        document.getElementById('right').addEventListener('click', () => changeDirection('ArrowRight'));
+        
+        // Botón de reintentar en Game Over
+        playAgainBtn.addEventListener('click', () => {
+            gameOverModal.style.display = 'none';
+            startModal.style.display = 'flex'; // Volver al menú de velocidad
+        });
+
+        // Estado inicial
+        loadHighScore();
+        drawGame(); 
+    </script>
+</body>
+</html>
