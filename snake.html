@@ -144,7 +144,7 @@
             box-shadow: 0 1px var(--color-sombra-naranja);
             transform: translateY(3px);
         }
-        #authModal input {
+        #authModal input[type="text"], #authModal input[type="password"] {
             padding: 10px; 
             margin: 5px; 
             border-radius: 5px; 
@@ -208,20 +208,28 @@
             
             <hr style="width: 100%; margin: 20px 0; border-top: 1px solid #555;">
             
-            <p style="color: var(--color-texto); margin-bottom: 10px;">Récords Globales:</p>
+            <button id="btnClasificatoria" style="background-color: #00bcd4; color: white; padding: 15px 30px; margin: 10px 0;">
+                📊 Tabla Clasificatoria
+            </button>
+
+            <p style="margin-top: 10px; font-size: 0.9em; color: var(--color-naranja-claro);"><span id="sessionStatus">Sesión: No iniciada</span></p>
+
             <button onclick="document.getElementById('authModal').style.display = 'flex';" style="background-color: #007bff; color: white; padding: 10px 20px;">
                 Iniciar Sesión
             </button>
-            <p style="margin-top: 10px; font-size: 0.9em; color: var(--color-naranja-claro);"><span id="sessionStatus">Sesión: No iniciada</span></p>
         </div>
     </div>
     
     <div id="authModal" class="game-modal">
         <div class="modal-content">
             <h2>Iniciar Sesión/Registro</h2>
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 20px; width: 100%;">
                 <input type="text" id="authUsername" placeholder="Nombre de Usuario">
                 <input type="password" id="authPassword" placeholder="Contraseña">
+                <div style="text-align: left; margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe" style="font-size: 1em; color: var(--color-texto);">Mantener sesión iniciada</label>
+                </div>
             </div>
             <div style="display: flex; gap: 10px;">
                 <button onclick="handleAuthentication(false)" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px;">Iniciar Sesión</button>
@@ -246,6 +254,8 @@
     <script>
         // *** IMPORTANTE: REEMPLAZA ESTA URL ***
         const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
+        // URL de la tabla de clasificación
+        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/snake-juego/records";
         // ************************************
 
         const canvas = document.getElementById('gameCanvas');
@@ -298,10 +308,28 @@
         }
         
         // --- LÓGICA DE SESIÓN Y ENVÍO GLOBAL ---
+        
+        // Función AÑADIDA: Cargar sesión persistente
+        function loadSession() {
+            const storedToken = localStorage.getItem('authToken');
+            const storedUser = localStorage.getItem('authUsername');
 
+            if (storedToken && storedUser) {
+                currentUser = storedUser;
+                currentToken = storedToken;
+                sessionStatusElement.textContent = `Sesión: ${currentUser} (Guardada)`;
+                sessionStatusElement.style.color = 'lightgreen';
+                console.log(`Sesión recuperada para: ${currentUser}`);
+            } else {
+                sessionStatusElement.textContent = `Sesión: No iniciada`;
+                sessionStatusElement.style.color = 'var(--color-naranja-claro)';
+            }
+        }
+        // Función MODIFICADA: Incluye la lógica de 'rememberMe' y localStorage
         async function handleAuthentication(isRegister) {
             const authUsername = document.getElementById('authUsername').value;
             const authPassword = document.getElementById('authPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked; // Obtener estado del checkbox
 
             if (!authUsername || !authPassword) {
                  alert("Por favor, introduce usuario y contraseña.");
@@ -324,7 +352,19 @@
                 if (response.ok) {
                     currentUser = authUsername;
                     currentToken = result.token;
-                    sessionStatusElement.textContent = `Sesión: ${currentUser}`;
+                    
+                    // LÓGICA PARA MANTENER SESIÓN (localStorage)
+                    if (rememberMe) {
+                        localStorage.setItem('authToken', currentToken);
+                        localStorage.setItem('authUsername', currentUser);
+                        sessionStatusElement.textContent = `Sesión: ${currentUser} (Guardada)`;
+                    } else {
+                        // Si no marcó 'recordarme', nos aseguramos de no guardarla persistentemente
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('authUsername');
+                        sessionStatusElement.textContent = `Sesión: ${currentUser}`;
+                    }
+
                     sessionStatusElement.style.color = 'lightgreen';
                     alert(`¡Éxito! Bienvenido, ${currentUser}. Ahora tus récords se enviarán.`);
                     document.getElementById('authModal').style.display = 'none';
@@ -378,7 +418,7 @@
             attemptSend(false);
         }
         
-        // --- FUNCIONES DEL JUEGO ---
+        // --- FUNCIONES DEL JUEGO (sin cambios) ---
 
         function placeFood() {
             let newFoodPos;
@@ -615,9 +655,15 @@
             gameOverModal.style.display = 'none';
             startModal.style.display = 'flex'; // Volver al menú de velocidad
         });
+        
+        // ⭐️ NUEVA FUNCIÓN: Botón para abrir la Tabla Clasificatoria
+        document.getElementById('btnClasificatoria').addEventListener('click', () => {
+            window.open(CLASIFICACION_URL, '_blank');
+        });
 
         // Estado inicial
         loadHighScore();
+        loadSession(); // ⭐️ CARGAR SESIÓN AL INICIO DE LA PÁGINA
         drawGame(); 
     </script>
 </body>
