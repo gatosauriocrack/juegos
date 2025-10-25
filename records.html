@@ -11,6 +11,8 @@
             --color-fondo: #282c34;
             --color-tablero: #3b4252;
             --color-texto: #e0e0e0;
+            /* Nuevo color azul para el puntaje */
+            --color-azul-puntaje: #00bcd4; 
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -84,9 +86,15 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
         }
+        /* Estilo para la primera columna (Posición) */
         #records-table td:first-child {
             font-weight: bold;
             color: var(--color-naranja-principal);
+        }
+        /* Estilo para la columna de Puntaje */
+        .score-cell {
+            font-weight: bold;
+            color: var(--color-azul-puntaje); /* Aplicamos el nuevo color azul */
         }
         #message {
             color: var(--color-naranja-principal);
@@ -143,12 +151,12 @@
         const messageElement = document.getElementById('message');
         const speedFilter = document.getElementById('speedFilter');
         
-        // Variable global para almacenar todos los récords obtenidos del servidor
         let allRecords = []; 
+        
+        const trophyEmojis = ['🏆', '🥈', '🥉']; // Emojis para 1º, 2º y 3º
 
         /**
-         * Filtra la variable global 'allRecords' y muestra los resultados
-         * en la tabla según el filtro de velocidad seleccionado.
+         * Filtra la variable global 'allRecords' y muestra los resultados.
          */
         function filterAndDisplayRecords() {
             const selectedSpeed = speedFilter.value;
@@ -183,19 +191,44 @@
 
             recordsToShow.forEach((record, index) => {
                 const row = tbody.insertRow();
-                row.insertCell().textContent = index + 1; // Posición
-                row.insertCell().textContent = record.username;
-                row.insertCell().textContent = record.score;
-                row.insertCell().textContent = record.speed;
+                const position = index + 1;
+                
+                // Celdas de la fila
+                const posCell = row.insertCell();
+                const userCell = row.insertCell();
+                const scoreCell = row.insertCell();
+                const speedCell = row.insertCell();
+                
+                // ⭐️ Lógica de Emojis para 1º, 2º y 3º
+                if (position <= 3) {
+                    posCell.innerHTML = trophyEmojis[index] + " " + position;
+                } else {
+                    posCell.textContent = position;
+                }
+                
+                userCell.textContent = record.username;
+                
+                // ⭐️ Lógica de color azul para el puntaje (usando una clase CSS)
+                scoreCell.textContent = record.score;
+                scoreCell.classList.add('score-cell'); 
+                
+                speedCell.textContent = record.speed;
             });
         }
 
         /**
-         * Conecta con el servidor de Render para obtener todos los récords.
+         * Conecta con el servidor de Render para obtener todos los récords,
+         * con reintento si la conexión falla inicialmente (servidor dormido).
          */
-        async function fetchRecords() {
-            try {
+        async function fetchRecords(isRetry = false) {
+            
+            if (!isRetry) {
                 messageElement.textContent = "Intentando despertar el servidor (Render) y cargar los récords...";
+            } else {
+                messageElement.textContent = "Reintentando conexión... (Render se está despertando)";
+            }
+            
+            try {
                 const response = await fetch(`${RENDER_API_URL}/get_records`);
                 
                 if (!response.ok) {
@@ -204,21 +237,30 @@
                 
                 const data = await response.json();
                 
-                // Guardar todos los récords globales en la variable global
+                // Éxito: Guardar y mostrar
                 allRecords = data.highscores; 
-                
-                // Mostrar la vista por defecto (Normal, en este caso)
                 filterAndDisplayRecords(); 
 
             } catch (error) {
-                console.error("Error al obtener récords:", error);
-                messageElement.textContent = `Error al conectar con el servidor. Render podría estar inactivo: ${error.message}`;
+                console.error(`Error al obtener récords (${isRetry ? 'Reintento' : 'Intento 1'}):`, error);
+                
+                // Si es el primer intento (isRetry=false), programamos un reintento
+                if (!isRetry) {
+                    // Esperar 3 segundos para que Render tenga tiempo de arrancar
+                    setTimeout(() => fetchRecords(true), 3000); 
+                    
+                } else {
+                    // Si ya es el reintento y falla, mostramos el error final
+                    messageElement.textContent = `Error al conectar con el servidor. Render podría estar inactivo o inalcanzable: ${error.message}`;
+                }
             }
         }
 
+        // Iniciar la carga de récords
         fetchRecords();
-        // Recargar cada minuto para actualizar la tabla
-        setInterval(fetchRecords, 60000); 
+        
+        // Recargar automáticamente cada minuto después del primer intento (principalmente para ver nuevos récords)
+        setInterval(() => fetchRecords(), 60000); 
     </script>
 </body>
 </html>
