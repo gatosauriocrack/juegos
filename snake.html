@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-small-scale=1.0">
     <title>Snake Naranja Deluxe</title>
     <style>
         /* Estilos CSS Minimalistas */
@@ -112,6 +112,7 @@
             display: flex; 
             flex-direction: column;
             align-items: center; 
+            position: relative; /* Esencial para posicionar el botón de récord */
         }
         .modal-content h2 {
             font-size: 3em;
@@ -152,6 +153,45 @@
             width: 80%;
             background-color: #f0f0f0;
             color: var(--color-fondo);
+        }
+
+        /* ⭐️ ESTILOS DEL NUEVO BOTÓN DE CLASIFICACIÓN (ESQUINA SUPERIOR DERECHA) */
+        #btnClasificatoria {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 70px;
+            height: 70px;
+            padding: 0;
+            margin: 0;
+            background-color: #00bcd4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px #008c99;
+            transition: all 0.1s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #btnClasificatoria:active {
+            box-shadow: 0 1px #008c99;
+            transform: translateY(3px);
+        }
+        #btnClasificatoria span.emoji {
+            font-size: 2em; /* Tamaño del emoji */
+            line-height: 1;
+            margin-top: -5px; /* Ajuste visual */
+        }
+        #btnClasificatoria span.text {
+            font-size: 0.6em; /* Caja de texto pequeña */
+            font-weight: normal;
+            margin-top: 5px;
+            padding: 2px 4px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
         }
 
         /* Estilos de Game Over */
@@ -200,6 +240,12 @@
 
     <div id="startModal" class="game-modal" style="display: flex;">
         <div class="modal-content">
+            
+            <button id="btnClasificatoria">
+                <span class="emoji">🏆</span>
+                <span class="text">Clasificación</span>
+            </button>
+            
             <h2>Snake Naranja</h2>
             <p style="color: var(--color-texto); margin-bottom: 20px;">Selecciona la velocidad:</p>
             <button onclick="showCountdown(200, 'Lento')">Lento (Fácil)</button>
@@ -207,10 +253,6 @@
             <button onclick="showCountdown(60, 'Rápido')">Rápido (Difícil)</button>
             
             <hr style="width: 100%; margin: 20px 0; border-top: 1px solid #555;">
-            
-            <button id="btnClasificatoria" style="background-color: #00bcd4; color: white; padding: 15px 30px; margin: 10px 0;">
-                📊 Tabla Clasificatoria
-            </button>
 
             <p style="margin-top: 10px; font-size: 0.9em; color: var(--color-naranja-claro);"><span id="sessionStatus">Sesión: No iniciada</span></p>
 
@@ -309,7 +351,6 @@
         
         // --- LÓGICA DE SESIÓN Y ENVÍO GLOBAL ---
         
-        // Función AÑADIDA: Cargar sesión persistente
         function loadSession() {
             const storedToken = localStorage.getItem('authToken');
             const storedUser = localStorage.getItem('authUsername');
@@ -325,11 +366,11 @@
                 sessionStatusElement.style.color = 'var(--color-naranja-claro)';
             }
         }
-        // Función MODIFICADA: Incluye la lógica de 'rememberMe' y localStorage
+
         async function handleAuthentication(isRegister) {
             const authUsername = document.getElementById('authUsername').value;
             const authPassword = document.getElementById('authPassword').value;
-            const rememberMe = document.getElementById('rememberMe').checked; // Obtener estado del checkbox
+            const rememberMe = document.getElementById('rememberMe').checked; 
 
             if (!authUsername || !authPassword) {
                  alert("Por favor, introduce usuario y contraseña.");
@@ -353,13 +394,11 @@
                     currentUser = authUsername;
                     currentToken = result.token;
                     
-                    // LÓGICA PARA MANTENER SESIÓN (localStorage)
                     if (rememberMe) {
                         localStorage.setItem('authToken', currentToken);
                         localStorage.setItem('authUsername', currentUser);
                         sessionStatusElement.textContent = `Sesión: ${currentUser} (Guardada)`;
                     } else {
-                        // Si no marcó 'recordarme', nos aseguramos de no guardarla persistentemente
                         localStorage.removeItem('authToken');
                         localStorage.removeItem('authUsername');
                         sessionStatusElement.textContent = `Sesión: ${currentUser}`;
@@ -656,14 +695,14 @@
             startModal.style.display = 'flex'; // Volver al menú de velocidad
         });
         
-        // ⭐️ NUEVA FUNCIÓN: Botón para abrir la Tabla Clasificatoria
+        // ⭐️ Botón para abrir la Tabla Clasificatoria
         document.getElementById('btnClasificatoria').addEventListener('click', () => {
             window.open(CLASIFICACION_URL, '_blank');
         });
 
         // Estado inicial
         loadHighScore();
-        loadSession(); // ⭐️ CARGAR SESIÓN AL INICIO DE LA PÁGINA
+        loadSession(); 
         drawGame(); 
     </script>
 </body>
