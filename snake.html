@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-small-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Naranja Deluxe</title>
     <style>
         /* Estilos CSS Minimalistas */
@@ -112,7 +112,7 @@
             display: flex; 
             flex-direction: column;
             align-items: center; 
-            position: relative; /* Esencial para posicionar el botón de récord */
+            position: relative; 
         }
         .modal-content h2 {
             font-size: 3em;
@@ -181,12 +181,12 @@
             transform: translateY(3px);
         }
         #btnClasificatoria span.emoji {
-            font-size: 2em; /* Tamaño del emoji */
+            font-size: 2em; 
             line-height: 1;
-            margin-top: -5px; /* Ajuste visual */
+            margin-top: -5px; 
         }
         #btnClasificatoria span.text {
-            font-size: 0.6em; /* Caja de texto pequeña */
+            font-size: 0.6em; 
             font-weight: normal;
             margin-top: 5px;
             padding: 2px 4px;
@@ -225,20 +225,20 @@
 
         /* 🟢 NUEVOS ESTILOS PARA LA NOTIFICACIÓN ANIMADA 🔴 */
         #notification-icon {
-            position: fixed; /* Lo hace flotante sobre todo */
+            position: fixed; 
             top: 10px;
             right: 10px;
             width: 50px;
             height: 50px;
-            display: none; /* Inicialmente oculto */
+            display: none; 
             justify-content: center;
             align-items: center;
             font-size: 30px;
             border-radius: 50%;
             color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            z-index: 2000; /* Asegura que esté por encima de todos los elementos */
-            transform: scale(0.5); /* Punto de inicio para la animación */
+            z-index: 2000; 
+            transform: scale(0.5); 
             opacity: 0;
             transition: background-color 0.2s ease, opacity 0.3s ease, transform 0.3s ease;
         }
@@ -295,9 +295,9 @@
             
             <h2>Snake Naranja</h2>
             <p style="color: var(--color-texto); margin-bottom: 20px;">Selecciona la velocidad:</p>
-            <button onclick="showCountdown(200, 'Lento')">Lento (Fácil)</button>
-            <button onclick="showCountdown(100, 'Normal')">Normal (Medio)</button>
-            <button onclick="showCountdown(60, 'Rápido')">Rápido (Difícil)</button>
+            <button onclick="showCountdown(200, 'Lento (Fácil)')">Lento (Fácil)</button>
+            <button onclick="showCountdown(100, 'Normal (Medio)')">Normal (Medio)</button>
+            <button onclick="showCountdown(60, 'Rápido (Difícil)')">Rápido (Difícil)</button>
             
             <hr style="width: 100%; margin: 20px 0; border-top: 1px solid #555;">
 
@@ -314,7 +314,7 @@
             <h2>Iniciar Sesión/Registro</h2>
             <div style="margin-bottom: 20px; width: 100%;">
                 <input type="text" id="authUsername" placeholder="Nombre de Usuario">
-                <input type="password" id="authPassword" placeholder="Contraseña">
+                <input type="password" id="authPassword" placeholder="Contraseña (Opcional)">
                 <div style="text-align: left; margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;">
                     <input type="checkbox" id="rememberMe">
                     <label for="rememberMe" style="font-size: 1em; color: var(--color-texto);">Mantener sesión iniciada</label>
@@ -341,9 +341,9 @@
     </div>
 
     <script>
-        // *** IMPORTANTE: REEMPLAZA ESTA URL ***
-        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
-        // URL de la tabla de clasificación
+        // *** IMPORTANTE: REEMPLAZA ESTA URL CON LA TUYA DE RENDER ***
+        const RENDER_API_URL = "https://tu-servicio-de-records.onrender.com"; 
+        // URL de tu tabla de clasificación pública
         const CLASIFICACION_URL = "https://gatosauriocrack.github.io/snake-juego/records";
         // ************************************
 
@@ -361,13 +361,15 @@
         const playAgainBtn = document.getElementById('playAgainBtn');
         const sessionStatusElement = document.getElementById('sessionStatus');
         
-        // 🟢 NUEVA REFERENCIA AL ICONO DE NOTIFICACIÓN
         const notificationIcon = document.getElementById('notification-icon');
 
-        // Variables Globales de Sesión
+        // Variables Globales de Sesión y Juego
         let currentUser = null;
         let currentToken = null;
-        let gameSpeedName = 'Normal'; 
+        let gameSpeedName = 'Normal (Medio)'; 
+        
+        // 🚨 CAMBIO CRÍTICO: Nombre del juego que se enviará al servidor
+        const GAME_NAME = 'Snake Naranja'; 
 
         // Configuración del juego
         const tileCount = 25; 
@@ -384,7 +386,7 @@
         const directionQueue = []; 
         let currentDirection = 'ArrowRight'; 
 
-        // --- LÓGICA DE HIGH SCORE LOCAL ---
+        // --- LÓGICA DE HIGH SCORE LOCAL y NOTIFICACIONES ---
         function loadHighScore() {
             const high = localStorage.getItem('snakeHighScore') || 0;
             highScoreElement.textContent = `Mejor: ${high}`;
@@ -399,31 +401,25 @@
             }
         }
         
-        // 🟢 FUNCIÓN PARA MOSTRAR LA NOTIFICACIÓN ANIMADA
         let notificationTimeout;
         function showNotification(isSuccess) {
-            // Limpiar cualquier animación y timeout previo
             clearTimeout(notificationTimeout);
             notificationIcon.style.display = 'none';
             notificationIcon.classList.remove('success', 'error', 'show-animation');
 
-            // Configurar el icono y la clase
             if (isSuccess) {
-                notificationIcon.innerHTML = '✔'; // Palomita verde
+                notificationIcon.innerHTML = '✔';
                 notificationIcon.classList.add('success');
             } else {
-                notificationIcon.innerHTML = '✖'; // Tache rojo
+                notificationIcon.innerHTML = '✖';
                 notificationIcon.classList.add('error');
             }
 
-            // Mostrar y aplicar animación
             notificationIcon.style.display = 'flex';
-            // Usar setTimeout para asegurar que la animación se reinicie
             setTimeout(() => {
                 notificationIcon.classList.add('show-animation');
-            }, 50); // Pequeño retraso para que el navegador reconozca el reinicio
+            }, 50); 
 
-            // Ocultar el icono después de que termine la animación (2.5 segundos)
             notificationTimeout = setTimeout(() => {
                 notificationIcon.style.display = 'none';
             }, 2500);
@@ -440,7 +436,6 @@
                 currentToken = storedToken;
                 sessionStatusElement.textContent = `Sesión: ${currentUser} (Guardada)`;
                 sessionStatusElement.style.color = 'lightgreen';
-                console.log(`Sesión recuperada para: ${currentUser}`);
             } else {
                 sessionStatusElement.textContent = `Sesión: No iniciada`;
                 sessionStatusElement.style.color = 'var(--color-naranja-claro)';
@@ -452,11 +447,13 @@
             const authPassword = document.getElementById('authPassword').value;
             const rememberMe = document.getElementById('rememberMe').checked; 
 
-            if (!authUsername || !authPassword) {
-                 alert("Por favor, introduce usuario y contraseña.");
+            if (!authUsername) {
+                 alert("Por favor, introduce un nombre de usuario.");
                  return;
             }
 
+            // Nota: La contraseña no es necesaria para tu API actual (simplemente se ignora),
+            // pero la mantenemos aquí por si decides implementarla más tarde.
             const endpoint = isRegister ? 'register' : 'login';
             const body = { username: authUsername, password: authPassword };
             const url = `${RENDER_API_URL}/${endpoint}`;
@@ -485,18 +482,17 @@
                     }
 
                     sessionStatusElement.style.color = 'lightgreen';
-                    alert(`¡Éxito! Bienvenido, ${currentUser}. Ahora tus récords se enviarán.`); // Alerta de autenticación se mantiene
+                    alert(`¡Éxito! Bienvenido, ${currentUser}. Ahora tus récords se enviarán.`); 
                     document.getElementById('authModal').style.display = 'none';
                 } else {
-                    alert(`Error de autenticación: ${result.message}`); // Alerta de autenticación se mantiene
+                    alert(`Error de autenticación: ${result.message}`); 
                 }
             } catch (error) {
-                alert("Error de conexión con el servidor. Render podría estar inactivo. Intenta de nuevo."); // Alerta de error se mantiene
+                alert("Error de conexión con el servidor. Render podría estar inactivo. Intenta de nuevo."); 
                 console.error("Error de autenticación/registro:", error);
             }
         }
 
-        // 🟢 FUNCIÓN MODIFICADA PARA USAR showNotification()
         async function sendRecordToServer(score, speed) {
             if (!currentToken) {
                 console.log("No hay sesión iniciada, récord no enviado globalmente.");
@@ -507,7 +503,8 @@
             const body = { 
                 token: currentToken, 
                 score: score,
-                speed: speed
+                speed: speed,
+                game_name: GAME_NAME // 🚨 ENVIANDO EL NOMBRE DEL JUEGO
             };
 
             const attemptSend = async (isRetry = false) => {
@@ -519,21 +516,18 @@
                     });
 
                     if (response.ok) {
-                        // 🟢 ÉXITO: Mostrar palomita verde
                         showNotification(true); 
-                        console.log(`Récord de ${score} enviado globalmente (${isRetry ? 'después de reintento' : 'con éxito'}).`);
+                        console.log(`Récord de ${score} enviado globalmente.`);
                     } else {
                         const errorResult = await response.json();
-                        // 🔴 ERROR: Mostrar tache rojo
                         showNotification(false);
                         console.error(`Error al enviar récord global: ${errorResult.message}`);
                     }
                 } catch (error) {
                     if (!isRetry) {
-                        console.warn("Fallo de red. Intentando reintentar en 3 segundos (Render podría estar despertando)...");
+                        console.warn("Fallo de red. Intentando reintentar en 3 segundos...");
                         setTimeout(() => attemptSend(true), 3000); 
                     } else {
-                        // 🔴 ERROR CRÍTICO: Mostrar tache rojo
                         showNotification(false);
                         console.error("Fallo en el reintento:", error);
                     }
@@ -543,7 +537,7 @@
             attemptSend(false);
         }
         
-        // --- FUNCIONES DEL JUEGO (resto sin cambios) ---
+        // --- FUNCIONES DEL JUEGO (Canvas, Lógica, Dibujo) ---
 
         function placeFood() {
             let newFoodPos;
@@ -606,10 +600,10 @@
         }
 
         function drawGame() {
+            // ... (Función de dibujo simplificada, asume que funciona) ...
             ctx.fillStyle = '#3b4252';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Dibujar cuadrícula
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)'; 
             ctx.lineWidth = 1;
             for (let i = 0; i < tileCount; i++) {
@@ -624,13 +618,11 @@
                 ctx.stroke();
             }
 
-            // Dibujar comida
             ctx.fillStyle = '#ffb86c';
             ctx.beginPath();
             ctx.arc(food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2, gridSize / 2 * 0.7, 0, Math.PI * 2);
             ctx.fill();
 
-            // Dibujar víbora
             snake.forEach((part, index) => {
                 ctx.fillStyle = '#EA7900';
                 ctx.strokeStyle = '#282c34';
@@ -654,7 +646,6 @@
                 ctx.fill();
                 ctx.stroke();
 
-                // Ojos (código simplificado para brevedad)
                 if (index === 0) {
                     ctx.fillStyle = 'white';
                     const eyeSize = gridSize * 0.15;
@@ -707,7 +698,7 @@
         function showCountdown(speed, speedName) {
             startModal.style.display = 'none';
             gameSpeed = speed;
-            gameSpeedName = speedName; // Guardar el nombre para el récord global
+            gameSpeedName = speedName; // Guardar el nombre de la velocidad
             let count = 3;
             
             currentDirection = 'ArrowRight'; 
@@ -748,7 +739,7 @@
             // 1. Guardar High Score Local
             saveHighScore(score);
             
-            // 2. Enviar Récord Global (usará la nueva función)
+            // 2. Enviar Récord Global
             sendRecordToServer(score, gameSpeedName);
             
             // Mostrar el modal
@@ -765,7 +756,7 @@
                      changeDirection(event.key);
                 } else if (startModal.style.display === 'flex') {
                     // Si está en el menú, cualquier flecha inicia en Normal
-                    showCountdown(100, 'Normal');
+                    showCountdown(100, 'Normal (Medio)');
                 }
             }
         });
@@ -778,11 +769,12 @@
         // Botón de reintentar en Game Over
         playAgainBtn.addEventListener('click', () => {
             gameOverModal.style.display = 'none';
-            startModal.style.display = 'flex'; // Volver al menú de velocidad
+            startModal.style.display = 'flex'; 
         });
         
         // Botón para abrir la Tabla Clasificatoria
         document.getElementById('btnClasificatoria').addEventListener('click', () => {
+            // Nota: Aquí abrirá tu tabla de clasificación, que debe ser otro HTML que llame a la API con ?game_name=Snake Naranja
             window.open(CLASIFICACION_URL, '_blank');
         });
 
