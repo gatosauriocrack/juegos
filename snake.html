@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Naranja Deluxe</title>
+    <title>Snake</title>
     <style>
         /* Estilos CSS Minimalistas */
         :root {
@@ -223,7 +223,7 @@
             margin-left: 5px;
         }
 
-        /* 🟢 NUEVOS ESTILOS PARA LA NOTIFICACIÓN ANIMADA 🔴 */
+        /* 🟢 ESTILOS PARA LA NOTIFICACIÓN ANIMADA 🔴 */
         #notification-icon {
             position: fixed; 
             top: 10px;
@@ -293,7 +293,7 @@
                 <span class="text">Clasificación</span>
             </button>
             
-            <h2>Snake Naranja</h2>
+            <h2>Snake (disfruta)</h2>
             <p style="color: var(--color-texto); margin-bottom: 20px;">Selecciona la velocidad:</p>
             <button onclick="showCountdown(200, 'Lento (Fácil)')">Lento (Fácil)</button>
             <button onclick="showCountdown(100, 'Normal (Medio)')">Normal (Medio)</button>
@@ -314,16 +314,22 @@
             <h2>Iniciar Sesión/Registro</h2>
             <div style="margin-bottom: 20px; width: 100%;">
                 <input type="text" id="authUsername" placeholder="Nombre de Usuario">
-                <input type="password" id="authPassword" placeholder="Contraseña (Opcional)">
+                <input type="password" id="authPassword" placeholder="Contraseña">
                 <div style="text-align: left; margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;">
                     <input type="checkbox" id="rememberMe">
                     <label for="rememberMe" style="font-size: 1em; color: var(--color-texto);">Mantener sesión iniciada</label>
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="handleAuthentication(false)" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px;">Iniciar Sesión</button>
-                <button onclick="handleAuthentication(true)" style="padding: 10px 20px; background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; border-radius: 5px;">Registrarse</button>
+                <button onclick="handleAuthentication(false)" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 1em;">Iniciar Sesión</button>
+                <button onclick="handleAuthentication(true)" style="padding: 10px 20px; background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; border-radius: 5px; font-size: 1em;">Registrarse</button>
             </div>
+            
+            <button id="logoutButton" onclick="logout()" 
+                    style="margin-top: 20px; padding: 10px 20px; background-color: #D32F2F; color: white; display: none; font-size: 1em;">
+                Cerrar Sesión
+            </button>
+
             <p style="margin-top: 15px; font-size: 0.8em; color: #aaa;">Solo necesitas iniciar sesión una vez.</p>
             <button onclick="document.getElementById('authModal').style.display = 'none';" style="margin-top: 20px; padding: 8px 15px; background-color: #555; color: white; font-size: 1em;">Cerrar</button>
         </div>
@@ -341,10 +347,10 @@
     </div>
 
     <script>
-        // *** IMPORTANTE: REEMPLAZA ESTA URL CON LA TUYA DE RENDER ***
-        const RENDER_API_URL = "https://tu-servicio-de-records.onrender.com"; 
-        // URL de tu tabla de clasificación pública
-        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/snake-juego/records";
+        // *** IMPORTANTE: RENDER_API_URL ACTUALIZADA ***
+        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
+        // URL de tu tabla de clasificación pública (asumimos que está en el mismo directorio)
+        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/recordsnake"; 
         // ************************************
 
         const canvas = document.getElementById('gameCanvas');
@@ -360,7 +366,6 @@
         const finalHighScoreValueElement = document.getElementById('finalHighScoreValue');
         const playAgainBtn = document.getElementById('playAgainBtn');
         const sessionStatusElement = document.getElementById('sessionStatus');
-        
         const notificationIcon = document.getElementById('notification-icon');
 
         // Variables Globales de Sesión y Juego
@@ -368,8 +373,7 @@
         let currentToken = null;
         let gameSpeedName = 'Normal (Medio)'; 
         
-        // 🚨 CAMBIO CRÍTICO: Nombre del juego que se enviará al servidor
-        const GAME_NAME = 'Snake Naranja'; 
+        const GAME_API_KEY = 'Snake_game'; 
 
         // Configuración del juego
         const tileCount = 25; 
@@ -425,8 +429,44 @@
             }, 2500);
         }
 
-        // --- LÓGICA DE SESIÓN Y ENVÍO GLOBAL ---
+        // --- LÓGICA DE SESIÓN Y ENVÍO GLOBAL (ACTUALIZADA) ---
         
+        function updateSessionUI() {
+            const logoutBtn = document.getElementById('logoutButton');
+            const authUsernameInput = document.getElementById('authUsername');
+            const authPasswordInput = document.getElementById('authPassword');
+            const authButtons = document.querySelectorAll('#authModal .modal-content div:nth-child(2) button'); 
+
+            if (currentUser) {
+                sessionStatusElement.textContent = `Sesión: ${currentUser} (Activa)`;
+                sessionStatusElement.style.color = 'lightgreen';
+                
+                logoutBtn.style.display = 'block';
+                authUsernameInput.value = currentUser; 
+                authUsernameInput.disabled = true;
+                authPasswordInput.style.display = 'none';
+                authButtons.forEach(btn => btn.style.display = 'none');
+            } else {
+                sessionStatusElement.textContent = `Sesión: No iniciada`;
+                sessionStatusElement.style.color = 'var(--color-naranja-claro)';
+                
+                logoutBtn.style.display = 'none';
+                authUsernameInput.value = '';
+                authUsernameInput.disabled = false;
+                authPasswordInput.style.display = 'block';
+                authButtons.forEach(btn => btn.style.display = 'flex'); 
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('authUsername');
+            currentUser = null;
+            currentToken = null;
+            updateSessionUI();
+            alert("¡Sesión cerrada correctamente!");
+        }
+
         function loadSession() {
             const storedToken = localStorage.getItem('authToken');
             const storedUser = localStorage.getItem('authUsername');
@@ -434,12 +474,11 @@
             if (storedToken && storedUser) {
                 currentUser = storedUser;
                 currentToken = storedToken;
-                sessionStatusElement.textContent = `Sesión: ${currentUser} (Guardada)`;
-                sessionStatusElement.style.color = 'lightgreen';
             } else {
-                sessionStatusElement.textContent = `Sesión: No iniciada`;
-                sessionStatusElement.style.color = 'var(--color-naranja-claro)';
+                currentUser = null;
+                currentToken = null;
             }
+            updateSessionUI();
         }
 
         async function handleAuthentication(isRegister) {
@@ -447,13 +486,11 @@
             const authPassword = document.getElementById('authPassword').value;
             const rememberMe = document.getElementById('rememberMe').checked; 
 
-            if (!authUsername) {
-                 alert("Por favor, introduce un nombre de usuario.");
+            if (!authUsername || !authPassword) {
+                 alert("Por favor, introduce usuario Y contraseña.");
                  return;
             }
-
-            // Nota: La contraseña no es necesaria para tu API actual (simplemente se ignora),
-            // pero la mantenemos aquí por si decides implementarla más tarde.
+            
             const endpoint = isRegister ? 'register' : 'login';
             const body = { username: authUsername, password: authPassword };
             const url = `${RENDER_API_URL}/${endpoint}`;
@@ -474,22 +511,30 @@
                     if (rememberMe) {
                         localStorage.setItem('authToken', currentToken);
                         localStorage.setItem('authUsername', currentUser);
-                        sessionStatusElement.textContent = `Sesión: ${currentUser} (Guardada)`;
                     } else {
                         localStorage.removeItem('authToken');
                         localStorage.removeItem('authUsername');
-                        sessionStatusElement.textContent = `Sesión: ${currentUser}`;
                     }
 
-                    sessionStatusElement.style.color = 'lightgreen';
-                    alert(`¡Éxito! Bienvenido, ${currentUser}. Ahora tus récords se enviarán.`); 
+                    loadSession();
+                    alert(`¡Éxito! Bienvenido/a, ${currentUser}. Ahora tus récords se enviarán.`); 
                     document.getElementById('authModal').style.display = 'none';
+                    
                 } else {
-                    alert(`Error de autenticación: ${result.message}`); 
+                    let errorMessage = `Error: ${result.message}`;
+                    if (response.status === 401) { errorMessage = "Contraseña incorrecta."; }
+                    else if (response.status === 404 && !isRegister) { errorMessage = "Usuario no encontrado. ¡Intenta registrarte!"; }
+                    else if (response.status === 409 && isRegister) { errorMessage = "El usuario ya existe. ¡Intenta Iniciar Sesión!"; }
+                    else if (response.status === 400 && isRegister) { errorMessage = "Error en el registro. Asegúrate de usar una contraseña."; }
+                    else if (response.status >= 500) { errorMessage = "Error interno del servidor. Intenta más tarde."; }
+                    
+                    alert(errorMessage);
+                    showNotification(false);
                 }
             } catch (error) {
                 alert("Error de conexión con el servidor. Render podría estar inactivo. Intenta de nuevo."); 
                 console.error("Error de autenticación/registro:", error);
+                showNotification(false);
             }
         }
 
@@ -499,12 +544,12 @@
                 return;
             }
 
-            const url = `${RENDER_API_URL}/submit_record`;
+            const url = `${RENDER_API_URL}/submit_record`; 
             const body = { 
                 token: currentToken, 
                 score: score,
                 speed: speed,
-                game_name: GAME_NAME // 🚨 ENVIANDO EL NOMBRE DEL JUEGO
+                game_name: GAME_API_KEY 
             };
 
             const attemptSend = async (isRetry = false) => {
@@ -537,7 +582,7 @@
             attemptSend(false);
         }
         
-        // --- FUNCIONES DEL JUEGO (Canvas, Lógica, Dibujo) ---
+        // --- FUNCIONES DEL JUEGO (Canvas, Lógica, Dibujo) (SIN CAMBIOS SIGNIFICATIVOS) ---
 
         function placeFood() {
             let newFoodPos;
@@ -600,7 +645,6 @@
         }
 
         function drawGame() {
-            // ... (Función de dibujo simplificada, asume que funciona) ...
             ctx.fillStyle = '#3b4252';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
@@ -698,7 +742,7 @@
         function showCountdown(speed, speedName) {
             startModal.style.display = 'none';
             gameSpeed = speed;
-            gameSpeedName = speedName; // Guardar el nombre de la velocidad
+            gameSpeedName = speedName; 
             let count = 3;
             
             currentDirection = 'ArrowRight'; 
@@ -736,13 +780,10 @@
             gameRunning = false;
             clearInterval(intervalId);
             
-            // 1. Guardar High Score Local
             saveHighScore(score);
             
-            // 2. Enviar Récord Global
             sendRecordToServer(score, gameSpeedName);
             
-            // Mostrar el modal
             finalScoreValueElement.textContent = score;
             finalHighScoreValueElement.textContent = loadHighScore();
             gameOverModal.style.display = 'flex';
@@ -755,7 +796,6 @@
                 if (gameRunning) {
                      changeDirection(event.key);
                 } else if (startModal.style.display === 'flex') {
-                    // Si está en el menú, cualquier flecha inicia en Normal
                     showCountdown(100, 'Normal (Medio)');
                 }
             }
@@ -774,14 +814,17 @@
         
         // Botón para abrir la Tabla Clasificatoria
         document.getElementById('btnClasificatoria').addEventListener('click', () => {
-            // Nota: Aquí abrirá tu tabla de clasificación, que debe ser otro HTML que llame a la API con ?game_name=Snake Naranja
-            window.open(CLASIFICACION_URL, '_blank');
+            document.getElementById('startModal').style.display = 'none';
+            // Abre la clasificación de snake en una nueva pestaña
+            window.open(CLASIFICACION_URL, '_blank'); 
         });
 
         // Estado inicial
-        loadHighScore();
-        loadSession(); 
-        drawGame(); 
+        window.onload = () => {
+            loadHighScore();
+            loadSession(); 
+            drawGame(); 
+        };
     </script>
 </body>
 </html>
