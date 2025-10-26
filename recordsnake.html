@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabla de Récords Globales</title>
+    <title>Tabla de Récords Globales - Snake</title>
     <style>
         /* Paleta de colores */
         :root {
@@ -11,7 +11,7 @@
             --color-fondo: #282c34;
             --color-tablero: #3b4252;
             --color-texto: #e0e0e0;
-            /* Nuevo color azul para el puntaje */
+            /* Color azul para el puntaje (mejor alto) */
             --color-azul-puntaje: #00bcd4; 
         }
         body {
@@ -94,7 +94,7 @@
         /* Estilo para la columna de Puntaje */
         .score-cell {
             font-weight: bold;
-            color: var(--color-azul-puntaje); /* Aplicamos el nuevo color azul */
+            color: var(--color-azul-puntaje); 
         }
         #message {
             color: var(--color-naranja-principal);
@@ -120,10 +120,10 @@
     <div id="filter-container">
         <label for="speedFilter" style="margin-right: 10px;">Filtrar por Velocidad:</label>
         <select id="speedFilter" onchange="filterAndDisplayRecords()">
-            <option value="All">Todas las Velocidades</option>
-            <option value="Lento">Lento (Fácil)</option>
-            <option value="Normal" selected>Normal (Medio)</option>
-            <option value="Rápido">Rápido (Difícil)</option>
+            <option value="Todas las Velocidades">Todas las Velocidades</option>
+            <option value="Lento (Fácil)">Lento (Fácil)</option>
+            <option value="Normal (Medio)" selected>Normal (Medio)</option>
+            <option value="Rápido (Difícil)">Rápido (Difícil)</option>
         </select>
     </div>
 
@@ -141,11 +141,19 @@
         <tbody>
             </tbody>
     </table>
+    
+    <p style="margin-top: 20px;">
+        <a href="https://gatosauriocrack.github.io/juegos/snake" style="color: var(--color-naranja-principal); text-decoration: none; font-weight: bold;">← Volver al juego</a>
+    </p>
 
     <script>
-        // *** IMPORTANTE: REEMPLAZA ESTA URL CON LA TUYA ***
+        // *** RENDER_API_URL ACTUALIZADA ***
         const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
-        // *************************************************
+        // ************************************
+
+        // CLAVE ÚNICA PARA IDENTIFICAR EL JUEGO SNAKE
+        const GAME_API_KEY = 'Snake_game'; 
+    
 
         const tbody = document.querySelector('#records-table tbody');
         const messageElement = document.getElementById('message');
@@ -153,29 +161,29 @@
         
         let allRecords = []; 
         
-        const trophyEmojis = ['🏆', '🥈', '🥉']; // Emojis para 1º, 2º y 3º
+        const trophyEmojis = ['🏆', '🥈', '🥉']; 
 
         /**
-         * Filtra la variable global 'allRecords' y muestra los resultados.
+         * Filtra y muestra los récords.
          */
         function filterAndDisplayRecords() {
             const selectedSpeed = speedFilter.value;
             
             // 1. Filtrar los récords
             const filteredRecords = allRecords.filter(record => {
-                if (selectedSpeed === 'All') {
+                if (selectedSpeed === 'Todas las Velocidades') {
                     return true;
                 }
-                return record.speed === selectedSpeed;
+                return record.speed === selectedSpeed; 
             });
             
-            // 2. Ordenar por puntaje (descendente)
+            // 2. Ordenar por puntaje (descendente) - ya debería venir ordenado del backend
             filteredRecords.sort((a, b) => b.score - a.score);
 
-            // 3. Mostrar solo los 10 primeros de ese filtro
+            // 3. Mostrar solo los 10 primeros 
             const recordsToShow = filteredRecords.slice(0, 10);
             
-            tbody.innerHTML = ""; // Limpiar tabla
+            tbody.innerHTML = ""; 
             
             if (allRecords.length === 0) {
                  messageElement.textContent = "Aún no hay récords registrados.";
@@ -193,13 +201,11 @@
                 const row = tbody.insertRow();
                 const position = index + 1;
                 
-                // Celdas de la fila
                 const posCell = row.insertCell();
                 const userCell = row.insertCell();
                 const scoreCell = row.insertCell();
                 const speedCell = row.insertCell();
                 
-                // ⭐️ Lógica de Emojis para 1º, 2º y 3º
                 if (position <= 3) {
                     posCell.innerHTML = trophyEmojis[index] + " " + position;
                 } else {
@@ -207,18 +213,14 @@
                 }
                 
                 userCell.textContent = record.username;
-                
-                // ⭐️ Lógica de color azul para el puntaje (usando una clase CSS)
                 scoreCell.textContent = record.score;
                 scoreCell.classList.add('score-cell'); 
-                
                 speedCell.textContent = record.speed;
             });
         }
 
         /**
-         * Conecta con el servidor de Render para obtener todos los récords,
-         * con reintento si la conexión falla inicialmente (servidor dormido).
+         * Conecta con el servidor de Render para obtener los récords de Snake.
          */
         async function fetchRecords(isRetry = false) {
             
@@ -229,7 +231,10 @@
             }
             
             try {
-                const response = await fetch(`${RENDER_API_URL}/get_records`);
+                // Incluir el game_name para filtrar los récords de Snake
+                const url = `${RENDER_API_URL}/get_records?game_name=${GAME_API_KEY}`;
+                
+                const response = await fetch(url);
                 
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);
@@ -237,31 +242,24 @@
                 
                 const data = await response.json();
                 
-                // Éxito: Guardar y mostrar
                 allRecords = data.highscores; 
                 filterAndDisplayRecords(); 
 
             } catch (error) {
                 console.error(`Error al obtener récords (${isRetry ? 'Reintento' : 'Intento 1'}):`, error);
                 
-                // Si es el primer intento (isRetry=false), programamos un reintento
                 if (!isRetry) {
-                    // Esperar 3 segundos para que Render tenga tiempo de arrancar
                     setTimeout(() => fetchRecords(true), 3000); 
-                    
                 } else {
-                    // Si ya es el reintento y falla, mostramos el error final
                     messageElement.textContent = `Error al conectar con el servidor. Render podría estar inactivo o inalcanzable: ${error.message}`;
                 }
             }
         }
 
-        // Iniciar la carga de récords
         fetchRecords();
         
-        // Recargar automáticamente cada minuto después del primer intento (principalmente para ver nuevos récords)
+        // Recargar automáticamente cada minuto
         setInterval(() => fetchRecords(), 60000); 
     </script>
 </body>
 </html>
-
