@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Clasificación Global: Buscaminas</title>
+    <style>
+        /* Estilos Adaptados al Diseño de Snake Naranja (Fondo Oscuro) */
+        :root {
+            /* Paleta de colores de Snake (Naranja y Oscuro) */
+            --color-principal: #EA7900;       /* Naranja Principal (Header, Th, Enlaces) */
+            --color-secundario: #ffb86c;     /* Naranja Claro */
+            --color-fondo: #282c34;          /* Fondo Oscuro */
+            --color-tarjeta: #3b4252;        /* Color de la Tabla/Tarjeta (Gris Oscuro) */
+            --color-texto: #e0e0e0;          /* Texto Blanco/Gris Claro */
+            --color-record: #4CAF50;         /* Verde (Tiempo más bajo es mejor) */
+            --color-bomba: #D32F2F;          /* Rojo de error */
+            --color-sombra-naranja: #a45400; /* Sombra Naranja */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-fondo);
+            color: var(--color-texto);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--color-principal);
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Tabla de Récords */
+        #highscores-container {
+            width: 100%;
+            max-width: 700px;
+            background-color: var(--color-tarjeta);
+            border-radius: 10px;
+            /* Box Shadow más sutil para fondo oscuro */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); 
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate; /* Cambiado para usar bordes redondeados */
+            border-spacing: 0 2px;     /* Separación entre filas */
+            text-align: left;
+        }
+        
+        /* Estilo de la cabecera */
+        #highscores-container thead {
+            border-radius: 10px 10px 0 0;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            /* Eliminamos los bordes internos de las filas */
+            border-bottom: none; 
+        }
+
+        th {
+            background-color: var(--color-principal);
+            color: var(--color-fondo); /* Texto oscuro en fondo naranja */
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        tr {
+             background-color: var(--color-tarjeta); /* Todas las filas usan el color oscuro de tarjeta */
+             transition: background-color 0.2s;
+        }
+
+        tr:nth-child(even) {
+            background-color: #4b5263; /* Un gris ligeramente más claro para contraste */
+        }
+
+        tr:hover {
+            background-color: #5d667d; /* Resaltado al pasar el ratón */
+        }
+
+        /* Estilos de Posición */
+        .position {
+            font-weight: bold;
+            text-align: center;
+            width: 50px;
+        }
+        
+        /* Colores de Podio (Podrías ajustarlos a la paleta si quieres) */
+        .position.rank-1 { background-color: gold; color: #333; }
+        .position.rank-2 { background-color: silver; color: #333; }
+        .position.rank-3 { background-color: #cd7f32; color: #333; }
+        
+        .score-value {
+            font-weight: bold;
+            color: var(--color-record); /* Verde para el tiempo bajo */
+        }
+        
+        .empty-message {
+            padding: 20px;
+            text-align: center;
+            color: var(--color-secundario);
+            font-style: italic;
+        }
+        
+        /* Loading Spinner */
+        #loading-message {
+            display: none;
+            padding: 30px;
+            font-size: 1.2em;
+            color: var(--color-principal);
+        }
+        
+        /* Mensajes de error/info */
+        #info-message {
+            margin-top: 5px;
+            font-size: 1em;
+            color: var(--color-secundario); /* Naranja claro para información */
+            text-align: center;
+        }
+        
+        /* Estilo para el enlace de retorno */
+        .return-link a {
+            color: var(--color-principal); /* Naranja */
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s;
+        }
+        .return-link a:hover {
+            color: var(--color-secundario);
+        }
+        
+        /* MEDIA QUERY (Responsive Móvil) */
+        @media (max-width: 650px) {
+            #highscores-container {
+                max-width: 100%;
+            }
+            #highscores-container table {
+                font-size: 0.9em;
+            }
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏆 Clasificación Global: <span id="game-title">Buscaminas</span></h1>
+        <p id="info-message"></p>
+    </header>
+
+    <div id="highscores-container">
+        <table>
+            <thead>
+                <tr>
+                    <th class="position">#</th>
+                    <th>Usuario</th>
+                    <th>Tiempo (s)</th>
+                    <th>Dificultad</th>
+                </tr>
+            </thead>
+            <tbody id="highscores-body">
+                </tbody>
+        </table>
+        <div id="loading-message">Cargando récords...</div>
+        <div id="no-records-message" class="empty-message" style="display: none;">Aún no hay récords</div>
+    </div>
+    
+    <p class="return-link" style="margin-top: 20px;">
+        <a href="index.html">← Volver al juego</a> 
+    </p>
+
+    <script>
+        // *** RENDER_API_URL ACTUALIZADA ***
+        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
+        // ****************************************************
+
+        // CLAVE CRÍTICA DEL JUEGO
+        const GAME_API_KEY = 'Buscaminas_game'; 
+        // Solo para récords de la dificultad Experto
+        const TARGET_SPEED = '30x29 (99 Minas)'; 
+        
+        const highscoresBody = document.getElementById('highscores-body');
+        const loadingMessage = document.getElementById('loading-message');
+        const noRecordsMessage = document.getElementById('no-records-message');
+        const gameTitle = document.getElementById('game-title');
+
+        /**
+         * Inicializa la carga.
+         */
+        function init() {
+            fetchHighscores();
+        }
+
+        /**
+         * Obtiene la clasificación del servidor y actualiza la tabla.
+         */
+        async function fetchHighscores() {
+            highscoresBody.innerHTML = '';
+            loadingMessage.style.display = 'block';
+            noRecordsMessage.style.display = 'none';
+
+            // Consultar la API para la clave de Buscaminas y la dificultad específica
+            const url = `${RENDER_API_URL}/get_records?game_name=${GAME_API_KEY}&speed=${encodeURIComponent(TARGET_SPEED)}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                loadingMessage.style.display = 'none';
+
+                if (response.ok && data.highscores.length > 0) {
+                    displayHighscores(data.highscores);
+                } else {
+                    noRecordsMessage.style.display = 'block';
+                }
+
+            } catch (error) {
+                loadingMessage.style.display = 'none';
+                highscoresBody.innerHTML = `<tr><td colspan="4" class="empty-message" style="color: var(--color-bomba)">Error al cargar la clasificación. El servidor podría estar inactivo.</td></tr>`;
+                console.error("Error fetching highscores:", error);
+            }
+        }
+
+        /**
+         * Renderiza los récords en la tabla.
+         * @param {Array<Object>} highscores - Lista de récords (ordenados ASC por el backend).
+         */
+        function displayHighscores(highscores) {
+            highscoresBody.innerHTML = '';
+            
+            highscores.forEach((record, index) => {
+                const row = highscoresBody.insertRow();
+                
+                // Celda de Posición
+                const rankCell = row.insertCell();
+                rankCell.textContent = index + 1;
+                rankCell.classList.add('position');
+                if (index === 0) rankCell.classList.add('rank-1');
+                else if (index === 1) rankCell.classList.add('rank-2');
+                else if (index === 2) rankCell.classList.add('rank-3');
+
+                // Celda de Usuario
+                row.insertCell().textContent = record.username;
+
+                // Celda de Tiempo/Score (Tiempo es el valor principal)
+                const scoreCell = row.insertCell();
+                scoreCell.textContent = `${record.score}s`;
+                scoreCell.classList.add('score-value');
+                
+                // Celda de Dificultad
+                row.insertCell().textContent = record.speed;
+            });
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
