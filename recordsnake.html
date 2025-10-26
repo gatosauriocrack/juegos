@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Récords Globales - Snake</title>
+    <style>
+        :root {
+            --color-naranja-principal: #EA7900;
+            --color-fondo: #282c34;
+            --color-tablero: #3b4252;
+            --color-texto: #e0e0e0;
+            --color-azul-puntaje: #00bcd4; 
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-fondo);
+            color: var(--color-texto);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: var(--color-naranja-principal);
+            border-bottom: 3px solid var(--color-naranja-principal);
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        
+        #filter-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 10px 0 20px 0;
+            text-align: center;
+        }
+        #speedFilter {
+            padding: 10px;
+            border-radius: 5px;
+            border: 2px solid var(--color-naranja-principal);
+            background-color: var(--color-tablero);
+            color: var(--color-texto);
+            font-size: 1em;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px; 
+            appearance: none; 
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23EA7900%22%20d%3D%22M287%2C188.7L146.2%2C47.9L5.4%2C188.7h281.6z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            text-align: center;
+            text-align-last: center;
+        }
+        
+        #records-table {
+            width: 100%;
+            max-width: 600px;
+            border-collapse: separate;
+            border-spacing: 0 10px; 
+        }
+        #records-table th, #records-table td {
+            padding: 15px;
+            text-align: left;
+        }
+        #records-table th {
+            background-color: var(--color-naranja-principal);
+            color: var(--color-fondo);
+            font-size: 1.1em;
+            border-radius: 5px 5px 0 0;
+            position: sticky; 
+            top: 0;
+            z-index: 10;
+        }
+        #records-table tr {
+            background-color: var(--color-tablero);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+        #records-table tr:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+        #records-table td:first-child {
+            font-weight: bold;
+            color: var(--color-naranja-principal);
+        }
+        .score-cell {
+            font-weight: bold;
+            color: var(--color-azul-puntaje); 
+        }
+        #message {
+            color: var(--color-naranja-principal);
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 650px) {
+            #records-table {
+                font-size: 0.9em;
+                max-width: 100%;
+            }
+            #records-table th, #records-table td {
+                padding: 10px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🐍 Tabla de Récords Globales 🏆</h1>
+    
+    <div id="filter-container">
+        <label for="speedFilter" style="margin-right: 10px;">Filtrar por Velocidad:</label>
+        <select id="speedFilter" onchange="filterAndDisplayRecords()">
+            <option value="Todas las Velocidades">Todas las Velocidades</option>
+            <option value="Lento (Fácil)">Lento (Fácil)</option>
+            <option value="Normal (Medio)" selected>Normal (Medio)</option>
+            <option value="Rápido (Difícil)">Rápido (Difícil)</option>
+        </select>
+    </div>
+
+    <p id="message">Cargando récords...</p>
+
+    <table id="records-table">
+        <thead>
+            <tr>
+                <th>Posición</th>
+                <th>Usuario</th>
+                <th>Puntaje</th>
+                <th>Velocidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+    
+    <p style="margin-top: 20px;">
+        <a href="https://gatosauriocrack.github.io/juegos/snake" style="color: var(--color-naranja-principal); text-decoration: none; font-weight: bold;">← Volver al juego</a>
+    </p>
+
+    <script>
+        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
+        const GAME_API_KEY = 'Snake_game'; 
+    
+        const tbody = document.querySelector('#records-table tbody');
+        const messageElement = document.getElementById('message');
+        const speedFilter = document.getElementById('speedFilter');
+        
+        let allRecords = []; 
+        
+        const trophyEmojis = ['🏆', '🥈', '🥉']; 
+
+        function filterAndDisplayRecords() {
+            const selectedSpeed = speedFilter.value;
+            
+            const filteredRecords = allRecords.filter(record => {
+                if (selectedSpeed === 'Todas las Velocidades') {
+                    return true;
+                }
+                return record.speed === selectedSpeed; 
+            });
+            
+            filteredRecords.sort((a, b) => b.score - a.score);
+
+            const recordsToShow = filteredRecords.slice(0, 10);
+            
+            tbody.innerHTML = ""; 
+            
+            if (allRecords.length === 0) {
+                 messageElement.textContent = "Aún no hay récords registrados.";
+                 return;
+            }
+
+            if (recordsToShow.length === 0) {
+                messageElement.textContent = `No hay récords para la velocidad "${selectedSpeed}".`;
+                return;
+            }
+            
+            messageElement.textContent = ""; 
+
+            recordsToShow.forEach((record, index) => {
+                const row = tbody.insertRow();
+                const position = index + 1;
+                
+                const posCell = row.insertCell();
+                const userCell = row.insertCell();
+                const scoreCell = row.insertCell();
+                const speedCell = row.insertCell();
+                
+                if (position <= 3) {
+                    posCell.innerHTML = trophyEmojis[index] + " " + position;
+                } else {
+                    posCell.textContent = position;
+                }
+                
+                userCell.textContent = record.username;
+                scoreCell.textContent = record.score;
+                scoreCell.classList.add('score-cell'); 
+                speedCell.textContent = record.speed;
+            });
+        }
+
+        async function fetchRecords(isRetry = false) {
+            
+            if (!isRetry) {
+                messageElement.textContent = "Intentando despertar el servidor (Render) y cargar los récords...";
+            } else {
+                messageElement.textContent = "Reintentando conexión... (Render se está despertando)";
+            }
+            
+            try {
+                const url = `${RENDER_API_URL}/get_records?game_name=${GAME_API_KEY}`;
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                allRecords = data.highscores; 
+                filterAndDisplayRecords(); 
+
+            } catch (error) {
+                console.error(`Error al obtener récords (${isRetry ? 'Reintento' : 'Intento 1'}):`, error);
+                
+                if (!isRetry) {
+                    setTimeout(() => fetchRecords(true), 3000); 
+                } else {
+                    messageElement.textContent = `Error al conectar con el servidor. Render podría estar inactivo o inalcanzable: ${error.message}`;
+                }
+            }
+        }
+
+        fetchRecords();
+        
+        setInterval(() => fetchRecords(), 60000); 
+    </script>
+</body>
+</html>
