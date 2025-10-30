@@ -603,6 +603,8 @@
     <script>
         const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
         const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/BuscaminasRecords"; 
+        // 👇 MODIFICACIÓN 1: URL con parámetro de origen
+        const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`; 
         const GAME_API_KEY = 'Buscaminas_game';
         const GAME_SPEED = '30x29 (99 Minas)';
         const DIFFICULTIES = {
@@ -814,7 +816,8 @@
         
         function openClasificacion() {
              document.getElementById('authModal').style.display = 'none';
-             window.open(CLASIFICACION_URL, '_blank');
+             // 👇 MODIFICACIÓN 2: Usar la URL con el parámetro de origen
+             window.open(URL_CLASIFICACION_CON_ORIGEN, '_blank');
         }
 
         function setDifficulty() {
