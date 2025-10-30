@@ -48,6 +48,16 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
+        /* Contenedor principal de controles */
+        #mainControls {
+            display: flex;
+            gap: 10px; /* Espacio entre el pad direccional y el botón de pausa */
+            align-items: center;
+            justify-content: center;
+            width: 375px;
+            max-width: 90vw;
+        }
+
         #controls {
             display: grid;
             grid-template-areas: 
@@ -57,8 +67,8 @@
             gap: 1px; 
             margin-top: 1px; 
             width: 300px; 
-            max-width: 90vw;
         }
+
         .control-btn {
             width: 100px;
             height: 100px;
@@ -86,6 +96,32 @@
         #down { grid-area: down; }
         #left { grid-area: left; }
         #right { grid-area: right; }
+
+        /* Estilos del Botón de Pausa */
+        #pauseButton {
+            width: 65px; /* Más pequeño para que quepa junto al pad */
+            height: 65px;
+            font-size: 1.8em;
+            background-color: #555;
+            color: var(--color-texto);
+            border-radius: 10px;
+            box-shadow: 0 6px #333;
+            /* Asegurarse de que use las propiedades básicas del control-btn */
+            border: none;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.15s ease-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+        #pauseButton:hover { background-color: #666; }
+        #pauseButton:active {
+            background-color: #333;
+            box-shadow: 0 3px #111;
+            transform: translateY(3px);
+        }
 
         .game-modal {
             display: none;
@@ -216,6 +252,41 @@
             border-left: 20px solid var(--color-fondo);
             margin-left: 5px;
         }
+        
+        /* Modal de Pausa */
+        #pauseModal {
+            display: none;
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        #pauseModal h2 {
+            font-size: 3em;
+            color: var(--color-naranja-principal);
+            margin: 0 0 20px 0;
+        }
+        #pauseModal button {
+            padding: 15px 30px;
+            font-size: 1.5em;
+            font-weight: bold;
+            background-color: var(--color-naranja-principal);
+            color: var(--color-fondo);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px var(--color-sombra-naranja);
+            transition: all 0.1s;
+        }
+        #pauseModal button:active {
+            box-shadow: 0 1px var(--color-sombra-naranja);
+            transform: translateY(3px);
+        }
 
         #notification-icon {
             position: fixed; 
@@ -269,11 +340,14 @@
     </div>
     <canvas id="gameCanvas" width="375" height="375"></canvas> 
 
-    <div id="controls">
-        <button id="up" class="control-btn">↑</button>
-        <button id="left" class="control-btn">←</button>
-        <button id="right" class="control-btn">→</button>
-        <button id="down" class="control-btn">↓</button>
+    <div id="mainControls">
+        <div id="controls">
+            <button id="up" class="control-btn">↑</button>
+            <button id="left" class="control-btn">←</button>
+            <button id="right" class="control-btn">→</button>
+            <button id="down" class="control-btn">↓</button>
+        </div>
+        <button id="pauseButton" style="display: none;">⏸</button>
     </div>
 
     <div id="startModal" class="game-modal" style="display: flex;">
@@ -339,10 +413,16 @@
         </div>
     </div>
 
+    <div id="pauseModal" class="game-modal">
+        <div class="modal-content">
+            <h2>JUEGO EN PAUSA</h2>
+            <button id="resumeButton">REANUDAR (Espacio)</button>
+        </div>
+    </div>
+
     <script>
         const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
         const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/recordsnake";
-        // MODIFICACIÓN 1: Añadir el parámetro de origen a la URL de clasificación
         const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`;
 
         const canvas = document.getElementById('gameCanvas');
@@ -354,6 +434,11 @@
         const highScoreElement = document.getElementById('highScore');
         const startModal = document.getElementById('startModal');
         const gameOverModal = document.getElementById('gameOverModal');
+        // NUEVO: Botón y Modal de Pausa
+        const pauseButton = document.getElementById('pauseButton');
+        const pauseModal = document.getElementById('pauseModal');
+        const resumeButton = document.getElementById('resumeButton');
+
         const finalScoreValueElement = document.getElementById('finalScoreValue');
         const finalHighScoreValueElement = document.getElementById('finalHighScoreValue');
         const playAgainBtn = document.getElementById('playAgainBtn');
@@ -376,6 +461,8 @@
         let gameSpeed = 100; 
         let intervalId;
         let gameRunning = false;
+        // NUEVO: Estado de pausa
+        let gamePaused = false; 
         
         const directionQueue = []; 
         let currentDirection = 'ArrowRight'; 
@@ -603,7 +690,7 @@
         }
 
         function gameLoop() {
-            if (!gameRunning) return;
+            if (!gameRunning || gamePaused) return; // Se verifica el estado de pausa
             
             updateVelocity(); 
 
@@ -681,7 +768,12 @@
 
                     let vx = velocityX;
                     let vy = velocityY;
-                    if (vx === 0 && vy === 0) { vx = 1; } 
+                    // Uso de la dirección actual para la visualización de los ojos
+                    if (gamePaused || (vx === 0 && vy === 0)) { 
+                        vx = (currentDirection === 'ArrowLeft') ? -1 : 1;
+                        vy = (currentDirection === 'ArrowUp') ? -1 : ((currentDirection === 'ArrowDown') ? 1 : 0);
+                        if (vx === 0 && vy === 0) { vx = 1; } // Dirección predeterminada
+                    } 
 
                     let eye1 = { x: center.x, y: center.y };
                     let eye2 = { x: center.x, y: center.y };
@@ -698,9 +790,28 @@
         }
 
         function changeDirection(key) {
-            if (!gameRunning) return;
+            if (!gameRunning || gamePaused) return; // No permitir cambiar dirección en pausa
             if (directionQueue.length < 2) {
                 directionQueue.push(key);
+            }
+        }
+
+        // NUEVO: Función para Pausar/Reanudar
+        function togglePause() {
+            if (!gameRunning || gameOverModal.style.display === 'flex' || startModal.style.display === 'flex') {
+                return; 
+            }
+
+            gamePaused = !gamePaused;
+            
+            if (gamePaused) {
+                clearInterval(intervalId);
+                pauseModal.style.display = 'flex';
+                pauseButton.textContent = '▶'; // Cambiar icono a Play
+            } else {
+                pauseModal.style.display = 'none';
+                intervalId = setInterval(gameLoop, gameSpeed);
+                pauseButton.textContent = '⏸'; // Cambiar icono a Pausa
             }
         }
 
@@ -735,6 +846,7 @@
             snake = [{ x: 12, y: 12 }];
             placeFood();
             drawGame();
+            pauseButton.style.display = 'flex'; // Mostrar botón de pausa
 
             const countdownInterval = setInterval(() => {
                 drawCountdown(count);
@@ -753,6 +865,8 @@
             score = 0;
             scoreElement.textContent = `Puntuación: 0`;
             gameRunning = true;
+            gamePaused = false; // Asegurarse de que no esté en pausa
+            pauseButton.textContent = '⏸';
             directionQueue.length = 0; 
             
             intervalId = setInterval(gameLoop, speed); 
@@ -761,7 +875,9 @@
 
         function gameOver() {
             gameRunning = false;
+            gamePaused = false; // Reiniciar estado de pausa
             clearInterval(intervalId);
+            pauseButton.style.display = 'none'; // Ocultar botón de pausa
             
             saveHighScore(score);
             
@@ -775,11 +891,14 @@
         document.addEventListener('keydown', (event) => {
             if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
                 event.preventDefault();
-                if (gameRunning) {
+                if (gameRunning && !gamePaused) {
                      changeDirection(event.key);
-                } else if (startModal.style.display === 'flex') {
+                } else if (!gameRunning && startModal.style.display === 'flex') {
                     showCountdown(100, 'Normal (Medio)');
                 }
+            } else if (event.key === ' ' && gameRunning) { 
+                event.preventDefault();
+                togglePause();
             }
         });
 
@@ -788,13 +907,17 @@
         document.getElementById('left').addEventListener('click', () => changeDirection('ArrowLeft'));
         document.getElementById('right').addEventListener('click', () => changeDirection('ArrowRight'));
         
+        // Eventos para la Pausa
+        pauseButton.addEventListener('click', togglePause);
+        resumeButton.addEventListener('click', togglePause);
+        
         playAgainBtn.addEventListener('click', () => {
             gameOverModal.style.display = 'none';
+            pauseButton.style.display = 'none'; // Asegurarse de que esté oculto al volver a la pantalla de inicio
             startModal.style.display = 'flex'; 
         });
         
         document.getElementById('btnClasificatoria').addEventListener('click', () => {
-            // MODIFICACIÓN 2: Usar la URL con el parámetro ?from=game
             window.open(URL_CLASIFICACION_CON_ORIGEN, '_blank'); 
         });
 
