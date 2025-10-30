@@ -322,7 +322,9 @@
             </button>
 
             <p style="margin-top: 15px; font-size: 0.8em; color: #aaa;">Solo necesitas iniciar sesión una vez.</p>
-            <button onclick="document.getElementById('authModal').style.display = 'none';" style="margin-top: 20px; padding: 8px 15px; background-color: #555; color: white; font-size: 1em;">Cerrar</button>
+            <button onclick="document.getElementById('authModal').style.display = 'none';" style="margin-top: 20px; padding: 10px 20px; background-color: #555; color: white; font-size: 1em;">
+                ← Regresar
+            </button>
         </div>
     </div>
 
@@ -339,7 +341,9 @@
 
     <script>
         const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
-        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/recordsnake"; 
+        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/recordsnake";
+        // MODIFICACIÓN 1: Añadir el parámetro de origen a la URL de clasificación
+        const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`;
 
         const canvas = document.getElementById('gameCanvas');
         canvas.width = 375; 
@@ -790,8 +794,8 @@
         });
         
         document.getElementById('btnClasificatoria').addEventListener('click', () => {
-            document.getElementById('startModal').style.display = 'none';
-            window.open(CLASIFICACION_URL, '_blank'); 
+            // MODIFICACIÓN 2: Usar la URL con el parámetro ?from=game
+            window.open(URL_CLASIFICACION_CON_ORIGEN, '_blank'); 
         });
 
         window.onload = () => {
