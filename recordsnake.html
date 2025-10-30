@@ -135,6 +135,10 @@
             </tbody>
     </table>
     
+    <p id="returnButtonContainer" style="margin-top: 20px; display:none;">
+        <a href="https://gatosauriocrack.github.io/juegos/snake" style="color: var(--color-naranja-principal); text-decoration: none; font-weight: bold;">← Volver al juego</a>
+    </p>
+
     <script>
         const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
         const GAME_API_KEY = 'Snake_game'; 
@@ -229,8 +233,23 @@
                 }
             }
         }
+        
+        // MODIFICACIÓN 2: Lógica para comprobar si se abrió desde el juego
+        function checkURLOrigin() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnButton = document.getElementById('returnButtonContainer');
+            
+            // Si la URL contiene ?from=game, muestra el botón.
+            if (urlParams.get('from') === 'game') {
+                if (returnButton) {
+                    returnButton.style.display = 'block';
+                }
+            } 
+        }
 
+        // Llamadas iniciales
         fetchRecords();
+        checkURLOrigin();
         
         setInterval(() => fetchRecords(), 60000); 
     </script>
