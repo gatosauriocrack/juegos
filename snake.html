@@ -432,11 +432,7 @@
     </div>
 
     <script>
-        // =======================================================
-        // 1. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE (v9 Compatibility)
-        // =======================================================
         const firebaseConfig = {
-            // ⚠️ ASEGÚRATE DE QUE ESTOS DATOS SEAN LOS CORRECTOS DE TU PROYECTO ⚠️
             apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
             authDomain: "procesador-56b7a.firebaseapp.com",
             projectId: "procesador-56b7a",
@@ -450,19 +446,13 @@
         const db = firebase.firestore();
         const FieldValue = firebase.firestore.FieldValue;
         
-        const leaderboardCol = db.collection('leaderboard');
+        const leaderboardCol = db.collection('leaderboard_snake_game');
         const usernamesCol = db.collection('usernames');
-
-        // =======================================================
-        // 2. FUNCIONES DE FIREBASE (Corregidas para usar UID como clave)
-        // =======================================================
 
         async function handleFirebaseRegister(email, password, alias) {
             const username = alias.trim();
             
-            // 1. Verificar si el alias ya existe en la colección 'usernames'
             try {
-                // Buscamos si algún documento ya tiene ese alias guardado
                 const querySnapshot = await usernamesCol.where('username', '==', username).limit(1).get();
                 if (!querySnapshot.empty) {
                     return { success: false, message: "El alias de usuario ya está tomado. Elige otro." };
@@ -473,14 +463,11 @@
             }
 
             try {
-                // 2. Crear usuario en Firebase Authentication (usa el email)
                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const uid = userCredential.user.uid;
 
-                // 3. Crear el documento de mapeo en Firestore usando el UID como ID del documento
-                // Esto es CRUCIAL para que las reglas de seguridad funcionen
                 await usernamesCol.doc(uid).set({
-                    username: username, // Almacenamos el alias dentro del documento
+                    username: username, 
                     email: email,
                     timestamp: FieldValue.serverTimestamp()
                 });
@@ -496,14 +483,12 @@
             }
         }
 
-        // Función auxiliar para obtener el alias de un UID
         async function getAliasFromUID(uid) {
              try {
                 const doc = await usernamesCol.doc(uid).get();
                 if (doc.exists) {
                     return doc.data().username;
                 }
-                // Si el documento en Firestore no existe, se usa parte del email como fallback
                 return auth.currentUser.email.split('@')[0] || "Usuario Desconocido"; 
              } catch(e) {
                 console.error("Fallo al buscar el alias por UID:", e);
@@ -515,7 +500,6 @@
             try {
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const uid = userCredential.user.uid;
-                // Buscamos el alias guardado en Firestore usando el UID
                 const username = await getAliasFromUID(uid); 
                 
                 return { success: true, user: username, token: uid };
@@ -535,7 +519,6 @@
             }
 
             const uid = user.uid;
-            // Obtenemos el alias del usuario actual, garantizando que el récord tenga el nombre correcto
             const username = await getAliasFromUID(uid); 
 
             const recordData = {
@@ -548,7 +531,7 @@
 
             try {
                 await leaderboardCol.add(recordData); 
-                console.log("Récord guardado en Firebase con éxito.");
+                console.log("Récord guardado en Firebase con éxito en leaderboard_snake_game.");
                 showNotification(true); 
                 return { success: true };
             } catch (error) {
@@ -558,10 +541,6 @@
             }
         }
         
-        // =======================================================
-        // 3. LÓGICA DE JUEGO Y CONEXIÓN A FIREBASE
-        // =======================================================
-
         const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/recordsnake";
         const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`;
 
@@ -655,10 +634,9 @@
                 logoutBtn.style.display = 'block';
                 authEmailInput.value = userEmail; 
                 authEmailInput.disabled = true;
-                authAliasInput.style.display = 'none'; // Oculta alias al estar logueado
+                authAliasInput.style.display = 'none'; 
                 authPasswordInput.style.display = 'none';
                 
-                // Oculta los botones de Login/Registro
                 authButtons.forEach(btn => {
                     if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
                         btn.style.display = 'none';
@@ -673,10 +651,9 @@
                 logoutBtn.style.display = 'none';
                 authEmailInput.value = '';
                 authEmailInput.disabled = false;
-                authAliasInput.style.display = 'block'; // Muestra alias al no estar logueado
+                authAliasInput.style.display = 'block'; 
                 authPasswordInput.style.display = 'block';
                 
-                // Muestra los botones de Login/Registro
                 authButtons.forEach(btn => {
                      if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
                         btn.style.display = 'inline-block';
@@ -695,7 +672,6 @@
             });
         }
 
-        // Escucha el estado de autenticación de Firebase
         auth.onAuthStateChanged((user) => {
             updateSessionUI(user ? user.email : null);
         });
@@ -723,7 +699,6 @@
             if (result.success) {
                 alert(`¡Éxito! Bienvenido/a, ${result.user}. Ahora tus récords se enviarán.`); 
                 document.getElementById('authModal').style.display = 'none';
-                // Limpia la contraseña para seguridad
                 document.getElementById('authPassword').value = '';
             } else {
                 alert(result.message);
