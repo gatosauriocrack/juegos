@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Buscaminas | Récords Globales</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
 <style>
         :root {
             --cell-size: 28px;
@@ -431,7 +436,8 @@
         .auth-content h2 {
             color: var(--color-mine-revealed);
         }
-        .auth-content input[type="text"], .auth-content input[type="password"] {
+        /* Estilos para los 3 campos */
+        .auth-content input[type="email"], .auth-content input[type="password"], .auth-content input[type="text"] {
             padding: 10px; 
             margin: 5px; 
             border-radius: 5px; 
@@ -483,6 +489,7 @@
             color: #fff;
             padding: 5px 0;
             text-align: center;
+            cursor: pointer; 
         }
         
         #notification-icon {
@@ -516,13 +523,11 @@
             animation: scale-in-out 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
 
-        /* 🎯 NUEVA MEDIA QUERY: Aumentar el tamaño de la celda en PC */
+        /* NUEVA MEDIA QUERY: Aumentar el tamaño de la celda en PC */
         @media (min-width: 992px) {
             :root {
                 --cell-size: 30px; /* Tamaño de celda ligeramente mayor */
             }
-            /* Esto escalará el tablero completo automáticamente, 
-               ya que depende de --cell-size, --board-rows y --board-cols */
 
             /* Ajustar el panel de información */
             #game-info-panel {
@@ -564,8 +569,10 @@
             
             <h2>Iniciar Sesión/Registro</h2>
             <div style="margin-bottom: 20px; width: 100%;">
-                <input type="text" id="authUsername" placeholder="Nombre de Usuario">
-                <input type="password" id="authPassword" placeholder="Contraseña (Opcional)">
+                <input type="email" id="authEmail" placeholder="Correo Electrónico" required> 
+                <input type="text" id="authUsername" placeholder="Nombre de Usuario (Alias)" required>
+                <input type="password" id="authPassword" placeholder="Contraseña (Mínimo 6 caracteres)" required>
+                
                 <div style="text-align: left; margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;">
                     <input type="checkbox" id="rememberMe">
                     <label for="rememberMe" style="font-size: 1em; color: white;">Mantener sesión iniciada</label>
@@ -582,12 +589,14 @@
             </button>
 
             <p style="margin-top: 15px; font-size: 0.8em; color: #aaa;">Solo necesitas iniciar sesión una vez.</p>
+            
             <button onclick="document.getElementById('authModal').style.display = 'none';" 
                     style="margin-top: 10px; padding: 8px 15px; background-color: #555;">
                 Cerrar
             </button>
         </div>
     </div>
+
     <div id="game-over-modal">
         
 <div id="modal-content-win">
@@ -615,604 +624,706 @@
     </div>
 
     <script>
-        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
-        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/BuscaminasRecords"; 
-        const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`; 
-        const GAME_API_KEY = 'Buscaminas_game';
-        const GAME_SPEED = '30x29 (99 Minas)';
-        const DIFFICULTIES = {
-            'normal': { rows: 29, cols: 30, mines: 99 }
-        };
+// =======================================================
+// 1. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE (¡MANTÉN TUS PROPIAS CLAVES!)
+// =======================================================
+const firebaseConfig = {
+    // ⚠️ Asegúrate de que esta configuración coincida con la de tu proyecto Firebase ⚠️
+    apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
+    authDomain: "procesador-56b7a.firebaseapp.com",
+    projectId: "procesador-56b7a",
+    storageBucket: "procesador-56b7a.appspot.com", 
+    messagingSenderId: "1029072924025",
+    appId: "1:1029072924025:web:c32d735e453416ecfd93a8"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const FieldValue = firebase.firestore.FieldValue; // Para el timestamp
+
+// 🔥 COLECCIONES ESPECÍFICAS DE FIRESTORE
+const leaderboardCol = db.collection('leaderboard_buscaminas_game');
+const usernamesCol = db.collection('usernames'); // Colección para guardar el Alias
+// =======================================================
+
+
+// ⚠️ URLs
+const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/BuscaminasRecords"; 
+const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`; 
+
+// 🎯 DETALLES DEL JUEGO
+const GAME_API_KEY = 'buscaminas_game'; 
+const DIFFICULTIES = {
+    'normal': { rows: 29, cols: 30, mines: 99, name: "Experto (29x30)" }
+};
+
+// =======================================================
+// VARIABLES GLOBALES DEL JUEGO
+// =======================================================
+let CURRENT_ROWS;
+let CURRENT_COLS;
+let CURRENT_MINES;
+
+const board = document.getElementById('board');
+const flagsRemainingDisplay = document.getElementById('flags-remaining-count');
+const timerDisplay = document.getElementById('timer-display');
+const floatingActionsContainer = document.getElementById('floating-actions-container');
+const modal = document.getElementById('game-over-modal');
+const modalContentWin = document.getElementById('modal-content-win');
+const winTimeDisplay = document.getElementById('win-time-display'); 
+const defeatWrapper = document.getElementById('defeat-wrapper');
+const sessionStatusElement = document.getElementById('sessionStatus');
+const notificationIcon = document.getElementById('notification-icon');
+
+// 💡 Variables para los inputs de autenticación (los 3 campos)
+const authEmailInput = document.getElementById('authEmail'); 
+const authUsernameInput = document.getElementById('authUsername'); 
+const authPasswordInput = document.getElementById('authPassword'); 
+const logoutButton = document.getElementById('logoutButton');
+
+let currentUser = null; // El nombre de usuario (alias)
+let gameGrid = [];
+let flagsPlaced = 0;
+let gameOver = false;
+let timer = 0;
+let timerInterval;
+let firstClickMade = false;
+let selectedCellCoords = null;
+let selectedCellElement = null;
+
+const celebrationEmojis = [
+    '🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐷', '🐸', '🦉', '🦋', 
+    '🌸', '🌼', '🌻', '🌷', '🌹', '🌺', '💐' 
+];
+
+// =======================================================
+// 2. FUNCIONES DE AUTENTICACIÓN Y SESIÓN (MODIFICADAS)
+// =======================================================
+
+/**
+ * Trae el alias guardado en Firestore usando el UID del usuario.
+ */
+async function getAliasFromUID(uid) {
+    if (!uid) return "Usuario";
+    try {
+        const doc = await usernamesCol.doc(uid).get();
+        if (doc.exists) {
+            return doc.data().alias;
+        }
+        return "Usuario";
+    } catch (error) {
+        console.error("Error al obtener el alias:", error);
+        return "Usuario";
+    }
+}
+
+/**
+ * Actualiza la interfaz del estado de la sesión.
+ * Ahora es asíncrona porque necesita buscar el alias en Firestore.
+ * @param {object | null} user - El objeto de usuario de Firebase, o null si está desconectado.
+ */
+async function updateSessionUI(user) {
+    // Restaurar los botones de autenticación
+    document.querySelectorAll('#authModal button').forEach(btn => {
+        if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
+            btn.style.display = 'inline-block';
+        }
+    });
+
+    if (user) {
+        // 1. Obtener el alias del Firestore
+        const username = await getAliasFromUID(user.uid); 
+        currentUser = username; 
         
-        let CURRENT_ROWS;
-        let CURRENT_COLS;
-        let CURRENT_MINES;
+        sessionStatusElement.textContent = `Sesión: ${username}`;
+        sessionStatusElement.style.color = '#4CAF50';
         
-        const board = document.getElementById('board');
-        const flagsRemainingDisplay = document.getElementById('flags-remaining-count');
-        const timerDisplay = document.getElementById('timer-display');
-        const floatingActionsContainer = document.getElementById('floating-actions-container');
-        const modal = document.getElementById('game-over-modal');
-        const modalContentWin = document.getElementById('modal-content-win');
-        const winTimeDisplay = document.getElementById('win-time-display'); 
-        const defeatWrapper = document.getElementById('defeat-wrapper');
-        const sessionStatusElement = document.getElementById('sessionStatus');
-        const notificationIcon = document.getElementById('notification-icon');
-
-        let currentUser = null;
-        let currentToken = null;
-
-        let gameGrid = [];
-        let flagsPlaced = 0;
-        let gameOver = false;
-        let timer = 0;
-        let timerInterval;
-        let firstClickMade = false;
-        let selectedCellCoords = null;
-        let selectedCellElement = null;
-
-        const celebrationEmojis = [
-            '🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐷', '🐸', '🦉', '🦋', 
-            '🌸', '🌼', '🌻', '🌷', '🌹', '🌺', '💐' 
-        ];
-
-        function updateSessionUI() {
-            const logoutBtn = document.getElementById('logoutButton');
-            const authUsernameInput = document.getElementById('authUsername');
-            const authPasswordInput = document.getElementById('authPassword');
-            
-            if (currentUser) {
-                sessionStatusElement.textContent = `Sesión: ${currentUser}`;
-                sessionStatusElement.style.color = '#4CAF50';
-                
-                logoutBtn.style.display = 'block';
-                logoutBtn.textContent = `Cerrar Sesión (${currentUser})`;
-                
-                if (authUsernameInput) authUsernameInput.value = currentUser; 
-                if (authUsernameInput) authUsernameInput.disabled = true;
-                if (authPasswordInput) authPasswordInput.style.display = 'none';
-
-            } else {
-                sessionStatusElement.textContent = `Sesión: No iniciada`;
-                sessionStatusElement.style.color = 'var(--color-mine-revealed)';
-                
-                logoutBtn.style.display = 'none';
-                
-                if (authUsernameInput) authUsernameInput.value = '';
-                if (authUsernameInput) authUsernameInput.disabled = false;
-                if (authPasswordInput) authPasswordInput.style.display = 'block';
-            }
-        }
-
-        function loadSession() {
-            const storedToken = localStorage.getItem('authToken');
-            const storedUser = localStorage.getItem('authUsername');
-
-            if (storedToken && storedUser) {
-                currentUser = storedUser;
-                currentToken = storedToken;
-            } else {
-                currentUser = null;
-                currentToken = null;
-            }
-            updateSessionUI();
-        }
-
-        function logout() {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('authUsername');
-            currentUser = null;
-            currentToken = null;
-            updateSessionUI();
-            alert("¡Sesión cerrada correctamente! Puedes iniciar otra.");
-        }
-
-        async function handleAuthentication(isRegister) {
-            const authUsername = document.getElementById('authUsername').value;
-            const authPassword = document.getElementById('authPassword').value;
-            const rememberMe = document.getElementById('rememberMe').checked; 
-
-            if (!authUsername) {
-                 alert("Por favor, introduce un nombre de usuario.");
-                 return;
-            }
-
-            if (currentUser && currentUser === authUsername && !isRegister) {
-                document.getElementById('authModal').style.display = 'none';
-                return;
-            }
-            
-            const endpoint = isRegister ? 'register' : 'login';
-            const body = { username: authUsername, password: authPassword };
-            const url = `${RENDER_API_URL}/${endpoint}`;
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    currentUser = authUsername;
-                    currentToken = result.token;
-                    
-                    if (rememberMe) {
-                        localStorage.setItem('authToken', currentToken);
-                        localStorage.setItem('authUsername', currentUser);
-                    } else {
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('authUsername');
-                    }
-
-                    loadSession();
-                    alert(`¡Éxito! Bienvenido, ${currentUser}. Ahora tus tiempos se enviarán.`); 
-                    document.getElementById('authModal').style.display = 'none';
-                } else {
-                    alert(`Error de autenticación: ${result.message}`); 
-                }
-            } catch (error) {
-                alert("Error de conexión con el servidor. Intenta de nuevo."); 
-                console.error("Error de autenticación/registro:", error);
-            }
-        }
+        logoutButton.style.display = 'block';
+        logoutButton.textContent = `Cerrar Sesión (${username})`;
         
-        async function sendRecordToServer(finalTime) {
-            if (!currentToken) {
-                console.log("No hay sesión iniciada, récord no enviado globalmente.");
-                return;
-            }
-
-            const url = `${RENDER_API_URL}/submit_time_record`; 
-            const body = { 
-                token: currentToken, 
-                score: finalTime,
-                speed: GAME_SPEED,
-                game_name: GAME_API_KEY
-            };
-
-            const attemptSend = async (isRetry = false) => {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(body)
-                    });
-
-                    if (response.ok) {
-                        showNotification(true); 
-                        console.log(`Tiempo de ${finalTime}s enviado globalmente.`);
-                    } else {
-                        const errorResult = await response.json();
-                        showNotification(false);
-                        console.error(`Error al enviar tiempo global: ${errorResult.message}`);
-                    }
-                } catch (error) {
-                    if (!isRetry) {
-                        console.warn("Fallo de red. Intentando reintentar en 3 segundos...");
-                        setTimeout(() => attemptSend(true), 3000); 
-                    } else {
-                        showNotification(false);
-                        console.error("Fallo en el reintento:", error);
-                    }
-                }
-            };
-
-            attemptSend(false);
-        }
+        // 2. Deshabilitar y rellenar los campos de entrada
+        if (authEmailInput) { authEmailInput.value = user.email; authEmailInput.disabled = true; } 
+        if (authUsernameInput) { authUsernameInput.value = username; authUsernameInput.disabled = true; }
         
-        let notificationTimeout;
-        function showNotification(isSuccess) {
-            clearTimeout(notificationTimeout);
-            notificationIcon.style.display = 'none';
-            notificationIcon.classList.remove('success', 'error', 'show-animation');
-
-            if (isSuccess) {
-                notificationIcon.innerHTML = '✔';
-                notificationIcon.classList.add('success');
-            } else {
-                notificationIcon.innerHTML = '✖';
-                notificationIcon.classList.add('error');
-            }
-
-            notificationIcon.style.display = 'flex';
-            setTimeout(() => {
-                notificationIcon.classList.add('show-animation');
-            }, 50); 
-
-            notificationTimeout = setTimeout(() => {
-                notificationIcon.style.display = 'none';
-            }, 2500);
-        }
-        
-        function openClasificacion() {
-             document.getElementById('authModal').style.display = 'none';
-             // 👇 MODIFICACIÓN 2: Usar la URL con el parámetro de origen
-             window.open(URL_CLASIFICACION_CON_ORIGEN, '_blank');
-        }
-
-        function setDifficulty() {
-            const config = DIFFICULTIES['normal'];
-            CURRENT_ROWS = config.rows;
-            CURRENT_COLS = config.cols;
-            CURRENT_MINES = config.mines;
-            flagsRemainingDisplay.textContent = CURRENT_MINES; 
-        }
-
-        function placeMines() {
-            let minesPlaced = 0;
-            while (minesPlaced < CURRENT_MINES) {
-                const r = Math.floor(Math.random() * CURRENT_ROWS);
-                const c = Math.floor(Math.random() * CURRENT_COLS);
-                if (!gameGrid[r][c].isMine) {
-                    gameGrid[r][c].isMine = true;
-                    minesPlaced++;
-                }
-            }
-        }
-
-        function calculateNeighborMines() {
-            for (let r = 0; r < CURRENT_ROWS; r++) {
-                for (let c = 0; c < CURRENT_COLS; c++) {
-                    if (gameGrid[r][c].isMine) continue;
-                    let count = 0;
-                    for (let dr = -1; dr <= 1; dr++) {
-                        for (let dc = -1; dc <= 1; dc++) {
-                            if (dr === 0 && dc === 0) continue;
-                            const nr = r + dr;
-                            const nc = c + dc;
-                            if (nr >= 0 && nr < CURRENT_ROWS && nc >= 0 && nc < CURRENT_COLS) {
-                                if (gameGrid[nr][nc].isMine) { count++; }
-                            }
-                        }
-                    }
-                    gameGrid[r][c].neighborMines = count;
-                }
-            }
-        }
-
-        function scrollToLeftEdge() {
-            document.documentElement.scrollLeft = 0;
-            document.body.scrollLeft = 0;
-        }
-
-
-        function createBoard() {
-            setDifficulty(); 
-            
-            board.innerHTML = '';
-            gameGrid = [];
-            flagsPlaced = 0;
-            flagsRemainingDisplay.textContent = CURRENT_MINES;
-
-            gameOver = false;
-            firstClickMade = false;
-            resetTimer();
-            hideFloatingActions();
-
-            const celebrationElements = document.querySelectorAll('.celebration-element');
-            celebrationElements.forEach(el => el.remove());
-
-            board.style.gridTemplateColumns = `repeat(${CURRENT_COLS}, var(--cell-size))`;
-            board.style.gridTemplateRows = `repeat(${CURRENT_ROWS}, var(--cell-size))`;
-            
-            document.documentElement.style.setProperty('--board-rows', CURRENT_ROWS);
-            document.documentElement.style.setProperty('--board-cols', CURRENT_COLS);
-
-
-            for (let r = 0; r < CURRENT_ROWS; r++) {
-                const row = [];
-                for (let c = 0; c < CURRENT_COLS; c++) {
-                    const cell = document.createElement('div');
-                    cell.classList.add('cell');
-                    cell.dataset.row = r;
-                    cell.dataset.col = c;
-
-                    if (Math.random() < 0.2) {
-                        cell.classList.add('grass-variant');
-                    }
-
-                    cell.addEventListener('touchstart', handleCellTouchStart);
-                    
-                    // 🎯 NUEVO: Manejo de clics de ratón
-                    cell.addEventListener('mousedown', handleCellMouseDown); 
-                    cell.addEventListener('contextmenu', (e) => e.preventDefault());
-                    
-                    board.appendChild(cell);
-                    row.push({ isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0, element: cell });
-                }
-                gameGrid.push(row);
-            }
-            placeMines();
-            calculateNeighborMines();
-            scrollToLeftEdge();
-        }
-
-        // 🎯 NUEVA FUNCIÓN: Manejo de clic de ratón (PC)
-        function handleCellMouseDown(event) {
-            // Ignorar si ya terminó o si se usó el menú táctil
-            if (gameOver || floatingActionsContainer.style.display !== 'none') return;
-            
-            // Obtener coordenadas de la celda
-            const cellElement = event.currentTarget;
-            const r = parseInt(cellElement.dataset.row);
-            const c = parseInt(cellElement.dataset.col);
-            const cellData = gameGrid[r][c];
-
-            if (!firstClickMade) {
-                startTimer();
-                firstClickMade = true;
-            }
-
-            // event.button: 0 = Clic Izquierdo, 2 = Clic Derecho
-            if (event.button === 0) {
-                // Clic Izquierdo -> Revelar
-                event.preventDefault(); // Previene el inicio de arrastre, aunque no es necesario aquí.
-                if (!cellData.isFlagged) {
-                     revealCell(r, c);
-                }
-            } else if (event.button === 2) {
-                // Clic Derecho -> Bandera
-                event.preventDefault(); 
-                toggleFlag(r, c);
-            }
-        }
-
-        function revealCell(r, c) {
-            if (r < 0 || r >= CURRENT_ROWS || c < 0 || c >= CURRENT_COLS) return;
-            const cellData = gameGrid[r][c];
-            if (cellData.isRevealed || cellData.isFlagged || gameOver) return;
-
-            cellData.isRevealed = true;
-            const element = cellData.element;
-            element.classList.add('revealed');
-            element.classList.remove('grass-variant');
-            element.removeEventListener('touchstart', handleCellTouchStart);
-            element.removeEventListener('mousedown', handleCellMouseDown);
-
-            if (cellData.isMine) {
-                element.classList.add('mine');
-                element.textContent = '💣';
-                endGame(false);
-                return;
-            }
-
-            if (cellData.neighborMines > 0) {
-                element.textContent = cellData.neighborMines;
-                element.classList.add(`c${cellData.neighborMines}`);
-            } else {
-                for (let dr = -1; dr <= 1; dr++) {
-                    for (let dc = -1; dc <= 1; dc++) {
-                        if (dr !== 0 || dc !== 0) {
-                            revealCell(r + dr, c + dc);
-                        }
-                    }
-                }
-            }
-            checkWin();
-        }
-
-        function toggleFlag(r, c) {
-            const cellData = gameGrid[r][c];
-            if (cellData.isRevealed || gameOver) return;
-
-            cellData.isFlagged = !cellData.isFlagged;
-            cellData.element.classList.toggle('flagged');
-
-            flagsPlaced += cellData.isFlagged ? 1 : -1;
-            flagsRemainingDisplay.textContent = CURRENT_MINES - flagsPlaced;
-
-            checkWin();
-        }
-
-        function checkWin() {
-            let uncoveredCells = 0;
-            const safeCells = (CURRENT_ROWS * CURRENT_COLS) - CURRENT_MINES;
-
-            for (let r = 0; r < CURRENT_ROWS; r++) {
-                for (let c = 0; c < CURRENT_COLS; c++) {
-                    if (gameGrid[r][c].isRevealed && !gameGrid[r][c].isMine) {
-                        uncoveredCells++;
-                    }
-                }
-            }
-
-            if (uncoveredCells === safeCells) {
-                endGame(true);
-            }
-        }
-
-        function endGame(won) {
-            gameOver = true;
-            stopTimer();
-            hideFloatingActions();
-            for (let r = 0; r < CURRENT_ROWS; r++) {
-                for (let c = 0; c < CURRENT_COLS; c++) {
-                    const cell = gameGrid[r][c];
-                    if (cell.isMine && !cell.isFlagged) {
-                        cell.element.classList.add('mine');
-                        cell.element.textContent = '💣';
-                    } else if (cell.isFlagged && !cell.isMine) {
-                        cell.element.textContent = '❌';
-                        cell.element.classList.remove('flagged');
-                    }
-                    cell.element.removeEventListener('touchstart', handleCellTouchStart);
-                    cell.element.removeEventListener('mousedown', handleCellMouseDown); // Remover evento de ratón
-                }
-            }
-
-            if (won) {
-                sendRecordToServer(timer); 
-
-                startCelebrationAnimation();
-                setTimeout(() => showModal(true), 2800); 
-            } else {
-                showModal(false);
-            }
-        }
-
-        function handleCellTouchStart(event) {
-            if (gameOver) return;
-
-            const cellElement = event.currentTarget;
-            const r = parseInt(cellElement.dataset.row);
-            const c = parseInt(cellElement.dataset.col);
-            const cellData = gameGrid[r][c];
-
-            if (selectedCellElement === cellElement) {
-                hideFloatingActions();
-                return;
-            }
-
-            if (!firstClickMade) {
-                startTimer();
-                firstClickMade = true;
-            }
-
-            if (cellData.isRevealed) {
-                hideFloatingActions();
-                return;
-            }
-
-            showFloatingActions(cellElement);
-            selectedCellCoords = { r, c };
-        }
-
-        function showFloatingActions(cellElement) {
-            if (selectedCellElement) {
-                selectedCellElement.classList.remove('selected-for-action');
-            }
-
-            cellElement.classList.add('selected-for-action');
-            selectedCellElement = cellElement;
-
-            const rect = cellElement.getBoundingClientRect();
-            const floatingActionsElement = document.getElementById('floating-actions');
-
-            floatingActionsContainer.style.display = 'block';
-            
-            const menuWidth = floatingActionsElement.offsetWidth;
-            const menuHeight = floatingActionsElement.offsetHeight;
-            
-            const cellCenterX = rect.left + window.scrollX + (rect.width / 2);
-            
-            floatingActionsContainer.style.left = `${cellCenterX - (menuWidth / 2)}px`;
-            floatingActionsContainer.style.top = `${rect.top + window.scrollY - menuHeight - 10}px`;
-
-            floatingActionsContainer.style.transformOrigin = 'center bottom';
-        }
-
-        function hideFloatingActions(event) {
-            if (event) {
-                event.stopPropagation();
-                event.preventDefault();
-            }
-
-            floatingActionsContainer.style.display = 'none';
-            if (selectedCellElement) {
-                selectedCellElement.classList.remove('selected-for-action');
-            }
-            selectedCellElement = null;
-            selectedCellCoords = null;
-        }
-
-        function handleFloatingAction(event, action) {
-            event.stopPropagation();
-            event.preventDefault();
-
-            if (selectedCellCoords) {
-                const { r, c } = selectedCellCoords;
-                if (action === 'mine') {
-                    revealCell(r, c);
-                } else if (action === 'flag') {
-                    toggleFlag(r, c);
-                }
-            }
-
-            hideFloatingActions();
-        }
-
-        document.addEventListener('touchstart', (e) => {
-            if (!board.contains(e.target) && !floatingActionsContainer.contains(e.target) && !modal.contains(e.target)) {
-                hideFloatingActions();
-            }
+        // 3. Ocultar campos innecesarios
+        if (authPasswordInput) authPasswordInput.style.display = 'none'; 
+        document.querySelectorAll('#authModal button').forEach(btn => {
+             if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
+                btn.style.display = 'none';
+             }
         });
 
-        function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                timer++;
-                timerDisplay.textContent = String(timer).padStart(3, '0');
-            }, 1000);
+    } else {
+        // Usuario desconectado
+        currentUser = null;
+        sessionStatusElement.textContent = `Sesión: No iniciada`;
+        sessionStatusElement.style.color = 'var(--color-mine-revealed)';
+        
+        logoutButton.style.display = 'none';
+        
+        // Restablecer campos
+        if (authEmailInput) { authEmailInput.value = ''; authEmailInput.disabled = false; }
+        if (authUsernameInput) { authUsernameInput.value = ''; authUsernameInput.disabled = false; }
+        if (authPasswordInput) {
+            authPasswordInput.style.display = 'block';
+            authPasswordInput.value = '';
         }
+    }
+}
 
-        function stopTimer() { clearInterval(timerInterval); }
+/**
+ * Observador de estado de Firebase: Llama a updateSessionUI.
+ */
+auth.onAuthStateChanged((user) => {
+    updateSessionUI(user);
+});
 
-        function resetTimer() {
-            stopTimer();
-            timer = 0;
-            timerDisplay.textContent = '000';
-        }
 
-        function showModal(won) {
-            modal.style.display = 'flex';
-            if (won) {
-                modal.classList.remove('defeat');
-                defeatWrapper.style.display = 'none';
-                modalContentWin.style.display = 'flex'; 
-                winTimeDisplay.innerHTML = `<span class="win-time-icon">⏱️</span>${timer}s`; 
-            } else {
-                modal.classList.add('defeat');
-                modalContentWin.style.display = 'none';
-                defeatWrapper.style.display = 'flex';
+/**
+ * Función de Autenticación (Login/Registro) con 3 campos.
+ *
+ * ***AJUSTE CLAVE: Validación de unicidad de Alias antes de registrar.***
+ */
+async function handleAuthentication(isRegister) {
+    const email = document.getElementById('authEmail').value.trim();
+    const username = document.getElementById('authUsername').value.trim();
+    const password = document.getElementById('authPassword').value;
+    const rememberMe = document.getElementById('rememberMe').checked; 
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+
+    if (!emailRegex.test(email) || password.length < 6 || username.length < 3) {
+         showNotification(false, "Verifica: Correo, Contraseña (mín. 6) y Alias (mín. 3).");
+         return;
+    }
+    
+    try {
+        // 1. Persistencia de sesión (DEBE HACERSE ANTES DE LA AUTENTICACIÓN)
+        const persistenceType = rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
+        await auth.setPersistence(persistenceType);
+
+        let userCredential;
+        
+        if (isRegister) {
+            // *** VALIDACIÓN DE UNICIDAD DE ALIAS ***
+            const aliasQuery = await usernamesCol.where('alias', '==', username).limit(1).get();
+            if (!aliasQuery.empty) {
+                showNotification(false, "Este nombre de usuario (Alias) ya está tomado. Elige otro.");
+                return; 
+            }
+            
+            // 2. Crear usuario en Firebase Auth (con Correo y Contraseña)
+            userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const uid = userCredential.user.uid;
+
+            // 3. Guardar el Alias en Firestore usando el UID
+            await usernamesCol.doc(uid).set({
+                alias: username,
+                email: email, 
+                createdAt: FieldValue.serverTimestamp()
+            });
+
+            showNotification(true, `¡Registro exitoso! Bienvenido, ${username}.`);
+        } else {
+            // 4. Iniciar sesión (solo requiere correo y contraseña)
+            userCredential = await auth.signInWithEmailAndPassword(email, password);
+            showNotification(true, `¡Bienvenido de nuevo!`);
+            
+            // 5. Si el usuario existe pero no tiene alias (ej: usó un código antiguo), lo creamos/actualizamos.
+            const aliasExists = await getAliasFromUID(userCredential.user.uid);
+            if (aliasExists === "Usuario") {
+                 // Usamos el alias ingresado si no existe en la BD
+                 await usernamesCol.doc(userCredential.user.uid).set({
+                    alias: username,
+                    email: email, 
+                    createdAt: FieldValue.serverTimestamp()
+                }, { merge: true }); // Usamos merge para evitar sobrescribir si el documento ya existe
             }
         }
 
-        function hideModal() {
-            modal.style.display = 'none';
-            modal.classList.remove('defeat');
-            modalContentWin.style.display = 'none';
-            defeatWrapper.style.display = 'none';
+        document.getElementById('authModal').style.display = 'none';
+
+    } catch (error) {
+        let message = "Error desconocido de autenticación.";
+        if (error.code === 'auth/email-already-in-use') {
+            message = "Ya existe una cuenta con ese correo. Intenta iniciar sesión.";
+        } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+            message = "Correo o contraseña incorrectos.";
+        } else if (error.code === 'auth/weak-password') {
+            message = "La contraseña debe tener al menos 6 caracteres.";
         }
+        showNotification(false, message); 
+        console.error("Error de autenticación/registro:", error);
+    }
+}
 
-        function startCelebrationAnimation() {
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
 
-            for (let i = 0; i < 30; i++) { 
-                const emoji = celebrationEmojis[Math.floor(Math.random() * celebrationEmojis.length)];
-                const element = document.createElement('div');
-                element.classList.add('celebration-element');
-                element.textContent = emoji;
+/**
+ * Cierre de Sesión con Firebase.
+ */
+function logout() {
+    auth.signOut()
+        .then(() => {
+            showNotification(true, "¡Sesión cerrada correctamente!");
+        })
+        .catch((error) => {
+            console.error("Error al cerrar sesión:", error);
+            showNotification(false, "Error al cerrar sesión.");
+        });
+}
 
-                const startX = Math.random() * viewportWidth;
-                const startY = Math.random() * viewportHeight;
-                
-                element.style.left = `${startX}px`;
-                element.style.top = `${startY}px`;
+// =======================================================
+// 3. FUNCIÓN DE GUARDADO DE RÉCORD (Ajustada)
+// =======================================================
 
-                element.style.setProperty('--x-offset', `${(Math.random() - 0.5) * 200}px`); 
-                element.style.setProperty('--y-offset', `${(Math.random() - 0.5) * 200}px`); 
-                element.style.setProperty('--y-offset-end', `${(Math.random() - 1) * 300}px`); 
-                element.style.setProperty('--rotation-start', `${Math.random() * 360}deg`);
-                element.style.setProperty('--rotation-end', `${(Math.random() * 360) + 720}deg`); 
+/**
+ * Envía el récord a la colección 'leaderboard_buscaminas_game'.
+ */
+async function saveUserRecord(finalTime) {
+    const user = auth.currentUser;
+    if (!user) {
+        console.log("No hay sesión iniciada, récord no enviado globalmente.");
+        showNotification(false, "Inicia sesión para guardar tu récord.");
+        return;
+    }
 
-                document.body.appendChild(element); 
-                
-                element.addEventListener('animationend', () => {
-                    element.remove();
-                });
+    const uid = user.uid;
+    // Recuperar el alias de Firestore que se estableció durante el registro
+    const username = await getAliasFromUID(uid); 
+    
+    // Si el alias es "Usuario", algo falló.
+    if (username === "Usuario") {
+        showNotification(false, "Error: No se encontró tu alias. Inicia sesión de nuevo.");
+        return;
+    }
+
+    // Obtener el nombre de la dificultad actual
+    const difficultyData = DIFFICULTIES['normal']; 
+    const difficultyName = difficultyData.name; 
+
+    const recordData = {
+        uid: uid,
+        username: username, // Usamos el alias de Firestore
+        score: finalTime, // El tiempo es el score (más bajo es mejor)
+        difficulty: difficultyName, 
+        timestamp: FieldValue.serverTimestamp()
+    };
+
+    try {
+        await leaderboardCol.add(recordData); 
+        showNotification(true, `Récord de ${finalTime}s enviado por ${username}. ¡Excelente!`);
+    } catch (error) {
+        showNotification(false, "Error al guardar el récord global.");
+        console.error("Error al guardar el récord en Firebase:", error);
+    }
+}
+
+// =======================================================
+// 4. FUNCIONES AUXILIARES Y LÓGICA DEL JUEGO (Resto del Código)
+// =======================================================
+
+let notificationTimeout;
+function showNotification(isSuccess, message) {
+    // Usamos el elemento de estado de sesión para mostrar el mensaje temporalmente
+    clearTimeout(notificationTimeout);
+    
+    sessionStatusElement.textContent = message;
+    sessionStatusElement.style.color = isSuccess ? '#4CAF50' : '#F44336';
+    
+    // Configuración de auto-cierre y restauración del estado
+    notificationTimeout = setTimeout(() => {
+        // Solo restaura la UI si el usuario no ha reabierto el modal de autenticación
+        if (document.getElementById('authModal').style.display !== 'flex') {
+            const user = auth.currentUser;
+            user ? updateSessionUI(user) : updateSessionUI(null);
+        }
+    }, 4000); 
+}
+
+function openClasificacion() {
+     document.getElementById('authModal').style.display = 'none';
+     window.open(URL_CLASIFICACION_CON_ORIGEN, '_blank');
+}
+
+function setDifficulty() {
+    const config = DIFFICULTIES['normal'];
+    CURRENT_ROWS = config.rows;
+    CURRENT_COLS = config.cols;
+    CURRENT_MINES = config.mines;
+    flagsRemainingDisplay.textContent = CURRENT_MINES; 
+}
+
+function placeMines() {
+    let minesPlaced = 0;
+    while (minesPlaced < CURRENT_MINES) {
+        const r = Math.floor(Math.random() * CURRENT_ROWS);
+        const c = Math.floor(Math.random() * CURRENT_COLS);
+        if (!gameGrid[r][c].isMine) {
+            gameGrid[r][c].isMine = true;
+            minesPlaced++;
+        }
+    }
+}
+
+function calculateNeighborMines() {
+    for (let r = 0; r < CURRENT_ROWS; r++) {
+        for (let c = 0; c < CURRENT_COLS; c++) {
+            if (gameGrid[r][c].isMine) continue;
+            let count = 0;
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = r + dr;
+                    const nc = c + dc;
+                    if (nr >= 0 && nr < CURRENT_ROWS && nc >= 0 && nc < CURRENT_COLS) {
+                        if (gameGrid[nr][nc].isMine) { count++; }
+                    }
+                }
+            }
+            gameGrid[r][c].neighborMines = count;
+        }
+    }
+}
+
+function scrollToLeftEdge() {
+    document.documentElement.scrollLeft = 0;
+    document.body.scrollLeft = 0;
+}
+
+
+function createBoard() {
+    setDifficulty(); 
+    
+    board.innerHTML = '';
+    gameGrid = [];
+    flagsPlaced = 0;
+    flagsRemainingDisplay.textContent = CURRENT_MINES;
+
+    gameOver = false;
+    firstClickMade = false;
+    resetTimer();
+    hideFloatingActions();
+
+    const celebrationElements = document.querySelectorAll('.celebration-element');
+    celebrationElements.forEach(el => el.remove());
+
+    board.style.gridTemplateColumns = `repeat(${CURRENT_COLS}, var(--cell-size))`;
+    board.style.gridTemplateRows = `repeat(${CURRENT_ROWS}, var(--cell-size))`;
+    
+    document.documentElement.style.setProperty('--board-rows', CURRENT_ROWS);
+    document.documentElement.style.setProperty('--board-cols', CURRENT_COLS);
+
+
+    for (let r = 0; r < CURRENT_ROWS; r++) {
+        const row = [];
+        for (let c = 0; c < CURRENT_COLS; c++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+
+            if (Math.random() < 0.2) {
+                cell.classList.add('grass-variant');
+            }
+
+            cell.addEventListener('touchstart', handleCellTouchStart);
+            
+            // Manejo de clics de ratón
+            cell.addEventListener('mousedown', handleCellMouseDown); 
+            cell.addEventListener('contextmenu', (e) => e.preventDefault());
+            
+            board.appendChild(cell);
+            row.push({ isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0, element: cell });
+        }
+        gameGrid.push(row);
+    }
+    placeMines();
+    calculateNeighborMines();
+    scrollToLeftEdge();
+}
+
+// Manejo de clic de ratón (PC)
+function handleCellMouseDown(event) {
+    if (gameOver || floatingActionsContainer.style.display !== 'none') return;
+    
+    const cellElement = event.currentTarget;
+    const r = parseInt(cellElement.dataset.row);
+    const c = parseInt(cellElement.dataset.col);
+    const cellData = gameGrid[r][c];
+
+    if (!firstClickMade) {
+        startTimer();
+        firstClickMade = true;
+    }
+
+    if (event.button === 0) {
+        // Clic Izquierdo -> Revelar
+        event.preventDefault(); 
+        if (!cellData.isFlagged) {
+             revealCell(r, c);
+        }
+    } else if (event.button === 2) {
+        // Clic Derecho -> Bandera
+        event.preventDefault(); 
+        toggleFlag(r, c);
+    }
+}
+
+function revealCell(r, c) {
+    if (r < 0 || r >= CURRENT_ROWS || c < 0 || c >= CURRENT_COLS) return;
+    const cellData = gameGrid[r][c];
+    if (cellData.isRevealed || cellData.isFlagged || gameOver) return;
+
+    cellData.isRevealed = true;
+    const element = cellData.element;
+    element.classList.add('revealed');
+    element.classList.remove('grass-variant');
+    element.removeEventListener('touchstart', handleCellTouchStart);
+    element.removeEventListener('mousedown', handleCellMouseDown);
+
+    if (cellData.isMine) {
+        element.classList.add('mine');
+        element.textContent = '💣';
+        endGame(false);
+        return;
+    }
+
+    if (cellData.neighborMines > 0) {
+        element.textContent = cellData.neighborMines;
+        element.classList.add(`c${cellData.neighborMines}`);
+    } else {
+        for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+                if (dr !== 0 || dc !== 0) {
+                    revealCell(r + dr, c + dc);
+                }
             }
         }
+    }
+    checkWin();
+}
 
-        document.getElementById('btnClasificatoria').addEventListener('click', openClasificacion);
+function toggleFlag(r, c) {
+    const cellData = gameGrid[r][c];
+    if (cellData.isRevealed || gameOver) return;
 
-        window.onload = () => {
-            loadSession(); 
-            createBoard();
-        };
+    cellData.isFlagged = !cellData.isFlagged;
+    cellData.element.classList.toggle('flagged');
+
+    flagsPlaced += cellData.isFlagged ? 1 : -1;
+    flagsRemainingDisplay.textContent = CURRENT_MINES - flagsPlaced;
+
+    checkWin();
+}
+
+function checkWin() {
+    let uncoveredCells = 0;
+    const safeCells = (CURRENT_ROWS * CURRENT_COLS) - CURRENT_MINES;
+
+    for (let r = 0; r < CURRENT_ROWS; r++) {
+        for (let c = 0; c < CURRENT_COLS; c++) {
+            if (gameGrid[r][c].isRevealed && !gameGrid[r][c].isMine) {
+                uncoveredCells++;
+            }
+        }
+    }
+
+    if (uncoveredCells === safeCells) {
+        endGame(true);
+    }
+}
+
+function endGame(won) {
+    gameOver = true;
+    stopTimer();
+    hideFloatingActions();
+    for (let r = 0; r < CURRENT_ROWS; r++) {
+        for (let c = 0; c < CURRENT_COLS; c++) {
+            const cell = gameGrid[r][c];
+            if (cell.isMine && !cell.isFlagged) {
+                cell.element.classList.add('mine');
+                cell.element.textContent = '💣';
+            } else if (cell.isFlagged && !cell.isMine) {
+                cell.element.textContent = '❌';
+                cell.element.classList.remove('flagged');
+            }
+            cell.element.removeEventListener('touchstart', handleCellTouchStart);
+            cell.element.removeEventListener('mousedown', handleCellMouseDown); 
+        }
+    }
+
+    if (won) {
+        // Llamada a la función de Firebase para guardar récord
+        saveUserRecord(timer); 
+
+        startCelebrationAnimation();
+        setTimeout(() => showModal(true), 2800); 
+    } else {
+        showModal(false);
+    }
+}
+
+function handleCellTouchStart(event) {
+    if (gameOver) return;
+
+    const cellElement = event.currentTarget;
+    const r = parseInt(cellElement.dataset.row);
+    const c = parseInt(cellElement.dataset.col);
+    const cellData = gameGrid[r][c];
+
+    if (selectedCellElement === cellElement) {
+        hideFloatingActions();
+        return;
+    }
+
+    if (!firstClickMade) {
+        startTimer();
+        firstClickMade = true;
+    }
+
+    if (cellData.isRevealed) {
+        hideFloatingActions();
+        return;
+    }
+
+    showFloatingActions(cellElement);
+    selectedCellCoords = { r, c };
+}
+
+function showFloatingActions(cellElement) {
+    if (selectedCellElement) {
+        selectedCellElement.classList.remove('selected-for-action');
+    }
+
+    cellElement.classList.add('selected-for-action');
+    selectedCellElement = cellElement;
+
+    const rect = cellElement.getBoundingClientRect();
+    const floatingActionsElement = document.getElementById('floating-actions');
+
+    floatingActionsContainer.style.display = 'block';
+    
+    const menuWidth = floatingActionsElement.offsetWidth;
+    const menuHeight = floatingActionsElement.offsetHeight;
+    
+    const cellCenterX = rect.left + window.scrollX + (rect.width / 2);
+    
+    floatingActionsContainer.style.left = `${cellCenterX - (menuWidth / 2)}px`;
+    floatingActionsContainer.style.top = `${rect.top + window.scrollY - menuHeight - 10}px`;
+
+    floatingActionsContainer.style.transformOrigin = 'center bottom';
+}
+
+function hideFloatingActions(event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    floatingActionsContainer.style.display = 'none';
+    if (selectedCellElement) {
+        selectedCellElement.classList.remove('selected-for-action');
+    }
+    selectedCellElement = null;
+    selectedCellCoords = null;
+}
+
+function handleFloatingAction(event, action) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (selectedCellCoords) {
+        const { r, c } = selectedCellCoords;
+        if (action === 'mine') {
+            revealCell(r, c);
+        } else if (action === 'flag') {
+            toggleFlag(r, c);
+        }
+    }
+
+    hideFloatingActions();
+}
+
+document.addEventListener('touchstart', (e) => {
+    if (!board.contains(e.target) && !floatingActionsContainer.contains(e.target) && !modal.contains(e.target)) {
+        hideFloatingActions();
+    }
+});
+
+function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        timer++;
+        timerDisplay.textContent = String(timer).padStart(3, '0');
+    }, 1000);
+}
+
+function stopTimer() { clearInterval(timerInterval); }
+
+function resetTimer() {
+    stopTimer();
+    timer = 0;
+    timerDisplay.textContent = '000';
+}
+
+function showModal(won) {
+    modal.style.display = 'flex';
+    if (won) {
+        modal.classList.remove('defeat');
+        defeatWrapper.style.display = 'none';
+        modalContentWin.style.display = 'flex'; 
+        winTimeDisplay.innerHTML = `<span class="win-time-icon">⏱️</span>${timer}s`; 
+    } else {
+        modal.classList.add('defeat');
+        modalContentWin.style.display = 'none';
+        defeatWrapper.style.display = 'flex';
+    }
+}
+
+function hideModal() {
+    modal.style.display = 'none';
+    modal.classList.remove('defeat');
+    modalContentWin.style.display = 'none';
+    defeatWrapper.style.display = 'none';
+}
+
+function startCelebrationAnimation() {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    for (let i = 0; i < 30; i++) { 
+        const emoji = celebrationEmojis[Math.floor(Math.random() * celebrationEmojis.length)];
+        const element = document.createElement('div');
+        element.classList.add('celebration-element');
+        element.textContent = emoji;
+
+        const startX = Math.random() * viewportWidth;
+        const startY = Math.random() * viewportHeight;
+        
+        element.style.left = `${startX}px`;
+        element.style.top = `${startY}px`;
+
+        element.style.setProperty('--x-offset', `${(Math.random() - 0.5) * 200}px`); 
+        element.style.setProperty('--y-offset', `${(Math.random() - 0.5) * 200}px`); 
+        element.style.setProperty('--y-offset-end', `${(Math.random() - 1) * 300}px`); 
+        element.style.setProperty('--rotation-start', `${Math.random() * 360}deg`);
+        element.style.setProperty('--rotation-end', `${(Math.random() * 360) + 720}deg`); 
+
+        document.body.appendChild(element); 
+        
+        element.addEventListener('animationend', () => {
+            element.remove();
+        });
+    }
+}
+
+document.getElementById('btnClasificatoria').addEventListener('click', openClasificacion);
+
+window.onload = () => {
+    // onAuthStateChanged se encarga de cargar la sesión al inicio
+    createBoard();
+};
     </script>
 </body>
 </html>
