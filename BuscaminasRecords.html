@@ -4,263 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏆 Clasificación Global: Buscaminas</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
     <style>
         :root {
-            --color-principal: #EA7900;
-            --color-secundario: #ffb86c;
+            --color-naranja-principal: #EA7900;
             --color-fondo: #282c34;
-            --color-tarjeta: #3b4252;
+            --color-tablero: #3b4252;
             --color-texto: #e0e0e0;
-            --color-record: #4CAF50;
-            --color-bomba: #D32F2F;
-            --color-sombra-naranja: #a45400;
+            --color-azul-puntaje: #00bcd4; 
+            --max-width-pc: 900px; 
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--color-fondo);
             color: var(--color-texto);
-            margin: 0;
-            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 30px; 
         }
-
-        header {
-            width: 100%;
-            /* Ajustado para que coincida con el contenedor de la tabla */
-            max-width: 1000px; 
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
         h1 {
-            color: var(--color-principal);
-            font-size: 3em; /* Ligeramente más grande para PC */
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+            color: var(--color-naranja-principal);
+            border-bottom: 3px solid var(--color-naranja-principal);
+            padding-bottom: 5px;
+            margin-bottom: 30px; 
+            font-size: 2.5em; 
         }
         
-        #highscores-container {
+        #records-table {
             width: 100%;
-            /* ⭐ MODIFICACIÓN CLAVE PARA PC: Aumentar el ancho máximo */
-            max-width: 1000px; 
-            background-color: var(--color-tarjeta);
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); 
-            overflow: hidden;
-        }
-
-        table {
-            width: 100%;
+            max-width: var(--max-width-pc); 
             border-collapse: separate;
-            border-spacing: 0 2px;
+            border-spacing: 0 15px; 
+        }
+        #records-table th, #records-table td {
+            padding: 18px 25px; 
             text-align: left;
+            font-size: 1.05em;
         }
-
-        #highscores-container thead {
-            border-radius: 10px 10px 0 0;
-        }
-
-        th, td {
-            padding: 15px 20px; /* Un poco más de padding para mejor legibilidad en PC */
-            border-bottom: none; 
-        }
-
-        th {
-            background-color: var(--color-principal);
+        #records-table th {
+            background-color: var(--color-naranja-principal);
             color: var(--color-fondo);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 1.1em; /* Header más visible */
+            font-size: 1.2em;
+            border-radius: 8px 8px 0 0; 
+            position: sticky; 
+            top: 0;
+            z-index: 10;
         }
-
-        tr {
-             background-color: var(--color-tarjeta);
-             transition: background-color 0.2s;
+        #records-table tr {
+            background-color: var(--color-tablero);
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); 
+            transition: transform 0.2s;
         }
-
-        tr:nth-child(even) {
-            background-color: #4b5263;
+        #records-table tr:hover {
+            transform: translateY(-3px); 
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
         }
-
-        tr:hover {
-            background-color: #5d667d;
-        }
-
-        .position {
+        #records-table td:first-child {
             font-weight: bold;
-            text-align: center;
-            width: 60px; /* Un poco más de espacio para la posición */
+            color: var(--color-naranja-principal);
         }
-        
-        .position.rank-1 { background-color: gold; color: #333; }
-        .position.rank-2 { background-color: silver; color: #333; }
-        .position.rank-3 { background-color: #cd7f32; color: #333; }
-        
-        .score-value {
+        .score-cell {
             font-weight: bold;
-            color: var(--color-record);
-        }
-        
-        .empty-message {
-            padding: 30px; /* Un poco más de padding */
-            text-align: center;
-            color: var(--color-secundario);
-            font-style: italic;
+            color: var(--color-azul-puntaje); 
             font-size: 1.1em;
         }
-        
-        #loading-message {
-            display: none;
-            padding: 40px;
-            font-size: 1.4em;
-            color: var(--color-principal);
+        #message {
+            color: var(--color-naranja-principal);
+            font-size: 1.4em; 
+            margin-top: 30px;
         }
         
-        #info-message {
-            margin-top: 5px;
-            font-size: 1.1em; /* Texto de información más legible */
-            color: var(--color-secundario);
-            text-align: center;
+        #returnButtonContainer a {
+            font-size: 1.2em; 
         }
-        
-        .return-link a {
-            color: var(--color-principal);
-            text-decoration: none;
-            font-weight: bold;
-            transition: color 0.2s;
-            font-size: 1.1em; /* Enlace más grande */
-        }
-        .return-link a:hover {
-            color: var(--color-secundario);
-        }
-        
-        /* Media query adaptada para mantener la responsividad en móviles/tabletas */
-        @media (max-width: 1050px) { /* El ajuste de 1050px permite el ancho máximo de 1000px más el padding */
-             header {
-                max-width: 95%; /* Ajuste para evitar desbordamiento */
-            }
-            #highscores-container {
-                max-width: 95%; 
+
+        @media (max-width: 950px) {
+            #records-table {
+                max-width: 95%;
             }
         }
         
         @media (max-width: 650px) {
-            /* Reglas originales para pantallas más pequeñas */
-            #highscores-container {
-                max-width: 100%;
-            }
-            #highscores-container table {
+            #records-table {
                 font-size: 0.9em;
+                max-width: 100%;
+                border-spacing: 0 5px;
             }
-            th, td {
-                padding: 10px 8px;
-            }
-            h1 {
-                font-size: 2.5em;
+            #records-table th, #records-table td {
+                padding: 10px 5px;
+                font-size: 1em;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>🏆 Clasificación Global: <span id="game-title">Buscaminas</span></h1>
-        <p id="info-message"></p>
-    </header>
-
-    <div id="highscores-container">
-        <table>
-            <thead>
-                <tr>
-                    <th class="position">#</th>
-                    <th>Usuario</th>
-                    <th>Tiempo (s)</th>
-                    <th>Dificultad</th>
-                </tr>
-            </thead>
-            <tbody id="highscores-body">
-                </tbody>
-        </table>
-        <div id="loading-message">Cargando récords...</div>
-        <div id="no-records-message" class="empty-message" style="display: none;">Aún no hay récords</div>
-    </div>
+    <h1>💣 Tabla de Récords Globales 🏆</h1>
     
-    <p id="returnButtonContainer" class="return-link" style="margin-top: 20px; display: none;">
-        <a href="https://gatosauriocrack.github.io/juegos/Buscaminas">← Volver al juego</a> 
+    <p id="message">Cargando récords de Firebase...</p>
+
+    <table id="records-table">
+        <thead>
+            <tr>
+                <th>Posición</th>
+                <th>Usuario</th>
+                <th>Tiempo (s)</th>
+                <th>Dificultad</th>
+            </tr>
+        </thead>
+        <tbody>
+            </tbody>
+    </table>
+    
+    <p id="returnButtonContainer" style="margin-top: 20px; display:none;">
+        <a href="https://gatosauriocrack.github.io/juegos/Buscaminas" style="color: var(--color-naranja-principal); text-decoration: none; font-weight: bold;">← Volver al juego</a>
     </p>
 
     <script>
-        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
-        const GAME_API_KEY = 'Buscaminas_game'; 
-        const TARGET_SPEED = '30x29 (99 Minas)'; 
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
+            authDomain: "procesador-56b7a.firebaseapp.com",
+            projectId: "procesador-56b7a",
+            storageBucket: "procesador-56b7a.appspot.com",
+            messagingSenderId: "1029072924025",
+            appId: "1:1029072924025:web:c32d735e453416ecfd93a8"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
         
-        const highscoresBody = document.getElementById('highscores-body');
-        const loadingMessage = document.getElementById('loading-message');
-        const noRecordsMessage = document.getElementById('no-records-message');
-        const gameTitle = document.getElementById('game-title');
+        const LEADERBOARD_COLLECTION = 'leaderboard_buscaminas_game';
+        const leaderboardCol = db.collection(LEADERBOARD_COLLECTION);
+        
+        const tbody = document.querySelector('#records-table tbody');
+        const messageElement = document.getElementById('message');
+        const trophyEmojis = ['🏆', '🥈', '🥉']; 
 
-        function init() {
-            fetchHighscores();
-            // 👇 MODIFICACIÓN 3: Llamar a la comprobación de origen al inicio
-            checkURLOrigin();
-        }
-
-        async function fetchHighscores() {
-            highscoresBody.innerHTML = '';
-            loadingMessage.style.display = 'block';
-            noRecordsMessage.style.display = 'none';
-
-            const url = `${RENDER_API_URL}/get_records?game_name=${GAME_API_KEY}&speed=${encodeURIComponent(TARGET_SPEED)}`;
+        async function fetchAndDisplayRecords() {
+            messageElement.textContent = "Cargando récords de Firebase...";
+            tbody.innerHTML = ""; 
 
             try {
-                const response = await fetch(url);
-                const data = await response.json();
-
-                loadingMessage.style.display = 'none';
-
-                if (response.ok && data.highscores.length > 0) {
-                    displayHighscores(data.highscores);
-                } else {
-                    noRecordsMessage.style.display = 'block';
+                const querySnapshot = await leaderboardCol
+                    .orderBy('score', 'asc')
+                    .limit(10)
+                    .get();
+                
+                const highscores = [];
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    highscores.push({
+                        username: data.username,
+                        score: parseInt(data.score), 
+                        difficulty: data.difficulty 
+                    });
+                });
+                
+                if (highscores.length === 0) {
+                     messageElement.textContent = "Aún no hay récords registrados.";
+                     return;
                 }
+                
+                messageElement.textContent = ""; 
+
+                highscores.forEach((record, index) => {
+                    const row = tbody.insertRow();
+                    const position = index + 1;
+                    
+                    const posCell = row.insertCell();
+                    const userCell = row.insertCell();
+                    const scoreCell = row.insertCell();
+                    const difficultyCell = row.insertCell();
+                    
+                    if (position <= 3) {
+                        posCell.innerHTML = trophyEmojis[index] + " " + position;
+                    } else {
+                        posCell.textContent = position;
+                    }
+                    
+                    userCell.textContent = record.username || 'Anónimo';
+                    scoreCell.textContent = record.score + 's';
+                    scoreCell.classList.add('score-cell'); 
+                    difficultyCell.textContent = record.difficulty || 'Experto';
+                });
 
             } catch (error) {
-                loadingMessage.style.display = 'none';
-                highscoresBody.innerHTML = `<tr><td colspan="4" class="empty-message" style="color: var(--color-bomba)">Error al cargar la clasificación. El servidor podría estar inactivo.</td></tr>`;
-                console.error("Error fetching highscores:", error);
+                console.error("Error al obtener récords de Firestore:", error);
+                messageElement.innerHTML = `
+                    Error al conectar con la base de datos de Firebase.<br>
+                    <strong>¡Acción Requerida!</strong> Debes hacer las reglas de lectura para 
+                    '${LEADERBOARD_COLLECTION}' públicas.
+                `;
             }
         }
-
-        function displayHighscores(highscores) {
-            highscoresBody.innerHTML = '';
-            
-            highscores.forEach((record, index) => {
-                const row = highscoresBody.insertRow();
-                
-                const rankCell = row.insertCell();
-                rankCell.textContent = index + 1;
-                rankCell.classList.add('position');
-                if (index === 0) rankCell.classList.add('rank-1');
-                else if (index === 1) rankCell.classList.add('rank-2');
-                else if (index === 2) rankCell.classList.add('rank-3');
-
-                row.insertCell().textContent = record.username;
-
-                const scoreCell = row.insertCell();
-                scoreCell.textContent = `${record.score}s`;
-                scoreCell.classList.add('score-value');
-                
-                row.insertCell().textContent = record.speed;
-            });
-        }
         
-        // 👇 MODIFICACIÓN 2: Función para comprobar el origen
         function checkURLOrigin() {
             const urlParams = new URLSearchParams(window.location.search);
             const returnButton = document.getElementById('returnButtonContainer');
             
-            // Si la URL contiene ?from=game, muestra el botón.
             if (urlParams.get('from') === 'game') {
                 if (returnButton) {
                     returnButton.style.display = 'block';
@@ -268,7 +213,12 @@
             } 
         }
 
-        window.onload = init;
+        window.onload = () => {
+             fetchAndDisplayRecords();
+             checkURLOrigin();
+        }
+        
+        setInterval(() => fetchAndDisplayRecords(), 30000); 
     </script>
 </body>
 </html>
