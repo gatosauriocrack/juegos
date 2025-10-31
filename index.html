@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gatosauriocrack - Bienvenido</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+    <header class="navbar">
+        <a href="#" class="navbar-title">Gatosauriocrack</a>
+
+        <div id="openMenuIcon" class="menu-icon" onclick="toggleMenu()">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        
+        <nav id="menuLinks" class="menu-links">
+            <div class="menu-header">
+                <div id="closeMenuIcon" class="sidebar-close-icon" onclick="toggleMenu()">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+            
+            <a href="#" onclick="showView('home'); closeMenu();">Inicio</a>
+            <a href="#" onclick="showView('juegos'); closeMenu();">Juegos</a>
+            <a href="#" onclick="showView('descarga-apps'); closeMenu();">Descarga Apps</a>
+            <a href="#" onclick="showView('como-descargar'); closeMenu();">Cómo Descargar</a>
+            <a href="#" onclick="showView('canales'); closeMenu();">Canales</a> 
+            <a href="#" onclick="showView('apoyo'); closeMenu();">Apoyo</a>
+            
+            <button id="rewardButton" class="reward-btn" onclick="openSecretReward()">$</button>
+            
+        </nav>
+    </header>
+
+    <div class="content">
+        
+        <div id="home" class="page-view active">
+            <h2 id="top">¡Bienvenido!</h2>
+            
+            <p style="text-align: center; font-weight: bold; color: var(--color-naranja-claro);">Índice</p>
+            <ul class="index-list">
+                <li><a href="#" onclick="showView('juegos')">• Juegos 🎮</a></li>
+                <li><a href="#" onclick="showView('descarga-apps')">• Descarga Apps 💾</a></li>
+                <li><a href="#" onclick="showView('como-descargar')">• Cómo Descargar ❓</a></li>
+                <li><a href="#" onclick="showView('canales')">• Canales 🔗</a></li> 
+                <li><a href="#" onclick="showView('apoyo')">• Apoyo ⭐</a></li>
+            </ul>
+            
+            <p>Hola, soy un programador independiente que lo hace por pasatiempo. También tengo canal de <a href="https://m.youtube.com/@gatosauriocrack" target="_blank">YouTube</a> donde subo videos sobre Minecraft y animaciones sencillas.</p>
+            
+            <p>También puedes seguirme en mi cuenta de <a href="https://www.instagram.com/gatosauriocrack" target="_blank">Instagram</a> o <a href="https://x.com/gatosauriocrack" target="_blank">X [Twitter]</a>.</p>
+            
+            <p>Pues esto es todo y que disfruten el contenido.</p>
+            
+            <a href="mailto:gatosauriocrackand@gmail.com" class="contact-link-desc">Contactarme Aquí️</a>
+            
+        </div>
+
+        <div id="juegos" class="page-view">
+            <h2 id="juegos-title">Juegos 🎮</h2>
+            
+            <p style="font-size: 1.1em; line-height: 1.4;">
+                En este apartado se encontrarán links de los juegos y app beta en desarrollo. 
+                Cada error o bug contactarme por <a href="mailto:gatosauriocrackand@gmail.com" style="color: var(--color-link-azul); text-decoration: underline;">Gmail</a>. 
+                ¡Solo disfruta y diviértete!
+            </p>
+            
+            <hr style="border-color: var(--color-naranja-claro); margin: 30px 0;">
+
+            <div class="game-button-list">
+                <div class="game-button-container">
+                    <a href="#" class="game-link" onclick="showView('snake-menu')">Snake 🐍 <span class="game-status">(beta)</span></a>
+                    <button class="info-button" onclick="openSnakeInfoModal()">&#x24D8;</button>
+                </div>
+
+                <div class="game-button-container">
+                    <a href="#" class="game-link" onclick="showView('buscaminas-menu')">Buscaminas 🚩 <span class="game-status">(beta)</span></a>
+                    <button class="info-button" onclick="openBuscaminasInfoModal()">&#x24D8;</button>
+                </div>
+                
+                <div class="game-button-container">
+                    <a href="#" class="game-link" onclick="showView('tetris-menu')">Tetris <span class="game-status">(en desarrollo)</span></a>
+                    <button class="info-button" onclick="openTetrisInfoModal()">&#x24D8;</button>
+                </div>
+
+                <div class="game-button-container">
+                    <a href="#" class="game-link game-link-small-font" onclick="showView('naval-menu')">Batalla Naval Online <span class="game-status">(en proceso de creación)</span></a>
+                    <button class="info-button" onclick="openNavalInfoModal()">&#x24D8;</button>
+                </div>
+                
+                <div class="game-button-container">
+                    <a href="#" class="game-link game-link-small-font" onclick="showView('wcoartl-menu')">Wcoartl <span class="game-status">(idea más o menos hecha)</span></a>
+                    <button class="info-button" onclick="openWcoartlInfoModal()">&#x24D8;</button>
+                </div>
+            </div>
+
+            <button onclick="showView('home')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver a Juegos</button>
+        </div>
+
+        <div id="snake-menu" class="page-view">
+            <h2 id="snake-menu-title">Snake 🐍</h2>
+            <p style="font-size: 1.1em; line-height: 1.4;">Selecciona una opción para jugar o ver los récords.</p>
+            <div style="margin-top: 30px;">
+                <a href="https://gatosauriocrack.github.io/juegos/snake" target="_blank" class="snake-option-link web">• Snake 🐍 Web (Jugar Ahora)</a>
+                <a href="#" class="snake-option-link" style="opacity: 0.5; cursor: default;">• App (por implementar)</a>
+            </div>
+            <h2 style="margin-top: 40px; border-bottom: none; font-size: 1.5em; text-align: left; color: var(--color-naranja-claro);">Tabla de Clasificación ↓</h2>
+            <div class="records-container">
+                <button onclick="reloadIframe('snake-records-iframe')" class="reload-button">Recargar Tabla 🔄</button>
+                <iframe id="snake-records-iframe" src="https://gatosauriocrack.github.io/juegos/recordsnake" class="records-iframe" title="Tabla de Clasificación Snake" loading="lazy"></iframe>
+            </div>
+            <button onclick="showView('juegos')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver a Juegos</button>
+        </div>
+        
+        <div id="buscaminas-menu" class="page-view">
+            <h2 id="buscaminas-menu-title">Buscaminas 🚩</h2>
+            <p style="font-size: 1.1em; line-height: 1.4;">Selecciona una opción para jugar o ver los récords.</p>
+            <div style="margin-top: 30px;">
+                <a href="https://gatosauriocrack.github.io/juegos/Buscaminas" target="_blank" class="buscaminas-option-link web">• Buscaminas 🚩 Web (Jugar Ahora)</a>
+                <a href="#" class="buscaminas-option-link" style="opacity: 0.5; cursor: default;">• App (por implementar)</a>
+            </div>
+            <h2 style="margin-top: 40px; border-bottom: none; font-size: 1.5em; text-align: left; color: var(--color-naranja-claro);">Tabla de Clasificación ↓</h2>
+            <div class="records-container">
+                <button onclick="reloadIframe('buscaminas-records-iframe')" class="reload-button">Recargar Tabla 🔄</button>
+                <iframe id="buscaminas-records-iframe" src="https://gatosauriocrack.github.io/juegos/BuscaminasRecords" class="records-iframe" title="Tabla de Clasificación Buscaminas" loading="lazy"></iframe>
+            </div>
+            <button onclick="showView('juegos')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver a Juegos</button>
+        </div>
+
+        <div id="tetris-menu" class="page-view">
+            <h2 id="tetris-menu-title" style="color: var(--color-tetris);">Tetris 🧱</h2>
+            <p style="font-size: 1.1em; line-height: 1.4;">El clásico juego de bloques. Los enlaces se activarán cuando esté terminado.</p>
+            <div style="margin-top: 30px;">
+                <a href="#" class="tetris-option-link web" style="opacity: 0.5; cursor: default;">• Tetris Web (Por implementar)</a>
+                <a href="#" class="tetris-option-link" style="opacity: 0.5; cursor: default;">• App (por implementar)</a>
+            </div>
+            
+            <p style="margin-top: 40px; text-align: center; color: var(--color-tetris); font-weight: bold;">
+                La Tabla de Clasificación se habilitará cuando el juego esté terminado.
+            </p>
+            
+            <button onclick="showView('juegos')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver a Juegos</button>
+        </div>
+        
+        <div id="naval-menu" class="page-view">
+            <h2 id="naval-menu-title" style="color: var(--color-naval);">Batalla Naval Online 🚢</h2>
+            <p style="font-size: 1.1em; line-height: 1.4;">
+                El juego multijugador definitivo. El desarrollo en línea está en proceso.
+            </p>
+            <div style="margin-top: 30px;">
+                <a href="#" class="naval-option-link web" style="opacity: 0.5; cursor: default;">
+                    • Batalla Naval Web (Por implementar)
+                </a>
+                <a href="#" class="naval-option-link" style="opacity: 0.5; cursor: default;">
+                    • App (por implementar)
+                </a>
+            </div>
+            
+            <button onclick="showView('juegos')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver a Juegos</button>
+        </div>
+        
+        <div id="wcoartl-menu" class="page-view">
+            <h2 id="wcoartl-menu-title" style="color: var(--color-wcoartl);">Wcoartl ⭐</h2>
+            <p style="font-size: 1.1em; line-height: 1.4;">
+                Proyecto ambicioso de Lore y jugabilidad mixta. ¡El desarrollo es definitivo!
+            </p>
+            <div style="margin-top: 30px;">
+                <a href="#" class="wcoartl-option-link web" style="opacity: 0.5; cursor: default;">
+                    • Wcoartl Web (Por implementar)
+                </a>
+                <a href="#" class="wcoartl-option-link" style="opacity: 0.5; cursor: default;">
+                    • App (por implementar)
+                </a>
+            </div>
+            <button onclick="showView('juegos')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver a Juegos</button>
+        </div>
+
+        <div id="descarga-apps" class="page-view">
+            <h2 id="descarga-apps-title">Descarga Apps 💾</h2>
+            
+            <p style="font-size: 1.1em;">
+                Aquí se encuentran los links de descarga "APK" (versión de prueba) o de "Play Store" (versión final). Consulta la sección <strong>"Cómo Descargar"</strong> si tienes dudas.
+            </p>
+            
+            <hr style="border-color: var(--color-naranja-claro); margin: 30px 0;">
+            
+            <ul class="app-download-list">
+                
+                <li class="app-download-item">
+                    <span class="app-title">Snake 🐍 </span>
+                    <div class="download-buttons">
+                        <a href="#" class="download-btn apk" style="opacity: 0.5; cursor: default;" title="Próximamente">APK</a>
+                        <a href="#" class="download-btn play-store" title="No disponible en Play Store">&#x25B6; Play Store</a>
+                    </div>
+                </li>
+                
+                <li class="app-download-item">
+                    <span class="app-title">Buscaminas 🚩 </span>
+                    <div class="download-buttons">
+                        <a href="#" class="download-btn apk" style="opacity: 0.5; cursor: default;" title="Próximamente">APK</a>
+                        <a href="#" class="download-btn play-store" title="No disponible en Play Store">&#x25B6; Play Store</a>
+                    </div>
+                </li>
+                
+                <li class="app-download-item">
+                    <span class="app-title">Tetris 🧱 </span>
+                    <div class="download-buttons">
+                        <a href="#" class="download-btn apk" style="opacity: 0.5; cursor: default;" title="Próximamente">APK</a>
+                        <a href="#" class="download-btn play-store" title="No disponible en Play Store">&#x25B6; Play Store</a>
+                    </div>
+                </li>
+                
+                <li class="app-download-item">
+                    <span class="app-title">Batalla Naval 🚢 </span>
+                    <div class="download-buttons">
+                        <a href="#" class="download-btn apk" style="opacity: 0.5; cursor: default;" title="Próximamente">APK</a>
+                        <a href="#" class="download-btn play-store" title="No disponible en Play Store">&#x25B6; Play Store</a>
+                    </div>
+                </li>
+                
+                <li class="app-download-item">
+                    <span class="app-title">Wcoartl ⭐ </span>
+                    <div class="download-buttons">
+                        <a href="#" class="download-btn apk" style="opacity: 0.5; cursor: default;" title="Próximamente">APK</a>
+                        <a href="#" class="download-btn play-store" title="No disponible en Play Store">&#x25B6; Play Store</a>
+                    </div>
+                </li>
+                
+            </ul>
+            
+            <p style="margin-top: 30px; text-align: center; font-style: italic; color: var(--color-naranja-claro);">
+                Consulta la sección 
+                <a href="#" onclick="showView('como-descargar'); return false;" style="color: var(--color-naranja-fuerte); font-style: normal; text-decoration: underline;">
+                    "Cómo Descargar"
+                </a> 
+                si tienes dudas con la instalación del APK o el uso de Play Store.
+            </p>
+            <button onclick="showView('home')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver al Inicio</button>
+        </div>
+
+        <div id="como-descargar" class="page-view">
+            <h2 id="como-descargar-title">Cómo Descargar ❓</h2>
+            
+            <p style="font-size: 1.2em; color: var(--color-naranja-principal); font-weight: bold;">Opción 1: Descarga por Play Store</p>
+            <p style="font-size: 1.1em;">Simplemente "haga clic" en el botón de "Play Store" y se abrirá la aplicación para que inicie la descarga. ¡Es la forma más sencilla!</p>
+            
+            <hr style="border-color: var(--color-naranja-claro); margin: 30px 0;">
+
+            <p style="font-size: 1.2em; color: var(--color-link-azul); font-weight: bold;">Opción 2: Descarga de Archivo APK</p>
+            <p style="font-size: 1.1em;">Instrucciones paso a paso para el archivo APK (Versión de Prueba):</p>
+            <ol style="color: var(--color-texto); font-size: 1.1em; line-height: 1.6;">
+                <li>Haga clic en el enlace de descarga "APK" de la app que desee.</li>
+                <li>Una vez descargado, vaya a la configuración de su dispositivo: "Configuración > Seguridad" y active la opción "Permitir fuentes desconocidas" (o "Instalar apps desconocidas"). </li>
+                <li>Busque el archivo descargado (generalmente en la carpeta de "Descargas") e instálelo.</li>
+            </ol>
+            <p style="color: var(--color-naranja-claro); font-weight: bold; margin-top: 20px;">¡Listo! Disfrute el contenido y recuerde contactarme si encuentra algún error (bug).</p>
+            
+            <a href="#" onclick="showView('descarga-apps'); return false;" class="contact-link-desc" 
+                style="margin-top: 10px; background-color: var(--color-link-azul); color: var(--color-texto) !important; border-color: var(--color-link-azul); box-shadow: 0 4px #2980b9;">
+                Ir a la Sección de Descarga Apps 💾
+            </a>
+            <button onclick="showView('home')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver al Inicio</button>
+        </div>
+
+        <div id="canales" class="page-view">
+            <h2 id="canales-title">Canales</h2>
+            
+            <p style="font-size: 1.1em;">
+                Aquí tienes todos los enlaces directos a mis redes sociales
+            </p>
+            
+            <hr style="border-color: var(--color-naranja-claro); margin: 30px 0;">
+            
+            <ul class="channel-list">
+                <li><a href="https://m.youtube.com/@gatosauriocrack" target="_blank">YouTube</a></li>
+                <li><a href="#" target="_blank">TikTok (Por agregar link)</a></li>
+                <li><a href="https://www.instagram.com/gatosauriocrack" target="_blank">Instagram</a></li>
+                <li><a href="https://x.com/gatosauriocrack" target="_blank">X [Twitter]</a></li>
+                <li><a href="#" target="_blank">Twitch (Por agregar link)</a></li>
+                <li><a href="#" target="_blank">Discord (Por agregar link)</a></li>
+            </ul>
+
+            <p style="margin-top: 30px; text-align: center; font-style: italic; color: var(--color-naranja-principal);">
+                😺
+            </p>
+
+            <button onclick="showView('home')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver al Inicio</button>
+        </div>
+
+        <div id="apoyo" class="page-view">
+            <h2 id="apoyo-title">Apoyo ⭐</h2>
+            
+            <p style="font-size: 1.1em; text-align: center;">
+                Tu apoyo es fundamental para el crecimiento del proyecto Gatosauriocrack. ¡Gracias por considerar ayudarme a cumplir mis metas!
+            </p>
+
+            <hr style="border-color: var(--color-naranja-principal); margin: 30px 0;">
+
+            <h3 style="font-size: 1.5em; color: var(--color-naranja-claro); margin-top: 25px;">Mis Objetivos Principales:</h3>
+            <ul style="list-style: disc; margin-left: 20px; font-size: 1.1em; line-height: 1.6;">
+                <li><strong style="color: var(--color-naranja-principal);">Comprar una PC:</strong> Para mejorar la velocidad y calidad del desarrollo de mis juegos y animaciones.</li>
+                <li><strong style="color: var(--color-naranja-principal);">Comprar Licencia de Google Play:</strong> Para poder publicar las Apps de los juegos (Snake, Buscaminas, Tetris, etc.) en la Play Store de forma oficial.</li>
+            </ul>
+
+            <hr style="border-color: var(--color-naranja-claro); margin: 30px 0;">
+
+            <h3 style="font-size: 1.5em; color: var(--color-naranja-claro); margin-top: 25px;">Apoyo Económico</h3>
+            <p style="font-size: 1.1em;">
+                Si deseas apoyarme económicamente, en este momento estoy gestionando con mis padres la mejor manera de recibir transferencias.
+            </p>
+            
+            <div class="important" style="background-color: var(--color-tablero); border: 2px dashed var(--color-naranja-fuerte); color: var(--color-naranja-principal); padding: 15px; margin: 20px 0;">
+                <strong style="font-size: 1.2em;">¡Información de Transferencia/Donación Próximamente!</strong>
+                <p style="margin-top: 5px; font-size: 1em; color: var(--color-naranja-claro); font-weight: normal;">
+                    Estaré actualizando esta sección con los datos bancarios (con la aprobación de mis padres) o un enlace de PayPal tan pronto como sea posible.
+                </p>
+            </div>
+
+            <h3 style="font-size: 1.5em; color: var(--color-naranja-claro); margin-top: 25px;">Otras Formas de Apoyo:</h3>
+            <ul style="list-style: disc; margin-left: 20px; font-size: 1.1em; line-height: 1.6;">
+                <li>También me puedes apoyar siguiendo mis <a href="#" onclick="showView('canales'); return false;" style="color: var(--color-link-azul);">cuentas</a>.</li>
+                <li>Compartir mi trabajo y el link de esta web en tus redes sociales.</li>
+            </ul>
+            
+            <button onclick="showView('home')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver al Inicio</button>
+        </div>
+        
+        </div>
+    
+    <div id="gameModal" class="modal">
+        <div class="modal-content-container">
+            <span class="close" onclick="closeGameModal()">&times;</span>
+            <div id="modalContent">
+            </div>
+        </div>
+    </div>
+    
+    <div id="secretClockModal" class="modal">
+        <div class="modal-content-container" style="max-width: 400px; padding: 20px;">
+            <span class="close" onclick="closeSecretClockModal()">&times;</span>
+            <div id="secretClockContent" style="text-align: center;">
+                <h1 style="font-size: 2em; color: var(--color-link-azul); border-bottom: none;">⏰ La Hora Secreta</h1>
+                <p style="color: var(--color-texto); margin-bottom: 20px;">
+                    Cual es la hora más conocida de los casos paranormales.
+                </p>
+                <input type="time" id="secretTimeInput" style="
+                    font-size: 2.5em; 
+                    padding: 10px; 
+                    border: 3px solid var(--color-naranja-principal); 
+                    border-radius: 8px; 
+                    background-color: var(--color-fondo); 
+                    color: var(--color-naranja-claro);
+                    width: 100%;
+                    max-width: 250px;
+                    text-align: center;
+                    margin: 15px auto;
+                    display: block;
+                ">
+                <button id="checkTimeButton" onclick="checkSecretTime()" style="
+                    width: 100%;
+                    padding: 15px;
+                    background-color: var(--color-naranja-principal);
+                    color: var(--color-fondo);
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-size: 1.2em;
+                    font-weight: bold;
+                    margin-top: 20px;
+                    transition: background-color 0.2s;
+                ">Comprobar</button>
+                <div id="secretMessage" style="margin-top: 15px; font-weight: bold; color: var(--color-naranja-claro);"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="videoRewardModal" class="modal">
+        <div class="modal-content-container" style="max-width: 600px; padding: 10px;">
+            <span class="close" onclick="closeVideoRewardModal()">&times;</span>
+            
+            <div id="videoContent">
+                <h2 style="color: #FFC107; text-align: center;">¡Sorpresa!</h2>
+                <video id="secretVideoPlayer" width="100%" controls style="display: block; margin: 10px 0;">
+                    <source src="rikroll.mp4" type="video/mp4">
+                    Tu navegador no soporta la reproducción de videos.
+                </video>
+            </div>
+            
+            <div id="secretCodeDisplay" style="display: none; text-align: center; margin-top: 20px;">
+                <h2 style="color: #9C27B0; font-size: 1.8em;">¡CÓDIGO DE RECOMPENSA!</h2>
+                <div style="background-color: var(--color-fondo); border: 2px dashed #9C27B0; padding: 15px; border-radius: 8px;">
+                    <span id="secretCodeText" style="font-size: 2em; font-weight: bold; color: #FFC107;">M3l1 PR2</span>
+                </div>
+                <button id="copyButton" onclick="copySecretCode()" style="
+                    margin-top: 15px; 
+                    padding: 10px 20px; 
+                    background-color: #2196F3; 
+                    color: white; 
+                    border: none; 
+                    border-radius: 5px; 
+                    cursor: pointer; 
+                    font-weight: bold;
+                ">Copiar Código 📋</button>
+                <div id="copyMessage" style="color: #4CAF50; margin-top: 10px; font-weight: bold; display: none;">¡Copiado!</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="meliGif">
+        <img src="./Meli.gif" alt="Gatosauriocrack Meli GIF"> 
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
