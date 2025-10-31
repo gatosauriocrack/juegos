@@ -6,13 +6,17 @@
     <title>Gatosauriocrack - Autenticación</title>
     <style>
         /* ========================================= */
-        /* CÓDIGO CSS (SIN CAMBIOS SIGNIFICATIVOS) */
+        /* CÓDIGO CSS (CON BOTÓN DE CONTRASEÑA AJUSTADO) */
         /* ========================================= */
         * {
             box-sizing: border-box; 
         }
-        body {
-            overflow-x: hidden; 
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
         }
 
         :root {
@@ -38,7 +42,6 @@
             background-color: var(--color-fondo); 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: var(--color-texto);
-            margin: 0;
             padding-top: 20px; 
             min-height: 100vh;
             display: flex;
@@ -48,7 +51,7 @@
         .content {
             padding: 20px;
             max-width: 500px; 
-            width: 90%; 
+            width: 95%; 
             margin: 20px auto; 
             background-color: var(--color-tablero);
             border: 1px solid var(--color-naranja-principal);
@@ -65,14 +68,58 @@
             border-bottom: 3px solid var(--color-naranja-claro);
         }
 
-        input, select { /* Añadido 'select' aquí para estilos uniformes */
-            width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; 
-            border-radius: 6px; border: 1px solid var(--color-naranja-claro); 
+        /* Contenedor para el icono de mostrar/ocultar contraseña */
+        .input-container {
+            position: relative;
+            margin: 10px 0;
+        }
+        
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 0;
+            box-sizing: border-box; 
+            border-radius: 6px; 
+            border: 1px solid var(--color-naranja-claro); 
             font-size: 16px;
             background-color: var(--color-fondo); 
             color: var(--color-texto);
         }
+
+        /* Botón de mostrar/ocultar contraseña AJUSTADO */
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 5px; /* Ajuste para moverlo más a la derecha */
+            transform: translateY(-50%);
+            
+            /* === AJUSTES CLAVE PARA HACERLO PEQUEÑO Y CUADRADO === */
+            background: none; 
+            border: none;
+            width: 30px; 
+            height: 30px; 
+            line-height: 30px;
+            text-align: center; 
+            
+            color: var(--color-naranja-claro);
+            cursor: pointer;
+            padding: 0;
+            font-size: 1.2em;
+            z-index: 10;
+            transition: color 0.2s; /* Para efecto hover */
+        }
+
+        .toggle-password:hover {
+            color: var(--color-naranja-principal); /* Efecto hover */
+        }
         
+        /* Ajuste para inputs de contraseña dentro del contenedor */
+        .input-container input[type="password"],
+        .input-container input[type="text"] {
+            /* Aumentar un poco el espacio derecho para que no tape el icono */
+            padding-right: 45px; 
+        }
+
         button { 
             width: 100%; padding: 12px; margin: 10px 0; box-sizing: border-box; 
             background-color: var(--color-naranja-principal); 
@@ -176,7 +223,7 @@
             font-weight: bold; 
             color: #2ecc71; /* Verde para puntuaciones */
         }
-        #gameFilter { /* Cambiado de #speedFilter a #gameFilter */
+        #gameFilter { 
             background-color: var(--color-fondo); 
             color: var(--color-texto);
             border-color: var(--color-naranja-claro);
@@ -193,6 +240,7 @@
         #auth-section, #profile-section, #app-content { display: none; }
         
     </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
     
@@ -202,7 +250,12 @@
             <h2 id="auth-title">🔒 Iniciar Sesión</h2>
             <form id="auth-form">
                 <input type="email" id="auth-email" placeholder="Correo Electrónico" required>
-                <input type="password" id="auth-password" placeholder="Contraseña" required>
+                <div class="input-container">
+                    <input type="password" id="auth-password" placeholder="Contraseña" required>
+                    <button type="button" class="toggle-password" data-target="auth-password">
+                        <span class="material-icons">visibility_off</span>
+                    </button>
+                </div>
                 <button type="submit" id="auth-button">Iniciar Sesión</button>
             </form>
             <div id="auth-message" class="message error-message"></div>
@@ -263,7 +316,12 @@
 
             <h3>🔑 Cambiar Contraseña</h3>
             <form id="change-password-form">
-                <input type="password" id="new-password" placeholder="Nueva Contraseña (mín 6 caracteres)" required>
+                <div class="input-container">
+                    <input type="password" id="new-password" placeholder="Nueva Contraseña (mín 6 caracteres)" required>
+                    <button type="button" class="toggle-password" data-target="new-password">
+                        <span class="material-icons">visibility_off</span>
+                    </button>
+                </div>
                 <button type="submit">Guardar Nueva Contraseña</button>
             </form>
             <div id="password-message" class="message error-message"></div>
@@ -299,7 +357,6 @@
             signInWithEmailAndPassword, 
             onAuthStateChanged,
             updatePassword, 
-            updateEmail,
             signOut 
         } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
         
@@ -312,12 +369,12 @@
             runTransaction, 
             query, 
             orderBy, 
-            getDocs, 
-            serverTimestamp 
+            serverTimestamp,
+            onSnapshot 
         } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
         // ===========================================
-        // CONFIGURACIÓN DE FIREBASE (TU CÓDIGO)
+        // CONFIGURACIÓN DE FIREBASE
         // ===========================================
 
         const firebaseConfig = {
@@ -333,13 +390,12 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Referencias a colecciones (MODIFICADAS)
-        const leaderboardCol = collection(db, 'leaderboard'); 
+        // Referencias a colecciones 
         const buscaminasCol = collection(db, 'leaderboard_buscaminas_game'); 
         const snakeCol = collection(db, 'leaderboard_snake_game');           
         const usernamesCol = collection(db, 'usernames');
 
-        // Referencias del DOM de Récords (MODIFICADAS)
+        // Referencias del DOM de Récords
         const tbody = document.querySelector('#records-table tbody');
         const messageElement = document.getElementById('message');
         const gameFilter = document.getElementById('gameFilter'); 
@@ -347,7 +403,7 @@
         const trophyEmojis = ['🏆', '🥈', '🥉']; 
 
         // ===========================================
-        // LÓGICA DE Récords y Filtrado (MODIFICADA)
+        // LÓGICA DE Récords y Filtrado (EN TIEMPO REAL)
         // ===========================================
 
         function filterAndDisplayRecords() {
@@ -404,75 +460,63 @@
             });
         }
 
-        // FUNCIÓN MODIFICADA PARA CONSULTAR MÚLTIPLES COLECCIONES
-        async function getLeaderboard() {
+        function setupRealtimeLeaderboardListeners() {
             if (messageElement) {
-                messageElement.textContent = "Cargando récords desde la base de datos...";
+                messageElement.textContent = "Estableciendo conexión en tiempo real con récords...";
                 messageElement.className = 'message success-message'; 
             }
             
-            try {
-                // 1. Consultar Buscaminas
-                const qBuscaminas = query(buscaminasCol, orderBy('score', 'desc'));
-                const snapshotBuscaminas = await getDocs(qBuscaminas);
+            let allRecordsBuscaminas = [];
+            let allRecordsSnake = [];
 
-                // 2. Consultar Snake
-                const qSnake = query(snakeCol, orderBy('score', 'desc'));
-                const snapshotSnake = await getDocs(qSnake);
-
-                const firebaseRecords = [];
-                
-                // Mapear resultados de Buscaminas
+            onSnapshot(query(buscaminasCol, orderBy('score', 'desc')), (snapshotBuscaminas) => {
+                allRecordsBuscaminas = []; 
                 snapshotBuscaminas.forEach(docItem => {
                     const data = docItem.data();
-                    firebaseRecords.push({
-                        game: 'Buscaminas', 
-                        username: data.username, 
-                        score: data.score,
-                        speed: data.speed,
-                        timestamp: data.timestamp 
+                    allRecordsBuscaminas.push({
+                        game: 'Buscaminas', username: data.username, score: data.score, speed: data.speed, timestamp: data.timestamp 
                     });
                 });
-                
-                // Mapear resultados de Snake
-                snapshotSnake.forEach(docItem => {
-                    const data = docItem.data();
-                    firebaseRecords.push({
-                        game: 'Snake', 
-                        username: data.username, 
-                        score: data.score,
-                        speed: data.speed,
-                        timestamp: data.timestamp 
-                    });
-                });
-
-                allRecords = firebaseRecords; 
+                allRecords = [...allRecordsBuscaminas, ...allRecordsSnake]; 
                 filterAndDisplayRecords();
-
-            } catch (error) {
+            }, (error) => {
                 if (messageElement) {
-                    messageElement.textContent = `Error al conectar con la base de datos: ${error.message}`;
+                    messageElement.textContent = `Error en Buscaminas: ${error.message}`;
                     messageElement.className = 'message error-message';
                 }
-            }
+            });
+
+            onSnapshot(query(snakeCol, orderBy('score', 'desc')), (snapshotSnake) => {
+                allRecordsSnake = []; 
+                snapshotSnake.forEach(docItem => {
+                    const data = docItem.data();
+                    allRecordsSnake.push({
+                        game: 'Snake', username: data.username, score: data.score, speed: data.speed, timestamp: data.timestamp 
+                    });
+                });
+                allRecords = [...allRecordsBuscaminas, ...allRecordsSnake]; 
+                filterAndDisplayRecords();
+            }, (error) => {
+                if (messageElement) {
+                    messageElement.textContent = `Error en Snake: ${error.message}`;
+                    messageElement.className = 'message error-message';
+                }
+            });
         }
 
         if (gameFilter) {
             gameFilter.addEventListener('change', filterAndDisplayRecords);
         }
         
-        getLeaderboard(); // Llamada inicial
-        setInterval(getLeaderboard, 60000); // Actualización periódica
-
+        setupRealtimeLeaderboardListeners();
 
         // ===========================================
-        // FUNCIONES DE AUTENTICACIÓN (Lógica de Registro)
+        // FUNCIONES DE AUTENTICACIÓN
         // ===========================================
 
         async function handleFirebaseRegister(email, password) {
             const username = email.split('@')[0];
             
-            // Paso de verificación de Alias (requiere allow read: if true en Firestore)
             try {
                 const usernameDocRef = doc(usernamesCol, username);
                 const usernameDoc = await getDoc(usernameDocRef);
@@ -487,18 +531,13 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const uid = userCredential.user.uid;
 
-                // Creación del documento de alias
                 await setDoc(doc(usernamesCol, username), {
-                    uid: uid,
-                    alias: username, 
-                    email: email,
-                    timestamp: serverTimestamp()
+                    uid: uid, alias: username, email: email, timestamp: serverTimestamp()
                 });
 
                 return { success: true };
             } catch (error) {
                 let message = "Error al registrar: " + error.message;
-                
                 if (error.code === 'auth/email-already-in-use') {
                     message = "El correo electrónico ya está registrado.";
                 } else if (error.code === 'auth/weak-password') {
@@ -506,7 +545,6 @@
                 } else if (error.code === 'auth/invalid-email') {
                      message = "Formato de correo electrónico inválido (ej: nombre@ejemplo.com).";
                 }
-                
                 return { success: false, message: message };
             }
         }
@@ -532,7 +570,6 @@
         const authSection = document.getElementById('auth-section');
         const profileSection = document.getElementById('profile-section');
         const appContent = document.getElementById('app-content');
-
         const authTitle = document.getElementById('auth-title');
         const authButton = document.getElementById('auth-button');
         const toggleAuthLink = document.getElementById('toggle-auth-link');
@@ -541,7 +578,6 @@
         const authEmail = document.getElementById('auth-email');
         const authPassword = document.getElementById('auth-password');
         const authMessage = document.getElementById('auth-message');
-
         const profileUsername = document.getElementById('profile-username');
         const profileEmail = document.getElementById('profile-email');
         const changePasswordForm = document.getElementById('change-password-form');
@@ -550,7 +586,6 @@
         const changeUsernameForm = document.getElementById('change-username-form');
         const usernameMessage = document.getElementById('username-message');
         const newUsernameInput = document.getElementById('new-username');
-
         const logoutButton = document.getElementById('logout-button');
         const appLogoutButton = document.getElementById('app-logout-button');
         const goToProfileButton = document.getElementById('go-to-profile-button');
@@ -558,27 +593,28 @@
 
         let isRegisterMode = false;
 
-        /** Muestra la sección correcta basada en el estado de autenticación. */
+        function updateAppAliasDisplay(user) {
+            if (user && user.email) {
+                const alias = user.email.split('@')[0];
+                document.getElementById('current-user-alias').textContent = alias;
+            }
+        }
+
         function updateUI(user) {
             authSection.style.display = 'none';
             profileSection.style.display = 'none';
             appContent.style.display = 'none';
 
             if (user) {
-                // Usuario autenticado
                 appContent.style.display = 'block';
-                const alias = user.email.split('@')[0];
-                document.getElementById('current-user-alias').textContent = alias;
-                getLeaderboard();
+                updateAppAliasDisplay(user);
             } else {
-                // Usuario NO autenticado
                 authSection.style.display = 'block';
                 if (authMessage) authMessage.textContent = '';
                 toggleToLogin(); 
             }
         }
 
-        /** Alterna la vista de Login y Registro. */
         function toggleAuthMode() {
             isRegisterMode = !isRegisterMode;
             if (authMessage) authMessage.textContent = ''; 
@@ -608,7 +644,6 @@
             });
         }
 
-        /** Carga y muestra los datos del usuario en la sección de perfil. */
         function showUserProfile() {
             const user = auth.currentUser;
             if (!user) return;
@@ -625,12 +660,10 @@
             newUsernameInput.value = user.email.split('@')[0]; 
         }
 
-        // Listener de cambio de estado de autenticación (LA CLAVE)
         onAuthStateChanged(auth, (user) => {
             updateUI(user);
         });
 
-        // Manejo del formulario de Login/Registro
         if (authForm) {
             authForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -656,8 +689,6 @@
             });
         }
 
-
-        // Cerrar Sesión
         const handleLogout = async () => {
             try {
                 await signOut(auth);
@@ -669,13 +700,11 @@
         if (logoutButton) logoutButton.addEventListener('click', handleLogout);
         if (appLogoutButton) appLogoutButton.addEventListener('click', handleLogout);
 
-        // Navegación
         if (goToProfileButton) goToProfileButton.addEventListener('click', showUserProfile);
         if (goToAppButton) goToAppButton.addEventListener('click', () => {
             updateUI(auth.currentUser); 
         });
 
-        // Enlazar el click inicial para alternar a Registro
         if (toggleAuthLink) {
             toggleAuthLink.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -684,7 +713,6 @@
         }
 
 
-        // 1. Cambiar Contraseña (Sin cambios)
         if (changePasswordForm) {
             changePasswordForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -709,17 +737,13 @@
                     changePasswordForm.reset();
                 } catch (error) {
                     console.error("Error al cambiar contraseña:", error);
-                    let msg = "Error al cambiar contraseña. Debes haber iniciado sesión recientemente para esta acción. Por favor, cierra sesión y vuelve a iniciar.";
-                    if (error.code === 'auth/weak-password') {
-                        msg = 'La nueva contraseña es demasiado débil (mínimo 6 caracteres).';
-                    }
+                    let msg = error.code === 'auth/weak-password' ? 'La nueva contraseña es demasiado débil (mínimo 6 caracteres).' : "Error al cambiar contraseña. Debes haber iniciado sesión recientemente para esta acción. Por favor, cierra sesión y vuelve a iniciar.";
                     passwordMessage.textContent = msg;
                 }
             });
         }
 
 
-        // 2. Cambiar Alias (CORREGIDO: Soluciona el error de permisos y el error de email/verificación)
         if (changeUsernameForm) {
             changeUsernameForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -748,45 +772,57 @@
 
                 try {
                     await runTransaction(db, async (transaction) => {
-                        // A. Verificar si el NUEVO alias ya está en uso en Firestore
                         const usernameDocRef = doc(usernamesCol, newUsername);
                         const usernameDoc = await transaction.get(usernameDocRef);
                         if (usernameDoc.exists()) {
                              throw new Error("El alias ya está tomado. Elige otro.");
                         }
                         
-                        // B. Eliminar el alias viejo y crear el nuevo en Firestore (Transacción)
                         const oldUsernameDocRef = doc(usernamesCol, currentUsername);
                         transaction.delete(oldUsernameDocRef); 
                         
                         transaction.set(doc(usernamesCol, newUsername), { 
-                            uid: user.uid,
-                            alias: newUsername,
-                            email: newEmail,
-                            timestamp: serverTimestamp()
+                            uid: user.uid, alias: newUsername, email: newEmail, timestamp: serverTimestamp()
                         });
                     });
-
-                    // Si la transacción fue exitosa, actualizamos el Email en Auth
-                    // ******************************************************************
-                    // LÍNEA COMENTADA para evitar el error de verificación (auth/operation-not-allowed).
-                    // await updateEmail(user, newEmail); 
-                    // ******************************************************************
 
                     usernameMessage.textContent = '✅ Alias actualizado con éxito.';
                     usernameMessage.className = 'message success-message';
                     
-                    // Actualizamos la interfaz
                     profileEmail.textContent = newEmail;
                     profileUsername.textContent = newUsername;
+                    newUsernameInput.value = newUsername; 
 
+                    const fakeUser = { email: newEmail }; 
+                    updateAppAliasDisplay(fakeUser); 
+                    
                 } catch (error) {
                     console.error("Error al cambiar alias/email:", error);
-                    let msg = error.message || "Error al actualizar el alias. Intenta de nuevo. (Asegúrate de haber publicado las reglas de Firebase y de haber iniciado sesión recientemente)";
+                    let msg = error.message || "Error al actualizar el alias. Intenta de nuevo.";
                     usernameMessage.textContent = msg;
                 }
             });
         }
+        
+        // ===========================================
+        // LÓGICA DE MOSTRAR/OCULTAR CONTRASEÑA
+        // ===========================================
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-target');
+                const passwordInput = document.getElementById(targetId);
+                const icon = button.querySelector('.material-icons');
+
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.textContent = 'visibility'; 
+                } else {
+                    passwordInput.type = 'password';
+                    icon.textContent = 'visibility_off'; 
+                }
+            });
+        });
+
     </script>
 
 </body>
