@@ -213,6 +213,18 @@
             font-weight: bold; 
             color: #2ecc71; 
         }
+        .speed-fast {
+            color: #2ecc71; /* Verde para rápido */
+            font-weight: bold;
+            margin-left: 8px; /* Espacio entre puntuación y etiqueta */
+            font-size: 0.8em;
+        }
+        .speed-slow {
+            color: #e74c3c; /* Rojo para lento */
+            font-weight: bold;
+            margin-left: 8px; /* Espacio entre puntuación y etiqueta */
+            font-size: 0.8em;
+        }
         #gameFilter { 
             background-color: var(--color-fondo); 
             color: var(--color-texto);
@@ -282,8 +294,7 @@
                         <th>Usuario</th>
                         <th>Juego</th>
                         <th>Puntuación</th>
-                        <th>Velocidad</th>
-                    </tr>
+                        </tr>
                 </thead>
                 <tbody>
                     </tbody>
@@ -384,6 +395,8 @@
         const gameFilter = document.getElementById('gameFilter'); 
         let allRecords = []; 
         const trophyEmojis = ['🏆', '🥈', '🥉']; 
+        
+        // La función formatSpeedOrDifficulty ha sido eliminada.
 
         function filterAndDisplayRecords() {
             const selectedGame = gameFilter.value; 
@@ -421,9 +434,7 @@
                 const posCell = row.insertCell();
                 const userCell = row.insertCell();
                 const gameCell = row.insertCell(); 
-                const scoreCell = row.insertCell();
-                const speedCell = row.insertCell();
-
+                const scoreCell = row.insertCell(); // Esta celda ahora contiene la puntuación y la etiqueta de velocidad/dificultad.
                 
                 if (position <= 3) {
                     posCell.innerHTML = trophyEmojis[index] + " " + position;
@@ -435,7 +446,53 @@
                 gameCell.textContent = record.game; 
                 scoreCell.textContent = record.score;
                 scoreCell.classList.add('score-cell'); 
-                speedCell.textContent = record.speed; 
+                
+                // --- Lógica para reubicar la velocidad/dificultad como una etiqueta en la celda de Puntuación ---
+                let speedText = '';
+                let speedClass = '';
+                
+                if (record.game === 'Snake') {
+                    // Para Snake, un valor bajo es "Rápido"
+                    if (record.speed <= 5) {
+                        speedText = ' (Rápido)';
+                        speedClass = 'speed-fast';
+                    } else if (record.speed >= 20) {
+                        speedText = ' (Lento)';
+                        speedClass = 'speed-slow';
+                    } else {
+                        // Si está en el rango intermedio, se muestra el valor numérico
+                        speedText = ` (${record.speed})`;
+                    }
+                } else if (record.game === 'Buscaminas') {
+                    // Para Buscaminas, se usa el mapa original para las etiquetas
+                    const map = {
+                        2: { text: ' (Rápido)', class: 'speed-fast' },
+                        7: { text: ' (Rápido)', class: 'speed-fast' },
+                        24: { text: ' (Lento)', class: 'speed-slow' },
+                        35: { text: ' (Lento)', class: 'speed-slow' },
+                    };
+                    const formatted = map[record.speed];
+                    
+                    if (formatted) {
+                         speedText = formatted.text;
+                         speedClass = formatted.class;
+                    } else {
+                         // Si no es una etiqueta, se muestra el número
+                         speedText = ` (${record.speed})`;
+                    }
+                } else {
+                    // Para otros juegos, muestra el valor numérico (si existe)
+                    if (record.speed) {
+                        speedText = ` (${record.speed})`;
+                    }
+                }
+                
+                // Agrega la etiqueta de velocidad/dificultad a la celda de puntuación
+                if (speedText) {
+                    scoreCell.innerHTML += `<span class="${speedClass}">${speedText}</span>`;
+                }
+                // -------------------------------------------------------------------------------------------------
+
             });
         }
 
@@ -775,6 +832,8 @@
         }
         
         document.querySelectorAll('.toggle-password').forEach(button => {
+            // El evento 'click' funciona tanto en móviles como en PC con el botón izquierdo del ratón.
+            // No se necesita un cambio aquí, ya que el comportamiento predeterminado es correcto.
             button.addEventListener('click', () => {
                 const targetId = button.getAttribute('data-target');
                 const passwordInput = document.getElementById(targetId);
