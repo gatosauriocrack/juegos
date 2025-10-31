@@ -766,8 +766,9 @@ body {
     /* Asegura que el video se ajuste lo mejor posible a la pantalla */
     object-fit: contain; 
     background-color: black;
-    /* 💥 CLAVE 4: Impide la interacción del usuario (pausa al clic) */
-    pointer-events: none; 
+    
+    /* 🚨 CLAVE CORREGIDA: Permite la interacción del usuario */
+    pointer-events: auto; 
 }
 
 #secretCodeDisplay {
