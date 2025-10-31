@@ -11,6 +11,7 @@
             --color-tablero: #3b4252;
             --color-texto: #e0e0e0;
             --color-azul-puntaje: #00bcd4; 
+            --max-width-pc: 900px; /* ⭐ Variable para el nuevo ancho máximo en PC */
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -19,55 +20,67 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 30px; /* Más padding general en PC */
         }
         h1 {
             color: var(--color-naranja-principal);
             border-bottom: 3px solid var(--color-naranja-principal);
             padding-bottom: 5px;
-            margin-bottom: 20px;
+            margin-bottom: 30px; /* Más espacio */
+            font-size: 2.5em; /* Ligeramente más grande */
         }
         
         #filter-container {
             width: 100%;
-            max-width: 600px;
-            margin: 10px 0 20px 0;
+            /* ⭐ Ajuste para que coincida con el ancho de la tabla */
+            max-width: var(--max-width-pc); 
+            margin: 10px 0 30px 0; /* Más margen inferior */
             text-align: center;
+            display: flex; /* Para centrar el contenido más fácil */
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; /* Para móviles si es necesario */
+        }
+        #filter-container label {
+            font-size: 1.1em;
+            margin-right: 15px;
         }
         #speedFilter {
-            padding: 10px;
-            border-radius: 5px;
+            padding: 12px; /* Más padding */
+            border-radius: 8px; /* Bordes más suaves */
             border: 2px solid var(--color-naranja-principal);
             background-color: var(--color-tablero);
             color: var(--color-texto);
-            font-size: 1em;
+            font-size: 1.1em; /* Fuente más grande */
             cursor: pointer;
             width: 100%;
-            max-width: 300px; 
+            max-width: 350px; /* Aumentado */
             appearance: none; 
             background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23EA7900%22%20d%3D%22M287%2C188.7L146.2%2C47.9L5.4%2C188.7h281.6z%22%2F%3E%3C%2Fsvg%3E');
             background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 12px;
+            background-position: right 15px center; /* Posición ajustada */
+            background-size: 14px; /* Tamaño ajustado */
             text-align: center;
             text-align-last: center;
         }
         
         #records-table {
             width: 100%;
-            max-width: 600px;
+            /* ⭐ MODIFICACIÓN CLAVE PARA PC: Aumentar el ancho máximo */
+            max-width: var(--max-width-pc); 
             border-collapse: separate;
-            border-spacing: 0 10px; 
+            border-spacing: 0 15px; /* Más espacio entre filas */
         }
         #records-table th, #records-table td {
-            padding: 15px;
+            padding: 18px 25px; /* Más padding para legibilidad en PC */
             text-align: left;
+            font-size: 1.05em;
         }
         #records-table th {
             background-color: var(--color-naranja-principal);
             color: var(--color-fondo);
-            font-size: 1.1em;
-            border-radius: 5px 5px 0 0;
+            font-size: 1.2em;
+            border-radius: 8px 8px 0 0; /* Bordes redondeados en el header */
             position: sticky; 
             top: 0;
             z-index: 10;
@@ -75,12 +88,12 @@
         #records-table tr {
             background-color: var(--color-tablero);
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra más definida */
             transition: transform 0.2s;
         }
         #records-table tr:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px); /* Efecto hover más pronunciado */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
         }
         #records-table td:first-child {
             font-weight: bold;
@@ -89,20 +102,46 @@
         .score-cell {
             font-weight: bold;
             color: var(--color-azul-puntaje); 
+            font-size: 1.1em;
         }
         #message {
             color: var(--color-naranja-principal);
-            font-size: 1.2em;
-            margin-top: 20px;
+            font-size: 1.4em; /* Mensaje de carga más visible */
+            margin-top: 30px;
+        }
+        
+        #returnButtonContainer a {
+            font-size: 1.2em; /* Enlace de retorno más grande */
         }
 
+        /* Ajuste para móviles/tabletas (max-width: 650px) */
+        @media (max-width: 950px) {
+             /* Permite que la tabla y el filtro usen casi todo el ancho antes de colapsar */
+            #records-table, #filter-container {
+                max-width: 95%;
+            }
+        }
+        
         @media (max-width: 650px) {
-            #records-table {
+            #records-table, #filter-container {
                 font-size: 0.9em;
                 max-width: 100%;
+                border-spacing: 0 5px;
             }
             #records-table th, #records-table td {
                 padding: 10px 5px;
+                font-size: 1em;
+            }
+            #filter-container {
+                flex-direction: column;
+                margin-bottom: 20px;
+            }
+            #filter-container label {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            #speedFilter {
+                max-width: 90%;
             }
         }
     </style>
@@ -111,7 +150,7 @@
     <h1>🐍 Tabla de Récords Globales 🏆</h1>
     
     <div id="filter-container">
-        <label for="speedFilter" style="margin-right: 10px;">Filtrar por Velocidad:</label>
+        <label for="speedFilter">Filtrar por Velocidad:</label>
         <select id="speedFilter" onchange="filterAndDisplayRecords()">
             <option value="Todas las Velocidades">Todas las Velocidades</option>
             <option value="Lento (Fácil)">Lento (Fácil)</option>
@@ -161,9 +200,10 @@
                 return record.speed === selectedSpeed; 
             });
             
+            // Ordena de mayor a menor puntaje
             filteredRecords.sort((a, b) => b.score - a.score);
 
-            const recordsToShow = filteredRecords.slice(0, 10);
+            const recordsToShow = filteredRecords.slice(0, 10); // Limita a los 10 mejores
             
             tbody.innerHTML = ""; 
             
@@ -234,7 +274,7 @@
             }
         }
         
-        // MODIFICACIÓN 2: Lógica para comprobar si se abrió desde el juego
+        // Lógica para comprobar si se abrió desde el juego
         function checkURLOrigin() {
             const urlParams = new URLSearchParams(window.location.search);
             const returnButton = document.getElementById('returnButtonContainer');
@@ -251,6 +291,7 @@
         fetchRecords();
         checkURLOrigin();
         
+        // Intervalo para refrescar cada 60 segundos
         setInterval(() => fetchRecords(), 60000); 
     </script>
 </body>
