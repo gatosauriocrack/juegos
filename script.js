@@ -11,7 +11,7 @@ const secretClockModal = document.getElementById('secretClockModal');
 const secretTimeInput = document.getElementById('secretTimeInput');
 const secretMessage = document.getElementById('secretMessage');
 
-const meliGif = document.getElementById('meliGif'); // ¡Aquí está el DIV contenedor del GIF!
+const meliGif = document.getElementById('meliGif'); 
 
 // Variables para la nueva funcionalidad de recompensa
 const rewardButton = document.getElementById('rewardButton');
@@ -26,10 +26,10 @@ let meliState = 'hidden'; // 'hidden', 'moving', 'disappearing', 'clicked'
 let meliAnimationId = null;
 let meliMoveStartTime = 0;
 
-// 🚨 CONSTANTES DEL GIF (Asegúrate de que sean exactas)
+// CONSTANTES DEL GIF
 const MELI_VISIBLE_DURATION = 6 * 1000; // 6 segundos visible
 const MELI_REAPPEAR_DELAY = 16 * 60 * 1000; // 16 minutos de espera para reaparecer
-const MELI_SIZE = 100; // Debe coincidir con el CSS
+const MELI_SIZE = 100; 
 
 let meliTargetX = 0;
 let meliTargetY = 0;
@@ -67,7 +67,7 @@ function showView(viewId) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
-    closeMenu(); // Cierra el menú en móvil después de la navegación
+    closeMenu(); 
 }
 
 function reloadIframe(iframeId) {
@@ -106,15 +106,26 @@ function closeGameModal() {
 } 
 
 function closeVideoRewardModal() {
-    // 🚨 Nueva función de cierre: Detiene el video, lo reinicia y lo limpia
+    // 🚨 LIMPIEZA TOTAL: Detiene, reinicia y quita listeners del video
     secretVideoPlayer.pause();
     secretVideoPlayer.currentTime = 0; 
+    
+    // Quitar el listener anti-pausa
     secretVideoPlayer.removeEventListener('click', preventVideoPause); 
+    
+    // Quitar el listener de activación (si quedó pendiente)
+    const activationHandler = secretVideoPlayer._activationHandler;
+    if (activationHandler) {
+        secretVideoPlayer.removeEventListener('click', activationHandler);
+        secretVideoPlayer._activationHandler = null; 
+    }
+    
+    // Resetear controles
+    secretVideoPlayer.controls = false;
     
     videoRewardModal.style.display = "none";
     document.body.style.overflow = "auto";
     
-    // Opcional: Volver al inicio después de cerrar el modal
     showView('home');
 }
 
@@ -124,14 +135,14 @@ window.onclick = function(event) {
         closeGameModal();
     } else if (event.target === secretClockModal) {
         closeSecretClockModal();
-    } else if (event.target === videoRewardModal) { // 🚨 CAMBIO: Cerrar el modal del video
+    } else if (event.target === videoRewardModal) { 
         closeVideoRewardModal();
     } 
 }
 
 
 // ====================================================================
-// --- LÓGICA DEL RELOJ SECRETO (Meli GIF) - MOVIMIENTO AVANZADO ---
+// --- LÓGICA DEL RELOJ SECRETO (Meli GIF) ---
 // ====================================================================
 
 function closeSecretClockModal() {
@@ -143,13 +154,12 @@ function closeSecretClockModal() {
 
 function checkSecretTime() {
     const secretTime = secretTimeInput.value;
-    const targetTime = "03:30"; // La hora mágica
+    const targetTime = "03:30"; 
     
     if (secretTime === targetTime) {
         secretMessage.textContent = "¡Hora mágica encontrada! Recompensa desbloqueada...";
         secretMessage.style.color = "#4CAF50"; 
         
-        // 🚨 Acción CLAVE: Llama a la función de desbloqueo del botón
         unlockRewardButton(); 
         
         setTimeout(() => {
@@ -188,9 +198,6 @@ function animateMeli() {
         getNewRandomTarget();
     }
 
-    // El control de tiempo se hace mejor con setTimeout en startMeliAppearance
-    // El código original tenía un control aquí, pero el setTimeout es más limpio.
-
     meliAnimationId = requestAnimationFrame(animateMeli);
 }
 
@@ -212,7 +219,6 @@ function startMeliAppearance() {
     meliMoveStartTime = Date.now();
     animateMeli();
 
-    // 🚨 Control de tiempo: Fuerza la desaparición después de los 6 segundos
     setTimeout(() => {
         if (meliState === 'moving') {
             startMeliDisappearance();
@@ -221,7 +227,6 @@ function startMeliAppearance() {
 }
 
 function startMeliDisappearance() {
-    // Evita bucles si ya está en proceso o en estado 'clicked'
     if (meliState === 'disappearing' || meliState === 'clicked') return; 
 
     meliState = 'disappearing';
@@ -233,7 +238,6 @@ function startMeliDisappearance() {
     setTimeout(() => {
         meliGif.style.display = 'none';
         
-        // Usa el retardo fijo de 16 minutos
         const nextAppearanceTime = MELI_REAPPEAR_DELAY; 
         
         meliState = 'hidden';
@@ -255,7 +259,6 @@ function meliClickInteraction() {
     const centerX = window.innerWidth / 2 - MELI_SIZE / 2;
     const centerY = window.innerHeight / 2 - MELI_SIZE / 2;
     
-    // 🚨 Animación: Mueve el GIF al centro y lo hace desaparecer
     meliGif.style.transition = 'transform 0.5s ease-in, opacity 0.5s ease-in';
     meliGif.style.transform = `translate(${centerX}px, ${centerY}px) scale(1.5)`;
     meliGif.style.opacity = '0';
@@ -265,13 +268,11 @@ function meliClickInteraction() {
         meliGif.style.transform = `translate(0px, 0px) scale(1)`; 
         meliGif.style.transition = 'none'; 
 
-        // 🚨 Acción del Clic: Abre el modal del reloj
         if (secretClockModal.style.display !== 'block') {
             secretClockModal.style.display = "block";
             document.body.style.overflow = "hidden";
         }
         
-        // 🚨 Lógica de reaparición después de la interacción (2-6 min)
         const minDelay = 2 * 60 * 1000; 
         const maxDelay = 6 * 60 * 1000; 
         const nextAppearanceTime = Math.random() * (maxDelay - minDelay) + minDelay;
@@ -285,59 +286,94 @@ function meliClickInteraction() {
     }, 500); 
 }
 
-// 🚨 CONEXIÓN DEL CLIC: Esto es lo que permite "clickear" el GIF
 meliGif.addEventListener('click', meliClickInteraction);
 
 
 // ====================================================================
-// --- LÓGICA DEL BOTÓN DE RECOMPENSA SECRETO ($) ---
+// --- LÓGICA DEL BOTÓN DE RECOMPENSA SECRETO ($) Y RICKROLL ---
 // ====================================================================
 
 function unlockRewardButton() {
-    // Quita la clase 'hidden' (asumiendo que en tu CSS .reward-btn.hidden lo oculta)
     rewardButton.classList.remove('hidden'); 
-    // Almacenar el estado para que persista al recargar la página
     localStorage.setItem('rewardUnlocked', 'true'); 
-    // Opcional: Agregar una clase para darle un efecto visual al aparecer (debe estar en CSS)
     rewardButton.classList.add('unlocked-flash'); 
 }
 
+/**
+ * 🚨 Función Anti-Pausa. Se llama si el usuario hace clic DESPUÉS de que el video
+ * haya comenzado, forzando la reproducción.
+ */
+function preventVideoPause(event) {
+    // Es CRÍTICO prevenir la acción por defecto (pausa)
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Forzar la reproducción
+    secretVideoPlayer.play(); 
+}
+
 function openSecretReward() {
+    // 1. Resetear el video y la interfaz
     if (secretVideoPlayer.getAttribute('src') !== 'rikroll.mp4') {
          secretVideoPlayer.querySelector('source').setAttribute('src', 'rikroll.mp4');
          secretVideoPlayer.load();
     }
     closeMenu(); 
-    
-    // 1. Resetear el estado del modal
     document.getElementById('videoContent').style.display = 'block';
-    document.querySelector('#videoContent h2').style.display = 'block'; // Mostrar título "¡Sorpresa!"
     secretCodeDisplay.style.display = 'none';
     copyMessage.style.display = 'none';
     
     videoRewardModal.style.display = "block";
     document.body.style.overflow = "hidden";
     
-    // 🚨 Reproducción del video
-    secretVideoPlayer.controls = false; 
-    secretVideoPlayer.play().catch(error => {
-        console.error("Error al intentar reproducir el video automáticamente. El usuario debe hacer clic.", error);
-        secretVideoPlayer.controls = true; // Permite que el usuario inicie la reproducción
-    });
+    // 2. Limpiar Listeners Antiguos antes de empezar un nuevo ciclo
+    secretVideoPlayer.removeEventListener('click', preventVideoPause);
     
-    secretVideoPlayer.addEventListener('click', preventVideoPause); 
-}
+    const activationHandler = secretVideoPlayer._activationHandler;
+    if (activationHandler) {
+        secretVideoPlayer.removeEventListener('click', activationHandler);
+        secretVideoPlayer._activationHandler = null; 
+    }
+    
+    // 3. Intentar reproducir automáticamente sin controles (Fallará por audio)
+    secretVideoPlayer.controls = false; 
+    
+    secretVideoPlayer.play().then(() => {
+        // Éxito: La reproducción automática funcionó. Activar anti-pausa.
+        secretVideoPlayer.addEventListener('click', preventVideoPause);
+        
+    }).catch(error => {
+        // Fallo: Necesita el clic del usuario (el 99% de las veces).
+        console.error("Autoplay bloqueado. Se requiere interacción del usuario.", error);
+        
+        // Mostrar los controles para incitar al clic
+        secretVideoPlayer.controls = true; 
 
-function preventVideoPause(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    secretVideoPlayer.play(); // Asegura que siga reproduciéndose si intentan pausar
+        // Definir el manejador para el CLIC DE ACTIVACIÓN
+        const userActivationHandler = function(e) {
+            
+            // 🚨 Asegurar que el play() se ejecute en el clic
+            secretVideoPlayer.play(); 
+            
+            // 🚨 ACCIONES INMEDIATAS TRAS EL CLIC EXITOSO:
+            secretVideoPlayer.controls = false; // ¡Ocultar controles ahora!
+            
+            // Revertir a la lógica anti-pausa
+            secretVideoPlayer.removeEventListener('click', userActivationHandler);
+            secretVideoPlayer.addEventListener('click', preventVideoPause);
+            secretVideoPlayer._activationHandler = null; // Limpia la referencia
+        };
+        
+        // Guardar la referencia y añadir el listener de activación (solo para el primer clic)
+        secretVideoPlayer._activationHandler = userActivationHandler;
+        secretVideoPlayer.addEventListener('click', userActivationHandler, { once: true });
+    });
 }
 
 
 // Escuchar el evento de finalización del video para mostrar el código
 secretVideoPlayer.addEventListener('ended', () => {
-    // Ocultar el reproductor de video y el título
+    // Ocultar el reproductor de video
     document.getElementById('videoContent').style.display = 'none';
     // Mostrar el código
     secretCodeDisplay.style.display = 'block';
@@ -366,7 +402,6 @@ function copySecretCode() {
     });
 }
 
-// 🚨 Conexiones de los botones de recompensa
 rewardButton.addEventListener('click', openSecretReward);
 if (copyButton) {
     copyButton.addEventListener('click', copySecretCode);
@@ -374,8 +409,6 @@ if (copyButton) {
 
 
 // --- MODAL INFO DE JUEGOS (Contenido) --- 
-// (Se mantienen las funciones existentes para abrir modales)
-
 function openSnakeInfoModal() { openGameModal(`<h1>¡Snake!</h1><h2>El Clásico Juego de la Víborita</h2><p>Este juego es el clásico de los teléfonos viejos con <strong>3 modalidades</strong> de velocidad para desafiar tu habilidad:</p><ul><li><strong>Lento</strong> (Fácil)</li><li><strong>Normal</strong> (Medio)</li><li><strong>Rápido</strong> (Difícil)</li></ul><h2>Clasificación Mundial (¡Récords Globales!)</h2><p>Para poder registrar tu puntuación en la tabla clasificatoria solo necesitas iniciar sesión. Solo se pide:</p><ul><li><strong>Nombre de usuario</strong></li><li><strong>Contraseña</strong> (Recuerden no olvidarlas)</li></ul><p class="important">* ¡Importante! Necesitas internet para el registro de récords. *</p><h2>Tabla Clasificatoria</h2><p>Puedes ver la tabla de clasificación completa en el menú principal de Snake.</p>`); } 
 function openBuscaminasInfoModal() { openGameModal(`<h1>💣 Buscaminas | Modo Extremo</h1><h2>🚨 El Desafío de Récord</h2><p>Esta versión está configurada para una única, pero extrema, partida de alta dificultad:</p><ul><li>Dimensiones: 30 Columnas x 29 Filas</li><li>Minas: 99 Bombas Totales</li><li>Meta: Conseguir el menor tiempo posible para despejar todas las celdas seguras y establecer un nuevo récord mundial.</li></ul><h2>📱 Mecánica de Juego Táctil</h2><p>El juego está optimizado para pantallas táctiles y dispositivos móviles. Las acciones se realizan mediante un menú flotante al tocar una celda:</p><ul><li>Tocar Celda: Abre el menú de acciones.</li><li>⛏️ (Pico): Destapar. Destapa la celda seleccionada (equivalente al "clic izquierdo").</li><li>🚩 (Bandera): Marcar. Coloca o quita una bandera (equivalente al "clic derecho").</li></ul><h2>🏆 Envío de Tiempos a la Clasificación Global</h2><p>Para que tus victorias se registren en la tabla de récords mundial, solo necesitas iniciar sesión <strong>una única vez</strong>. Los datos necesarios son:</p><ul><li>Nombre de Usuario (El nombre que aparecerá en el ranking).</li><li>Contraseña (Recomendamos guardarla para futuros accesos).</li></ul><p class="important-buscaminas">🚩 ¡CLAVE! Solo los tiempos obtenidos en partidas ganadas mientras la sesión está activa serán enviados y validados en línea.</p><h2>🔗 Ver la Tabla de Récords</h2><p>¿Quién es el más rápido del mundo en esta configuración (30 x 29 / 99 Minas)? ¡Compruébalo en el ranking oficial!</p><p class="alert-mine-buscaminas">⚠️ ADVERTENCIA: Este modo es brutal. ¡Prepárate mentalmente para el sonido del "¡BOOM!" y no te rindas!</p>`); } 
 function openTetrisInfoModal() { openGameModal(`<h1>¡Tetris!</h1><p class="tetris-status">Actualmente está en desarrollo</p><h2>Pronto Disponible</h2><p>El juego de Tetris es uno de los próximos proyectos que estará disponible en la web y como App descargable.</p><p>Podrás encontrar la información de sus récords y cómo jugarlo una vez esté finalizado.</p>`); } 
@@ -388,14 +421,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const initialView = window.location.hash.substring(1) || 'home';
     showView(initialView);
     
-    // 🚨 MANEJO DEL BOTÓN DE RECOMPENSA AL CARGAR
-    // Se asegura de que el botón esté oculto o visible según el localStorage
+    // MANEJO DEL BOTÓN DE RECOMPENSA AL CARGAR
     if (localStorage.getItem('rewardUnlocked') === 'true') {
         rewardButton.classList.remove('hidden'); 
     } else {
-        // Asumiendo que .reward-btn está oculto por defecto en CSS,
-        // o que .reward-btn.hidden lo oculta. Si no, añade 'hidden'
-        // si quieres que el JS controle su visibilidad.
         rewardButton.classList.add('hidden'); 
     }
 
