@@ -116,7 +116,6 @@
             font-size: 1.2em; 
         }
 
-        /* Ajuste para móviles/tabletas (max-width: 650px) */
         @media (max-width: 950px) {
              
             #records-table, #filter-container {
@@ -181,7 +180,6 @@
     </p>
 
     <script>
-        // ⚠️ 2. CONFIGURACIÓN DE FIREBASE (¡DEBE SER IDÉNTICA A LA DEL JUEGO!)
         const firebaseConfig = {
             apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
             authDomain: "procesador-56b7a.firebaseapp.com",
@@ -193,9 +191,8 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const leaderboardCol = db.collection('leaderboard');
         
-        // ------------------------------------------------------
+        const leaderboardCol = db.collection('leaderboard_snake_game');
         
         const tbody = document.querySelector('#records-table tbody');
         const messageElement = document.getElementById('message');
@@ -204,9 +201,6 @@
         let allRecords = []; 
         const trophyEmojis = ['🏆', '🥈', '🥉']; 
 
-        /**
-         * Filtra y muestra los récords en la tabla.
-         */
         function filterAndDisplayRecords() {
             const selectedSpeed = speedFilter.value;
             
@@ -217,10 +211,9 @@
                 return record.speed === selectedSpeed; 
             });
             
-            // 1. Ordena de mayor a menor puntaje
             filteredRecords.sort((a, b) => b.score - a.score);
 
-            const recordsToShow = filteredRecords.slice(0, 10); // Limita a los 10 mejores
+            const recordsToShow = filteredRecords.slice(0, 10);
             
             tbody.innerHTML = ""; 
             
@@ -258,20 +251,15 @@
             });
         }
 
-        /**
-         * Lee los récords directamente de Firestore.
-         */
         async function fetchRecords() {
             messageElement.textContent = "Cargando récords de Firebase...";
             
             try {
-                // Hacemos una única consulta para todos los récords
                 const querySnapshot = await leaderboardCol.get();
                 
                 const fetchedRecords = [];
                 querySnapshot.forEach(doc => {
                     const data = doc.data();
-                    // Aseguramos que 'score' sea un número para ordenar correctamente
                     fetchedRecords.push({
                         username: data.username,
                         score: parseInt(data.score), 
@@ -284,16 +272,14 @@
 
             } catch (error) {
                 console.error("Error al obtener récords de Firestore:", error);
-                messageElement.textContent = `Error al conectar con la base de datos de Firebase. Asegúrate de que las reglas de lectura para 'leaderboard' sean públicas: ${error.message}`;
+                messageElement.textContent = `Error al conectar con la base de datos de Firebase. Asegúrate de que las reglas de lectura para 'leaderboard_snake_game' sean públicas: ${error.message}`;
             }
         }
         
-        // Lógica para comprobar si se abrió desde el juego
         function checkURLOrigin() {
             const urlParams = new URLSearchParams(window.location.search);
             const returnButton = document.getElementById('returnButtonContainer');
             
-            // Si la URL contiene ?from=game, muestra el botón.
             if (urlParams.get('from') === 'game') {
                 if (returnButton) {
                     returnButton.style.display = 'block';
@@ -301,13 +287,11 @@
             } 
         }
 
-        // Llamadas iniciales
         window.onload = () => {
              fetchRecords();
              checkURLOrigin();
         }
         
-        // Intervalo para refrescar cada 30 segundos
         setInterval(() => fetchRecords(), 30000); 
     </script>
 </body>
