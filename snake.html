@@ -327,6 +327,38 @@
         .show-animation {
             animation: scale-in-out 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
+        
+        /* 🎯 MODIFICACIÓN PARA PC/ESCRITORIO (a partir de 768px) */
+        @media (min-width: 768px) {
+            
+            /* 1. Agrandar el tablero (canvas) */
+            #gameCanvas {
+                width: 500px; 
+                height: 500px; 
+            }
+
+            /* 2. Asegurar que los contenedores de puntuación y controles se alineen con el nuevo tamaño del tablero */
+            #scoreContainer, 
+            #mainControls {
+                width: 500px; 
+                max-width: none; 
+            }
+            
+            /* 3. Ajustar el tamaño del pad de control si es necesario */
+             #controls {
+                width: 350px; /* Un poco más grande para el tablero de 500px */
+            }
+            .control-btn {
+                width: 110px;
+                height: 110px;
+                font-size: 2.5em; 
+            }
+            #pauseButton {
+                width: 75px; 
+                height: 75px;
+                font-size: 2em;
+            }
+        }
 
     </style>
 </head>
@@ -426,6 +458,10 @@
         const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`;
 
         const canvas = document.getElementById('gameCanvas');
+        
+        // **IMPORTANTE**: Aquí los valores de width y height en el HTML/JS deben permanecer 
+        // con los valores originales (375x375) porque controlan la cuadrícula interna del Canvas.
+        // El CSS se encarga de escalarlo visualmente.
         canvas.width = 375; 
         canvas.height = 375; 
         
