@@ -29,20 +29,22 @@
 
         header {
             width: 100%;
-            max-width: 700px;
+            /* Ajustado para que coincida con el contenedor de la tabla */
+            max-width: 1000px; 
             text-align: center;
             margin-bottom: 30px;
         }
 
         h1 {
             color: var(--color-principal);
-            font-size: 2.5em;
+            font-size: 3em; /* Ligeramente más grande para PC */
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
         }
         
         #highscores-container {
             width: 100%;
-            max-width: 700px;
+            /* ⭐ MODIFICACIÓN CLAVE PARA PC: Aumentar el ancho máximo */
+            max-width: 1000px; 
             background-color: var(--color-tarjeta);
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); 
@@ -61,7 +63,7 @@
         }
 
         th, td {
-            padding: 12px 15px;
+            padding: 15px 20px; /* Un poco más de padding para mejor legibilidad en PC */
             border-bottom: none; 
         }
 
@@ -70,6 +72,7 @@
             color: var(--color-fondo);
             font-weight: 600;
             text-transform: uppercase;
+            font-size: 1.1em; /* Header más visible */
         }
 
         tr {
@@ -88,7 +91,7 @@
         .position {
             font-weight: bold;
             text-align: center;
-            width: 50px;
+            width: 60px; /* Un poco más de espacio para la posición */
         }
         
         .position.rank-1 { background-color: gold; color: #333; }
@@ -101,22 +104,23 @@
         }
         
         .empty-message {
-            padding: 20px;
+            padding: 30px; /* Un poco más de padding */
             text-align: center;
             color: var(--color-secundario);
             font-style: italic;
+            font-size: 1.1em;
         }
         
         #loading-message {
             display: none;
-            padding: 30px;
-            font-size: 1.2em;
+            padding: 40px;
+            font-size: 1.4em;
             color: var(--color-principal);
         }
         
         #info-message {
             margin-top: 5px;
-            font-size: 1em;
+            font-size: 1.1em; /* Texto de información más legible */
             color: var(--color-secundario);
             text-align: center;
         }
@@ -126,12 +130,24 @@
             text-decoration: none;
             font-weight: bold;
             transition: color 0.2s;
+            font-size: 1.1em; /* Enlace más grande */
         }
         .return-link a:hover {
             color: var(--color-secundario);
         }
         
+        /* Media query adaptada para mantener la responsividad en móviles/tabletas */
+        @media (max-width: 1050px) { /* El ajuste de 1050px permite el ancho máximo de 1000px más el padding */
+             header {
+                max-width: 95%; /* Ajuste para evitar desbordamiento */
+            }
+            #highscores-container {
+                max-width: 95%; 
+            }
+        }
+        
         @media (max-width: 650px) {
+            /* Reglas originales para pantallas más pequeñas */
             #highscores-container {
                 max-width: 100%;
             }
@@ -140,6 +156,9 @@
             }
             th, td {
                 padding: 10px 8px;
+            }
+            h1 {
+                font-size: 2.5em;
             }
         }
     </style>
@@ -167,7 +186,7 @@
         <div id="no-records-message" class="empty-message" style="display: none;">Aún no hay récords</div>
     </div>
     
-    <p class="return-link" style="margin-top: 20px;">
+    <p id="returnButtonContainer" class="return-link" style="margin-top: 20px; display: none;">
         <a href="https://gatosauriocrack.github.io/juegos/Buscaminas">← Volver al juego</a> 
     </p>
 
@@ -183,6 +202,8 @@
 
         function init() {
             fetchHighscores();
+            // 👇 MODIFICACIÓN 3: Llamar a la comprobación de origen al inicio
+            checkURLOrigin();
         }
 
         async function fetchHighscores() {
@@ -232,6 +253,19 @@
                 
                 row.insertCell().textContent = record.speed;
             });
+        }
+        
+        // 👇 MODIFICACIÓN 2: Función para comprobar el origen
+        function checkURLOrigin() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnButton = document.getElementById('returnButtonContainer');
+            
+            // Si la URL contiene ?from=game, muestra el botón.
+            if (urlParams.get('from') === 'game') {
+                if (returnButton) {
+                    returnButton.style.display = 'block';
+                }
+            } 
         }
 
         window.onload = init;
