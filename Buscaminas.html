@@ -515,6 +515,20 @@
         .show-animation {
             animation: scale-in-out 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
+
+        /* 🎯 NUEVA MEDIA QUERY: Aumentar el tamaño de la celda en PC */
+        @media (min-width: 992px) {
+            :root {
+                --cell-size: 30px; /* Tamaño de celda ligeramente mayor */
+            }
+            /* Esto escalará el tablero completo automáticamente, 
+               ya que depende de --cell-size, --board-rows y --board-cols */
+
+            /* Ajustar el panel de información */
+            #game-info-panel {
+                font-size: 1.2em; 
+            }
+        }
     </style>
 </head>
 <body>
@@ -603,7 +617,6 @@
     <script>
         const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
         const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/BuscaminasRecords"; 
-        // 👇 MODIFICACIÓN 1: URL con parámetro de origen
         const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`; 
         const GAME_API_KEY = 'Buscaminas_game';
         const GAME_SPEED = '30x29 (99 Minas)';
@@ -902,7 +915,11 @@
                     }
 
                     cell.addEventListener('touchstart', handleCellTouchStart);
+                    
+                    // 🎯 NUEVO: Manejo de clics de ratón
+                    cell.addEventListener('mousedown', handleCellMouseDown); 
                     cell.addEventListener('contextmenu', (e) => e.preventDefault());
+                    
                     board.appendChild(cell);
                     row.push({ isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0, element: cell });
                 }
@@ -911,6 +928,36 @@
             placeMines();
             calculateNeighborMines();
             scrollToLeftEdge();
+        }
+
+        // 🎯 NUEVA FUNCIÓN: Manejo de clic de ratón (PC)
+        function handleCellMouseDown(event) {
+            // Ignorar si ya terminó o si se usó el menú táctil
+            if (gameOver || floatingActionsContainer.style.display !== 'none') return;
+            
+            // Obtener coordenadas de la celda
+            const cellElement = event.currentTarget;
+            const r = parseInt(cellElement.dataset.row);
+            const c = parseInt(cellElement.dataset.col);
+            const cellData = gameGrid[r][c];
+
+            if (!firstClickMade) {
+                startTimer();
+                firstClickMade = true;
+            }
+
+            // event.button: 0 = Clic Izquierdo, 2 = Clic Derecho
+            if (event.button === 0) {
+                // Clic Izquierdo -> Revelar
+                event.preventDefault(); // Previene el inicio de arrastre, aunque no es necesario aquí.
+                if (!cellData.isFlagged) {
+                     revealCell(r, c);
+                }
+            } else if (event.button === 2) {
+                // Clic Derecho -> Bandera
+                event.preventDefault(); 
+                toggleFlag(r, c);
+            }
         }
 
         function revealCell(r, c) {
@@ -922,6 +969,8 @@
             const element = cellData.element;
             element.classList.add('revealed');
             element.classList.remove('grass-variant');
+            element.removeEventListener('touchstart', handleCellTouchStart);
+            element.removeEventListener('mousedown', handleCellMouseDown);
 
             if (cellData.isMine) {
                 element.classList.add('mine');
@@ -990,6 +1039,7 @@
                         cell.element.classList.remove('flagged');
                     }
                     cell.element.removeEventListener('touchstart', handleCellTouchStart);
+                    cell.element.removeEventListener('mousedown', handleCellMouseDown); // Remover evento de ratón
                 }
             }
 
