@@ -33,10 +33,11 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--color-texto);
     margin: 0;
-    padding-top: 60px;
+    /* Padding para móvil: deja espacio para la navbar */
+    padding-top: 60px; 
 }
 
-/* --- Navbar y Menú --- */
+/* --- Navbar y Menú (Móvil/Base) --- */
 .navbar {
     position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
     background-color: var(--color-tablero);
@@ -275,16 +276,48 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* 🚀 MEDIA QUERY PARA ADAPTACIÓN A PC (Desktop/Tablet Grande) 🚀 */
 @media screen and (min-width: 768px) {
+    /* 1. Ocultar componentes de menú móvil */
     .menu-icon { display: none; }
     .menu-header { display: none; }
-    .menu-links { position: static; height: auto; width: auto; border: none; box-shadow: none; background-color: transparent; transform: translateX(0); flex-direction: row; padding-top: 0; }
+    
+    /* 2. Menú horizontal permanente */
+    .menu-links { 
+        position: static; 
+        height: auto; 
+        width: auto; 
+        border: none; 
+        box-shadow: none; 
+        background-color: transparent; 
+        transform: translateX(0); 
+        flex-direction: row; /* CLAVE: Convierte el menú lateral en barra horizontal */
+        padding-top: 0; 
+    }
+    
+    /* 3. Estilos de enlaces para PC */
+    .menu-links a {
+        padding: 0 15px; /* Ajusta el padding horizontal */
+        border-bottom: none; /* Quita el separador de móvil */
+        height: 50px; /* Alinea con la altura de la navbar */
+        display: flex; 
+        align-items: center; /* Centrado vertical en la navbar */
+    }
+    
+    /* 4. Aumentar el ancho del contenedor principal */
     .content { max-width: 900px; } 
-    /* El botón de recompensa no se muestra en desktop por defecto */
+    
+    /* 5. Ajustar el padding del body (la navbar ya no ocupa espacio vertical en el contenido) */
+    body {
+        padding-top: 50px; 
+    }
+    
+    /* 6. Ocultar el botón de recompensa fijo en PC */
     .reward-btn {
         display: none !important;
     }
 }
+/* ------------------------------------------------------------- */
 
 /* --- Modals de Información --- */
 .modal {
