@@ -33,7 +33,7 @@
             <a href="#" onclick="showView('canales'); closeMenu();">Canales</a> 
             <a href="#" onclick="showView('apoyo'); closeMenu();">Apoyo</a>
             
-            <button id="rewardButton" class="reward-btn" onclick="openSecretReward()">卐</button>
+            <button id="rewardButton" class="reward-btn" onclick="openSecretReward()">$</button>
             
         </nav>
     </header>
@@ -100,7 +100,7 @@
                 </div>
             </div>
 
-            <button onclick="showView('home')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver a Juegos</button>
+            <button onclick="showView('home')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver al Inicio</button>
         </div>
 
         <div id="snake-menu" class="page-view">
@@ -331,13 +331,13 @@
             <button onclick="showView('home')" style="background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-top: 20px;">← Volver al Inicio</button>
         </div>
         
-        </div>
-    
+    </div>
+
     <div id="gameModal" class="modal">
         <div class="modal-content-container">
             <span class="close" onclick="closeGameModal()">&times;</span>
             <div id="modalContent">
-            </div>
+                </div>
         </div>
     </div>
     
@@ -381,26 +381,25 @@
     </div>
     
     <div id="videoRewardModal" class="modal">
-        <div class="modal-content-container" style="max-width: 600px; padding: 10px;">
+        <div class="modal-content-container">
             <span class="close" onclick="closeVideoRewardModal()">&times;</span>
             
             <div id="videoContent">
-                <h2 style="color: #FFC107; text-align: center;">¡Sorpresa!</h2>
                 <video id="secretVideoPlayer" width="100%" controls style="display: block; margin: 10px 0;">
                     <source src="rikroll.mp4" type="video/mp4">
                     Tu navegador no soporta la reproducción de videos.
                 </video>
             </div>
             
-            <div id="secretCodeDisplay" style="display: none; text-align: center; margin-top: 20px;">
-                <h2 style="color: #9C27B0; font-size: 1.8em;">¡CÓDIGO DE RECOMPENSA!</h2>
-                <div style="background-color: var(--color-fondo); border: 2px dashed #9C27B0; padding: 15px; border-radius: 8px;">
-                    <span id="secretCodeText" style="font-size: 2em; font-weight: bold; color: #FFC107;">M3l1 PR2</span>
+            <div id="secretCodeDisplay" style="display: none;">
+                <h2 style="color: var(--color-recompensa-rojo); font-size: 1.8em;">¡CÓDIGO DE RECOMPENSA!</h2>
+                <div style="background-color: var(--color-fondo); border: 2px dashed var(--color-recompensa-rojo); padding: 15px; border-radius: 8px;">
+                    <span id="secretCodeText" style="font-size: 2em; font-weight: bold; color: var(--color-recompensa-rojo);">M3l1 PR2</span>
                 </div>
                 <button id="copyButton" onclick="copySecretCode()" style="
                     margin-top: 15px; 
                     padding: 10px 20px; 
-                    background-color: #2196F3; 
+                    background-color: var(--color-link-azul); 
                     color: white; 
                     border: none; 
                     border-radius: 5px; 
@@ -420,4 +419,3 @@
 
 </body>
 </html>
-
