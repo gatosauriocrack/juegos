@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake</title>
+    <title>Snake con Firebase</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
     <style>
         :root {
             --color-naranja-principal: #EA7900;
@@ -48,10 +53,9 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         }
 
-        /* Contenedor principal de controles */
         #mainControls {
             display: flex;
-            gap: 10px; /* Espacio entre el pad direccional y el botón de pausa */
+            gap: 10px; 
             align-items: center;
             justify-content: center;
             width: 375px;
@@ -97,16 +101,14 @@
         #left { grid-area: left; }
         #right { grid-area: right; }
 
-        /* Estilos del Botón de Pausa */
         #pauseButton {
-            width: 65px; /* Más pequeño para que quepa junto al pad */
+            width: 65px; 
             height: 65px;
             font-size: 1.8em;
             background-color: #555;
             color: var(--color-texto);
             border-radius: 10px;
             box-shadow: 0 6px #333;
-            /* Asegurarse de que use las propiedades básicas del control-btn */
             border: none;
             cursor: pointer;
             user-select: none;
@@ -253,7 +255,6 @@
             margin-left: 5px;
         }
         
-        /* Modal de Pausa */
         #pauseModal {
             display: none;
             position: fixed; 
@@ -328,38 +329,13 @@
             animation: scale-in-out 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
         
-        /* 🎯 MODIFICACIÓN PARA PC/ESCRITORIO (a partir de 768px) */
         @media (min-width: 768px) {
-            
-            /* 1. Agrandar el tablero (canvas) */
-            #gameCanvas {
-                width: 500px; 
-                height: 500px; 
-            }
-
-            /* 2. Asegurar que los contenedores de puntuación y controles se alineen con el nuevo tamaño del tablero */
-            #scoreContainer, 
-            #mainControls {
-                width: 500px; 
-                max-width: none; 
-            }
-            
-            /* 3. Ajustar el tamaño del pad de control si es necesario */
-             #controls {
-                width: 350px; /* Un poco más grande para el tablero de 500px */
-            }
-            .control-btn {
-                width: 110px;
-                height: 110px;
-                font-size: 2.5em; 
-            }
-            #pauseButton {
-                width: 75px; 
-                height: 75px;
-                font-size: 2em;
-            }
+            #gameCanvas { width: 500px; height: 500px; }
+            #scoreContainer, #mainControls { width: 500px; max-width: none; }
+            #controls { width: 350px; }
+            .control-btn { width: 110px; height: 110px; font-size: 2.5em; }
+            #pauseButton { width: 75px; height: 75px; font-size: 2em; }
         }
-
     </style>
 </head>
 <body>
@@ -410,10 +386,13 @@
         <div class="modal-content">
             <h2>Iniciar Sesión/Registro</h2>
             <div style="margin-bottom: 20px; width: 100%;">
-                <input type="text" id="authUsername" placeholder="Nombre de Usuario">
-                <input type="password" id="authPassword" placeholder="Contraseña">
+                
+                <input type="text" id="authEmail" placeholder="Correo Electrónico"> 
+                <input type="text" id="authAlias" placeholder="Alias (Nombre de Usuario)"> 
+                <input type="password" id="authPassword" placeholder="Contraseña (mín 6 caracteres)">
+                
                 <div style="text-align: left; margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;">
-                    <input type="checkbox" id="rememberMe">
+                    <input type="checkbox" id="rememberMe" checked>
                     <label for="rememberMe" style="font-size: 1em; color: var(--color-texto);">Mantener sesión iniciada</label>
                 </div>
             </div>
@@ -453,15 +432,101 @@
     </div>
 
     <script>
-        const RENDER_API_URL = "https://procesador-de-records.onrender.com"; 
+        const firebaseConfig = {
+            apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
+            authDomain: "procesador-56b7a.firebaseapp.com",
+            projectId: "procesador-56b7a",
+            storageBucket: "procesador-56b7a.firebasestorage.app",
+            messagingSenderId: "1029072924025",
+            appId: "1:1029072924025:web:c32d735e453416ecfd93a8"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const FieldValue = firebase.firestore.FieldValue;
+        
+        const leaderboardCol = db.collection('leaderboard');
+        const usernamesCol = db.collection('usernames');
+
+        async function handleFirebaseRegister(email, password, alias) {
+            const username = alias.trim();
+            
+            try {
+                const usernameDoc = await usernamesCol.doc(username).get();
+                if (usernameDoc.exists) {
+                    return { success: false, message: "El alias de usuario ya está tomado. Elige otro." };
+                }
+            } catch (error) {
+                 return { success: false, message: "Error al verificar el alias. Intenta de nuevo." };
+            }
+
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const uid = userCredential.user.uid;
+
+                await usernamesCol.doc(username).set({
+                    uid: uid,
+                    email: email,
+                    timestamp: FieldValue.serverTimestamp()
+                });
+
+                return { success: true, user: username, token: uid };
+            } catch (error) {
+                let message = "Error: " + error.message;
+                if (error.code === 'auth/email-already-in-use') { message = "El correo ya está registrado."; } 
+                else if (error.code === 'auth/weak-password') { message = "La contraseña debe tener al menos 6 caracteres."; } 
+                else if (error.code === 'auth/invalid-email') { message = "Formato de correo electrónico inválido."; }
+                
+                return { success: false, message: message };
+            }
+        }
+
+        async function handleFirebaseLogin(email, password) {
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const username = userCredential.user.email.split('@')[0]; 
+                return { success: true, user: username, token: userCredential.user.uid };
+            } catch (error) {
+                let message = "Error al iniciar sesión: " + error.message;
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    message = "Correo electrónico o contraseña incorrectos.";
+                }
+                return { success: false, message: message };
+            }
+        }
+
+        async function saveUserRecord(score, speedLevel) {
+            const user = auth.currentUser;
+            if (!user) {
+                return { success: false, message: "Debes iniciar sesión para guardar tu récord." };
+            }
+
+            const uid = user.uid;
+            const username = user.email.split('@')[0]; 
+
+            const recordData = {
+                uid: uid,
+                username: username, 
+                score: score,
+                speed: speedLevel,
+                timestamp: FieldValue.serverTimestamp()
+            };
+
+            try {
+                await leaderboardCol.add(recordData); 
+                showNotification(true); 
+                return { success: true };
+            } catch (error) {
+                showNotification(false); 
+                return { success: false, message: "Error interno al guardar el récord." };
+            }
+        }
+        
         const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/recordsnake";
         const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`;
 
         const canvas = document.getElementById('gameCanvas');
-        
-        // **IMPORTANTE**: Aquí los valores de width y height en el HTML/JS deben permanecer 
-        // con los valores originales (375x375) porque controlan la cuadrícula interna del Canvas.
-        // El CSS se encarga de escalarlo visualmente.
         canvas.width = 375; 
         canvas.height = 375; 
         
@@ -470,7 +535,6 @@
         const highScoreElement = document.getElementById('highScore');
         const startModal = document.getElementById('startModal');
         const gameOverModal = document.getElementById('gameOverModal');
-        // NUEVO: Botón y Modal de Pausa
         const pauseButton = document.getElementById('pauseButton');
         const pauseModal = document.getElementById('pauseModal');
         const resumeButton = document.getElementById('resumeButton');
@@ -481,12 +545,9 @@
         const sessionStatusElement = document.getElementById('sessionStatus');
         const notificationIcon = document.getElementById('notification-icon');
 
-        let currentUser = null;
-        let currentToken = null;
+        let currentUser = null; 
         let gameSpeedName = 'Normal (Medio)'; 
         
-        const GAME_API_KEY = 'Snake_game'; 
-
         const tileCount = 25; 
         const gridSize = canvas.width / tileCount; 
         let snake = [{ x: 12, y: 12 }]; 
@@ -497,7 +558,6 @@
         let gameSpeed = 100; 
         let intervalId;
         let gameRunning = false;
-        // NUEVO: Estado de pausa
         let gamePaused = false; 
         
         const directionQueue = []; 
@@ -541,155 +601,100 @@
             }, 2500);
         }
 
-        function updateSessionUI() {
+        function updateSessionUI(userEmail) {
             const logoutBtn = document.getElementById('logoutButton');
-            const authUsernameInput = document.getElementById('authUsername');
+            const authEmailInput = document.getElementById('authEmail');
+            const authAliasInput = document.getElementById('authAlias');
             const authPasswordInput = document.getElementById('authPassword');
-            const authButtons = document.querySelectorAll('#authModal .modal-content div:nth-child(2) button'); 
-
-            if (currentUser) {
+            const authButtons = document.querySelectorAll('#authModal button'); 
+            
+            if (userEmail) {
+                currentUser = userEmail.split('@')[0];
                 sessionStatusElement.textContent = `Sesión: ${currentUser} (Activa)`;
                 sessionStatusElement.style.color = 'lightgreen';
                 
                 logoutBtn.style.display = 'block';
-                authUsernameInput.value = currentUser; 
-                authUsernameInput.disabled = true;
+                authEmailInput.value = userEmail; 
+                authEmailInput.disabled = true;
+                authAliasInput.style.display = 'none'; 
                 authPasswordInput.style.display = 'none';
-                authButtons.forEach(btn => btn.style.display = 'none');
+                
+                authButtons.forEach(btn => {
+                    if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
+                        btn.style.display = 'none';
+                    }
+                });
+
             } else {
+                currentUser = null;
                 sessionStatusElement.textContent = `Sesión: No iniciada`;
                 sessionStatusElement.style.color = 'var(--color-naranja-claro)';
                 
                 logoutBtn.style.display = 'none';
-                authUsernameInput.value = '';
-                authUsernameInput.disabled = false;
+                authEmailInput.value = '';
+                authEmailInput.disabled = false;
+                authAliasInput.style.display = 'block'; 
                 authPasswordInput.style.display = 'block';
-                authButtons.forEach(btn => btn.style.display = 'flex'); 
+                
+                authButtons.forEach(btn => {
+                     if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
+                        btn.style.display = 'inline-block';
+                    }
+                });
             }
         }
         
         function logout() {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('authUsername');
-            currentUser = null;
-            currentToken = null;
-            updateSessionUI();
-            alert("¡Sesión cerrada correctamente!");
+            auth.signOut().then(() => {
+                updateSessionUI(null);
+                document.getElementById('authModal').style.display = 'none';
+                alert("¡Sesión cerrada correctamente!");
+            }).catch((error) => {
+                 alert("Error al cerrar sesión.");
+            });
         }
 
-        function loadSession() {
-            const storedToken = localStorage.getItem('authToken');
-            const storedUser = localStorage.getItem('authUsername');
-
-            if (storedToken && storedUser) {
-                currentUser = storedUser;
-                currentToken = storedToken;
-            } else {
-                currentUser = null;
-                currentToken = null;
-            }
-            updateSessionUI();
-        }
+        auth.onAuthStateChanged((user) => {
+            updateSessionUI(user ? user.email : null);
+        });
 
         async function handleAuthentication(isRegister) {
-            const authUsername = document.getElementById('authUsername').value;
-            const authPassword = document.getElementById('authPassword').value;
+            const email = document.getElementById('authEmail').value;
+            const alias = document.getElementById('authAlias').value; 
+            const password = document.getElementById('authPassword').value;
             const rememberMe = document.getElementById('rememberMe').checked; 
-
-            if (!authUsername || !authPassword) {
-                 alert("Por favor, introduce usuario Y contraseña.");
+            
+            if (!email || !password || (isRegister && !alias)) {
+                 alert("Por favor, introduce Correo Electrónico, Contraseña y, si te registras, un Alias.");
                  return;
             }
             
-            const endpoint = isRegister ? 'register' : 'login';
-            const body = { username: authUsername, password: authPassword };
-            const url = `${RENDER_API_URL}/${endpoint}`;
+            auth.setPersistence(rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
 
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
+            let result;
+            if (isRegister) {
+                 result = await handleFirebaseRegister(email, password, alias); 
+            } else {
+                 result = await handleFirebaseLogin(email, password);
+            }
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    currentUser = authUsername;
-                    currentToken = result.token;
-                    
-                    if (rememberMe) {
-                        localStorage.setItem('authToken', currentToken);
-                        localStorage.setItem('authUsername', currentUser);
-                    } else {
-                        localStorage.removeItem('authToken');
-                        localStorage.removeItem('authUsername');
-                    }
-
-                    loadSession();
-                    alert(`¡Éxito! Bienvenido/a, ${currentUser}. Ahora tus récords se enviarán.`); 
-                    document.getElementById('authModal').style.display = 'none';
-                    
-                } else {
-                    let errorMessage = `Error: ${result.message}`;
-                    if (response.status === 401) { errorMessage = "Contraseña incorrecta."; }
-                    else if (response.status === 404 && !isRegister) { errorMessage = "Usuario no encontrado. ¡Intenta registrarte!"; }
-                    else if (response.status === 409 && isRegister) { errorMessage = "El usuario ya existe. ¡Intenta Iniciar Sesión!"; }
-                    else if (response.status === 400 && isRegister) { errorMessage = "Error en el registro. Asegúrate de usar una contraseña."; }
-                    else if (response.status >= 500) { errorMessage = "Error interno del servidor. Intenta más tarde."; }
-                    
-                    alert(errorMessage);
-                    showNotification(false);
-                }
-            } catch (error) {
-                alert("Error de conexión con el servidor. Render podría estar inactivo. Intenta de nuevo."); 
-                console.error("Error de autenticación/registro:", error);
-                showNotification(false);
+            if (result.success) {
+                alert(`¡Éxito! Bienvenido/a, ${result.user}. Ahora tus récords se enviarán.`); 
+                document.getElementById('authModal').style.display = 'none';
+                document.getElementById('authPassword').value = '';
+            } else {
+                alert(result.message);
             }
         }
 
         async function sendRecordToServer(score, speed) {
-            if (!currentToken) {
-                console.log("No hay sesión iniciada, récord no enviado globalmente.");
-                return;
-            }
-
-            const url = `${RENDER_API_URL}/submit_record`; 
-            const body = { 
-                token: currentToken, 
-                score: score,
-                speed: speed,
-                game_name: GAME_API_KEY 
-            };
-
-            const attemptSend = async (isRetry = false) => {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(body)
-                    });
-
-                    if (response.ok) {
-                        showNotification(true); 
-                        console.log(`Récord de ${score} enviado globalmente.`);
-                    } else {
-                        const errorResult = await response.json();
-                        showNotification(false);
-                        console.error(`Error al enviar récord global: ${errorResult.message}`);
-                    }
-                } catch (error) {
-                    if (!isRetry) {
-                        console.warn("Fallo de red. Intentando reintentar en 3 segundos...");
-                        setTimeout(() => attemptSend(true), 3000); 
-                    } else {
-                        showNotification(false);
-                        console.error("Fallo en el reintento:", error);
-                    }
+            if (auth.currentUser) {
+                const result = await saveUserRecord(score, speed);
+                if (result.success) {
+                } else {
                 }
-            };
-
-            attemptSend(false);
+            } else {
+            }
         }
         
         function placeFood() {
@@ -726,7 +731,7 @@
         }
 
         function gameLoop() {
-            if (!gameRunning || gamePaused) return; // Se verifica el estado de pausa
+            if (!gameRunning || gamePaused) return; 
             
             updateVelocity(); 
 
@@ -804,11 +809,10 @@
 
                     let vx = velocityX;
                     let vy = velocityY;
-                    // Uso de la dirección actual para la visualización de los ojos
                     if (gamePaused || (vx === 0 && vy === 0)) { 
                         vx = (currentDirection === 'ArrowLeft') ? -1 : 1;
                         vy = (currentDirection === 'ArrowUp') ? -1 : ((currentDirection === 'ArrowDown') ? 1 : 0);
-                        if (vx === 0 && vy === 0) { vx = 1; } // Dirección predeterminada
+                        if (vx === 0 && vy === 0) { vx = 1; } 
                     } 
 
                     let eye1 = { x: center.x, y: center.y };
@@ -826,13 +830,12 @@
         }
 
         function changeDirection(key) {
-            if (!gameRunning || gamePaused) return; // No permitir cambiar dirección en pausa
+            if (!gameRunning || gamePaused) return; 
             if (directionQueue.length < 2) {
                 directionQueue.push(key);
             }
         }
 
-        // NUEVO: Función para Pausar/Reanudar
         function togglePause() {
             if (!gameRunning || gameOverModal.style.display === 'flex' || startModal.style.display === 'flex') {
                 return; 
@@ -843,11 +846,11 @@
             if (gamePaused) {
                 clearInterval(intervalId);
                 pauseModal.style.display = 'flex';
-                pauseButton.textContent = '▶'; // Cambiar icono a Play
+                pauseButton.textContent = '▶'; 
             } else {
                 pauseModal.style.display = 'none';
                 intervalId = setInterval(gameLoop, gameSpeed);
-                pauseButton.textContent = '⏸'; // Cambiar icono a Pausa
+                pauseButton.textContent = '⏸'; 
             }
         }
 
@@ -882,7 +885,7 @@
             snake = [{ x: 12, y: 12 }];
             placeFood();
             drawGame();
-            pauseButton.style.display = 'flex'; // Mostrar botón de pausa
+            pauseButton.style.display = 'flex'; 
 
             const countdownInterval = setInterval(() => {
                 drawCountdown(count);
@@ -901,7 +904,7 @@
             score = 0;
             scoreElement.textContent = `Puntuación: 0`;
             gameRunning = true;
-            gamePaused = false; // Asegurarse de que no esté en pausa
+            gamePaused = false; 
             pauseButton.textContent = '⏸';
             directionQueue.length = 0; 
             
@@ -911,9 +914,9 @@
 
         function gameOver() {
             gameRunning = false;
-            gamePaused = false; // Reiniciar estado de pausa
+            gamePaused = false; 
             clearInterval(intervalId);
-            pauseButton.style.display = 'none'; // Ocultar botón de pausa
+            pauseButton.style.display = 'none'; 
             
             saveHighScore(score);
             
@@ -943,13 +946,12 @@
         document.getElementById('left').addEventListener('click', () => changeDirection('ArrowLeft'));
         document.getElementById('right').addEventListener('click', () => changeDirection('ArrowRight'));
         
-        // Eventos para la Pausa
         pauseButton.addEventListener('click', togglePause);
         resumeButton.addEventListener('click', togglePause);
         
         playAgainBtn.addEventListener('click', () => {
             gameOverModal.style.display = 'none';
-            pauseButton.style.display = 'none'; // Asegurarse de que esté oculto al volver a la pantalla de inicio
+            pauseButton.style.display = 'none'; 
             startModal.style.display = 'flex'; 
         });
         
@@ -959,7 +961,6 @@
 
         window.onload = () => {
             loadHighScore();
-            loadSession(); 
             drawGame(); 
         };
     </script>
