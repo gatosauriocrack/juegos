@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gatosauriocrack - Autenticación</title>
     <style>
-        /* ========================================= */
-        /* CÓDIGO CSS (CON BOTÓN DE CONTRASEÑA AJUSTADO) */
-        /* ========================================= */
         * {
             box-sizing: border-box; 
         }
@@ -68,7 +65,6 @@
             border-bottom: 3px solid var(--color-naranja-claro);
         }
 
-        /* Contenedor para el icono de mostrar/ocultar contraseña */
         .input-container {
             position: relative;
             margin: 10px 0;
@@ -86,14 +82,12 @@
             color: var(--color-texto);
         }
 
-        /* Botón de mostrar/ocultar contraseña AJUSTADO */
         .toggle-password {
             position: absolute;
             top: 50%;
-            right: 5px; /* Ajuste para moverlo más a la derecha */
+            right: 5px; 
             transform: translateY(-50%);
             
-            /* === AJUSTES CLAVE PARA HACERLO PEQUEÑO Y CUADRADO === */
             background: none; 
             border: none;
             width: 30px; 
@@ -106,17 +100,15 @@
             padding: 0;
             font-size: 1.2em;
             z-index: 10;
-            transition: color 0.2s; /* Para efecto hover */
+            transition: color 0.2s; 
         }
 
         .toggle-password:hover {
-            color: var(--color-naranja-principal); /* Efecto hover */
+            color: var(--color-naranja-principal); 
         }
         
-        /* Ajuste para inputs de contraseña dentro del contenedor */
         .input-container input[type="password"],
         .input-container input[type="text"] {
-            /* Aumentar un poco el espacio derecho para que no tape el icono */
             padding-right: 45px; 
         }
 
@@ -163,7 +155,6 @@
             background-color: #2ecc71;
         }
 
-        /* PERFIL */
         .profile-info-item {
             background-color: var(--color-fondo);
             padding: 12px;
@@ -204,7 +195,6 @@
             background-color: #2980b9;
         }
 
-        /* TABLA DE RÉCORDS */
         #records-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         #records-table th, #records-table td { 
             border: 1px solid var(--color-fondo); 
@@ -221,7 +211,7 @@
         }
         .score-cell { 
             font-weight: bold; 
-            color: #2ecc71; /* Verde para puntuaciones */
+            color: #2ecc71; 
         }
         #gameFilter { 
             background-color: var(--color-fondo); 
@@ -236,7 +226,6 @@
             margin: 20px 0;
         }
 
-        /* Ocultar las secciones al inicio */
         #auth-section, #profile-section, #app-content { display: none; }
         
     </style>
@@ -373,10 +362,6 @@
             onSnapshot 
         } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-        // ===========================================
-        // CONFIGURACIÓN DE FIREBASE
-        // ===========================================
-
         const firebaseConfig = {
             apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
             authDomain: "procesador-56b7a.firebaseapp.com",
@@ -390,21 +375,15 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Referencias a colecciones 
         const buscaminasCol = collection(db, 'leaderboard_buscaminas_game'); 
         const snakeCol = collection(db, 'leaderboard_snake_game');           
         const usernamesCol = collection(db, 'usernames');
 
-        // Referencias del DOM de Récords
         const tbody = document.querySelector('#records-table tbody');
         const messageElement = document.getElementById('message');
         const gameFilter = document.getElementById('gameFilter'); 
         let allRecords = []; 
         const trophyEmojis = ['🏆', '🥈', '🥉']; 
-
-        // ===========================================
-        // LÓGICA DE Récords y Filtrado (EN TIEMPO REAL)
-        // ===========================================
 
         function filterAndDisplayRecords() {
             const selectedGame = gameFilter.value; 
@@ -510,10 +489,6 @@
         
         setupRealtimeLeaderboardListeners();
 
-        // ===========================================
-        // FUNCIONES DE AUTENTICACIÓN
-        // ===========================================
-
         async function handleFirebaseRegister(email, password) {
             const username = email.split('@')[0];
             
@@ -561,11 +536,6 @@
                 return { success: false, message: message };
             }
         }
-
-
-        // ===========================================
-        // LÓGICA DE INTERFAZ Y PERFIL
-        // ===========================================
 
         const authSection = document.getElementById('auth-section');
         const profileSection = document.getElementById('profile-section');
@@ -804,9 +774,6 @@
             });
         }
         
-        // ===========================================
-        // LÓGICA DE MOSTRAR/OCULTAR CONTRASEÑA
-        // ===========================================
         document.querySelectorAll('.toggle-password').forEach(button => {
             button.addEventListener('click', () => {
                 const targetId = button.getAttribute('data-target');
