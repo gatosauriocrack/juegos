@@ -1,432 +1,570 @@
-// --- ELEMENTOS HTML ---
-const menu = document.getElementById("menuLinks");
-const closeIcon = document.getElementById("closeMenuIcon");
-const openIcon = document.getElementById("openMenuIcon");
-const views = document.querySelectorAll('.page-view'); 
+const firebaseConfig = {
+    apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
+    authDomain: "procesador-56b7a.firebaseapp.com",
+    projectId: "procesador-56b7a",
+    storageBucket: "procesador-56b7a.firebasestorage.app",
+    messagingSenderId: "1029072924025",
+    appId: "1:1029072924025:web:c32d735e453416ecfd93a8",
+    measurementId: "G-WCBZTBPXZ4"
+};
 
-const gameModal = document.getElementById('gameModal');
-const modalContent = document.getElementById('modalContent');
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIvOkpHvTPTKY-zvEJ_ab0tkqOOd0tRBkvPJNFM5PVf2Z0d0tRBkvPJNFM5PVrQ/exec';
 
-const secretClockModal = document.getElementById('secretClockModal');
-const secretTimeInput = document.getElementById('secretTimeInput');
-const secretMessage = document.getElementById('secretMessage');
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-const meliGif = document.getElementById('meliGif'); 
+const sidebar = document.getElementById("mySidebar");
+const menuOverlay = document.getElementById("menuOverlay");
+const loginText = document.getElementById('loginText');
+const profilePhoto = document.getElementById('profilePhoto');
+const profileIcon = document.getElementById('profileIcon');
+const logoutLink = document.getElementById('logoutLink');
+const sidebarProfileSection = document.getElementById('sidebarProfileSection');
+const views = document.querySelectorAll('.main-content');
+const authModal = document.getElementById('authModal');
+const backButton = document.querySelector('.back-button');
 
-// Variables para la nueva funcionalidad de recompensa
-const rewardButton = document.getElementById('rewardButton');
-const videoRewardModal = document.getElementById('videoRewardModal');
-const secretVideoPlayer = document.getElementById('secretVideoPlayer');
-const secretCodeDisplay = document.getElementById('secretCodeDisplay');
-const copyMessage = document.getElementById('copyMessage');
-const copyButton = document.getElementById('copyButton'); 
+const contentGallery = document.getElementById('contentGallery');
+const loadingMessage = document.getElementById('loadingMessage');
+let allContentData = [];
 
-// Variables del sistema de movimiento avanzado del GIF
-let meliState = 'hidden'; // 'hidden', 'moving', 'disappearing', 'clicked'
-let meliAnimationId = null;
-let meliMoveStartTime = 0;
+const profileAvatar = document.getElementById('profileAvatar');
+const profileBannerArea = document.getElementById('profileBannerArea');
+const displayNameInput = document.getElementById('displayNameInput');
+const userEmailDisplay = document.getElementById('userEmailDisplay');
+const profileStatus = document.getElementById('profileStatus');
 
-// CONSTANTES DEL GIF
-const MELI_VISIBLE_DURATION = 6 * 1000; // 6 segundos visible
-const MELI_REAPPEAR_DELAY = 16 * 60 * 1000; // 16 minutos de espera para reaparecer
-const MELI_SIZE = 100; 
+const DEFAULT_AVATAR = "https://via.placeholder.com/70/363a45/FFFFFF?text=G";
+const DEFAULT_BANNER_COLOR = "#444";
 
-let meliTargetX = 0;
-let meliTargetY = 0;
-let meliCurrentX = 0;
-let meliCurrentY = 0;
+let screenHistory = ['home-screen'];
+
+const GIF_DURATION = 120;
+const MELI_GIF_CONTAINER = document.getElementById('meliGifContainer');
+const LOCAL_CLOCK_DISPLAY = document.getElementById('localClock');
+let intervalTimer;
+let gifTimeout;
 
 
-// ====================================================================
-// --- MANEJO DE VISTAS Y MENÚ ---
-// ====================================================================
+function updateMeliTimer() {
+    const now = new Date();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
 
-function toggleMenu() {
-    if (window.innerWidth >= 768) return; 
-    menu.classList.toggle('open');
-    openIcon.style.display = menu.classList.contains('open') ? 'none' : 'block';
-    closeIcon.style.display = menu.classList.contains('open') ? 'block' : 'none';
+    if (LOCAL_CLOCK_DISPLAY) {
+        LOCAL_CLOCK_DISPLAY.textContent = `${now.toLocaleTimeString()}`;
+        LOCAL_CLOCK_DISPLAY.style.textAlign = 'right';
+        LOCAL_CLOCK_DISPLAY.style.flexGrow = '1';
+    }
+
+    const isGifWindow = (minutes % 20) === 0 && seconds < GIF_DURATION;
+
+    if (MELI_GIF_CONTAINER) {
+        if (isGifWindow) {
+            MELI_GIF_CONTAINER.style.display = 'block';
+
+            const remainingGifTime = GIF_DURATION - seconds;
+
+            if (!gifTimeout) {
+                gifTimeout = setTimeout(() => {
+                    MELI_GIF_CONTAINER.style.display = 'none';
+                    gifTimeout = null;
+                    updateMeliTimer();
+                }, (remainingGifTime) * 1000);
+            }
+        } else {
+            MELI_GIF_CONTAINER.style.display = 'none';
+            clearTimeout(gifTimeout);
+            gifTimeout = null;
+        }
+    }
+}
+
+function startMeliTimerLogic() {
+    updateMeliTimer();
+    intervalTimer = setInterval(updateMeliTimer, 1000);
+}
+
+function isMobile() {
+    return window.innerWidth < 900;
 }
 
 function closeMenu() {
-    if (window.innerWidth < 768) { 
-        menu.classList.remove('open');
-        openIcon.style.display = 'block';
-        closeIcon.style.display = 'none';
+    if (isMobile() && sidebar.classList.contains('open')) {
+        sidebar.style.width = "0";
+        sidebar.classList.remove('open');
+        menuOverlay.style.display = "none";
     }
 }
 
-function showView(viewId) {
+function toggleMenu() {
+    if (isMobile()) {
+        if (sidebar.classList.contains('open')) {
+            closeMenu();
+        } else {
+            sidebar.style.width = "250px";
+            sidebar.classList.add('open');
+            menuOverlay.style.display = "block";
+        }
+    }
+}
+
+function showScreen(screenId) {
+    if (isMobile()) {
+        closeMenu();
+    }
+
+    document.querySelectorAll('.game-options').forEach(options => {
+        options.style.display = 'none';
+    });
+    document.querySelectorAll('.game-item-container').forEach(container => {
+        container.classList.remove('options-open');
+    });
+
     views.forEach(view => {
         view.classList.remove('active');
     });
+    const activeView = document.getElementById(screenId);
+    activeView.classList.add('active');
 
-    const targetView = document.getElementById(viewId);
-    if (targetView) {
-        targetView.classList.add('active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (screenHistory[screenHistory.length - 1] !== screenId) {
+        screenHistory.push(screenId);
     }
-    
-    closeMenu(); 
-}
 
-function reloadIframe(iframeId) {
-    const iframe = document.getElementById(iframeId);
-    if (iframe) {
-        iframe.src = iframe.src; 
-    }
-}
-
-window.addEventListener('resize', function() {
-    if (window.innerWidth >= 768) {
-        menu.classList.remove('open');
-        openIcon.style.display = 'none';
-        closeIcon.style.display = 'none';
+    if (screenId === 'home-screen' || screenHistory.length <= 1) {
+        backButton.style.display = 'none';
     } else {
-         if(menu.classList.contains('open')) {
-            openIcon.style.display = 'none';
-            closeIcon.style.display = 'block';
+        backButton.style.display = 'block';
+    }
+
+    if (screenId === 'home-screen') {
+        loadContent();
+    }
+
+    if (screenId === 'profile-screen') {
+        if (auth.currentUser) {
+            loadUserProfileData(auth.currentUser);
         } else {
-            openIcon.style.display = 'block';
-            closeIcon.style.display = 'none';
+            showScreen('home-screen');
+            openAuthModal();
         }
     }
-});
-
-// --- MANEJO DE MODALES Y CLIC FUERA ---
-function openGameModal(htmlContent) {
-     modalContent.innerHTML = htmlContent; 
-    gameModal.style.display = "block";    
-    document.body.style.overflow = "hidden"; 
 }
 
-function closeGameModal() { 
-     gameModal.style.display = "none";     
-    document.body.style.overflow = "auto";  
-} 
-
-function closeVideoRewardModal() {
-    // 🚨 LIMPIEZA TOTAL: Detiene, reinicia y quita listeners del video
-    secretVideoPlayer.pause();
-    secretVideoPlayer.currentTime = 0; 
-    
-    // Quitar el listener anti-pausa
-    secretVideoPlayer.removeEventListener('click', preventVideoPause); 
-    
-    // Quitar el listener de activación (si quedó pendiente)
-    const activationHandler = secretVideoPlayer._activationHandler;
-    if (activationHandler) {
-        secretVideoPlayer.removeEventListener('click', activationHandler);
-        secretVideoPlayer._activationHandler = null; 
+function goBack() {
+    if (screenHistory.length > 1) {
+        screenHistory.pop();
     }
-    
-    // Resetear controles
-    secretVideoPlayer.controls = false;
-    
-    videoRewardModal.style.display = "none";
-    document.body.style.overflow = "auto";
-    
-    showView('home');
-}
 
+    const previousScreenId = screenHistory[screenHistory.length - 1];
 
-window.onclick = function(event) {
-    if (event.target === gameModal) { 
-        closeGameModal();
-    } else if (event.target === secretClockModal) {
-        closeSecretClockModal();
-    } else if (event.target === videoRewardModal) { 
-        closeVideoRewardModal();
-    } 
-}
+    views.forEach(view => {
+        view.classList.remove('active');
+    });
+    document.getElementById(previousScreenId).classList.add('active');
 
-
-// ====================================================================
-// --- LÓGICA DEL RELOJ SECRETO (Meli GIF) ---
-// ====================================================================
-
-function closeSecretClockModal() {
-    secretClockModal.style.display = "none";
-    document.body.style.overflow = "auto";
-    secretMessage.textContent = ""; 
-    secretTimeInput.value = ""; 
-}
-
-function checkSecretTime() {
-    const secretTime = secretTimeInput.value;
-    const targetTime = "03:30"; 
-    
-    if (secretTime === targetTime) {
-        secretMessage.textContent = "¡Hora mágica encontrada! Recompensa desbloqueada...";
-        secretMessage.style.color = "#4CAF50"; 
-        
-        unlockRewardButton(); 
-        
-        setTimeout(() => {
-            closeSecretClockModal();
-            showView('home'); 
-        }, 1500); 
-        
+    if (previousScreenId === 'home-screen' || screenHistory.length <= 1) {
+        backButton.style.display = 'none';
     } else {
-        secretMessage.textContent = "¡Hora incorrecta! Inténtalo de nuevo.";
-        secretMessage.style.color = "#E74C3C"; 
+        backButton.style.display = 'block';
+    }
+
+    document.querySelectorAll('.game-options').forEach(options => {
+        options.style.display = 'none';
+    });
+    document.querySelectorAll('.game-item-container').forEach(container => {
+        container.classList.remove('options-open');
+    });
+
+    closeMenu();
+}
+
+function toggleGameOptions(gameId) {
+    const optionsElement = document.getElementById(`${gameId}-options`);
+    const containerElement = document.getElementById(`${gameId}-container`);
+
+    if (!optionsElement || !containerElement) return;
+
+    document.querySelectorAll('.game-options').forEach(options => {
+        if (options.id !== optionsElement.id) {
+            options.style.display = 'none';
+        }
+    });
+    document.querySelectorAll('.game-item-container').forEach(container => {
+        if (container.id !== containerElement.id) {
+            container.classList.remove('options-open');
+        }
+    });
+
+    const isVisible = optionsElement.style.display === 'flex';
+
+    if (isVisible) {
+        optionsElement.style.display = 'none';
+        containerElement.classList.remove('options-open');
+    } else {
+        optionsElement.style.display = 'flex';
+        containerElement.classList.add('options-open');
     }
 }
 
-function getNewRandomTarget() {
-    const maxX = window.innerWidth - MELI_SIZE;
-    const maxY = window.innerHeight - MELI_SIZE;
-
-    meliTargetX = Math.max(0, Math.floor(Math.random() * maxX));
-    meliTargetY = Math.max(0, Math.floor(Math.random() * maxY));
+function handleProfileClick() {
+    const user = auth.currentUser;
+    if (user) {
+        showScreen('profile-screen');
+    } else {
+        openAuthModal();
+    }
 }
 
-function animateMeli() {
-    if (meliState !== 'moving') {
-        cancelAnimationFrame(meliAnimationId);
+function closeModalOnOutsideClick(event) {
+    if (event.target === authModal) {
+        closeAuthModal();
+    }
+
+    const gameModals = document.querySelectorAll('.game-modal');
+    gameModals.forEach(modal => {
+        if (event.target === modal) {
+            closeModal(modal.id);
+        }
+    });
+}
+
+function initializeApp() {
+    if (window.innerWidth >= 900) {
+        sidebar.style.width = "250px";
+        sidebar.classList.add('open');
+    }
+
+    if (!document.querySelector('.main-content.active')) {
+        showScreen('home-screen');
+    }
+
+    sidebar.addEventListener('click', (event) => {
+        if (sidebar.classList.contains('open')) {
+            event.stopPropagation();
+        }
+    });
+
+    if (screenHistory[0] !== 'home-screen') {
+        screenHistory = ['home-screen'];
+    }
+
+    startMeliTimerLogic();
+}
+
+function openAuthModal() {
+    closeMenu();
+    authModal.style.display = "flex";
+    document.getElementById('modalTitle').textContent = 'Elige cómo iniciar sesión';
+    document.getElementById('authMessage').style.display = 'none';
+}
+
+function closeAuthModal() {
+    authModal.style.display = "none";
+}
+
+function displayAuthMessage(message, isError) {
+    const authMessage = document.getElementById('authModal').querySelector('.auth-message');
+    authMessage.textContent = message;
+    authMessage.className = 'auth-message';
+    if (isError) {
+        authMessage.classList.add('error');
+    }
+    authMessage.style.display = 'block';
+}
+
+function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    auth.signInWithPopup(provider)
+        .then(() => {
+            closeAuthModal();
+        })
+        .catch((error) => {
+            let errorMessage = 'Error al iniciar sesión con Google. Inténtalo de nuevo.';
+            if (error.code === 'auth/popup-closed-by-user') {
+                errorMessage = 'La ventana de inicio de sesión fue cerrada.';
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                errorMessage = 'El inicio de sesión fue cancelado. No se permite abrir múltiples ventanas emergentes.';
+            }
+            console.error("Error de autenticación con Google:", error);
+            displayAuthMessage(errorMessage, true);
+        });
+}
+
+function logout() {
+     auth.signOut()
+        .then(() => {
+            closeMenu();
+            screenHistory = ['home-screen'];
+            showScreen('home-screen');
+        })
+        .catch((error) => { console.error('Error al cerrar sesión:', error); });
+}
+
+function getLocalStorageKey(uid, type) {
+    if (type === 'avatar') {
+        return `user_${uid}_avatarDataURL`;
+    } else if (type === 'banner') {
+        return `user_${uid}_bannerDataURL`;
+    }
+    return null;
+}
+
+function displayLocalImage(file, elementId, type) {
+    const user = auth.currentUser;
+    if (!file || !user) {
+        displayProfileStatus('Error: Debes iniciar sesión para subir imágenes.', true);
         return;
     }
 
-    meliCurrentX += (meliTargetX - meliCurrentX) * 0.05; 
-    meliCurrentY += (meliTargetY - meliCurrentY) * 0.05; 
+    const reader = new FileReader();
+    const storageKey = getLocalStorageKey(user.uid, type);
 
-    meliGif.style.transform = `translate(${meliCurrentX}px, ${meliCurrentY}px)`;
+    reader.onload = function(e) {
+        const dataUrl = e.target.result;
 
-    const distance = Math.sqrt(Math.pow(meliTargetX - meliCurrentX, 2) + Math.pow(meliTargetY - meliCurrentY, 2));
-    
-    if (distance < 5) { 
-        getNewRandomTarget();
-    }
+        if (type === 'avatar') {
+            profileAvatar.src = dataUrl;
 
-    meliAnimationId = requestAnimationFrame(animateMeli);
-}
-
-
-function startMeliAppearance() {
-    if (meliState === 'clicked') return;
-    
-    meliState = 'moving';
-    
-    getNewRandomTarget();
-    meliCurrentX = meliTargetX;
-    meliCurrentY = meliTargetY;
-    
-    meliGif.style.transition = 'none'; 
-    meliGif.style.transform = `translate(${meliCurrentX}px, ${meliCurrentY}px) scale(1)`; 
-    meliGif.style.opacity = '1';
-    meliGif.style.display = 'block';
-    
-    meliMoveStartTime = Date.now();
-    animateMeli();
-
-    setTimeout(() => {
-        if (meliState === 'moving') {
-            startMeliDisappearance();
+            profilePhoto.src = dataUrl;
+            profilePhoto.classList.remove('hidden');
+            profileIcon.style.display = 'none';
+        } else if (type === 'banner') {
+            profileBannerArea.style.backgroundImage = `url('${dataUrl}')`;
+            profileBannerArea.style.backgroundColor = 'transparent';
         }
-    }, MELI_VISIBLE_DURATION);
-}
 
-function startMeliDisappearance() {
-    if (meliState === 'disappearing' || meliState === 'clicked') return; 
+        localStorage.setItem(storageKey, dataUrl);
+        displayProfileStatus(`✅ ${type === 'avatar' ? 'Ícono' : 'Banner'} de perfil actualizado localmente.`, false);
+    };
 
-    meliState = 'disappearing';
-    cancelAnimationFrame(meliAnimationId);
-    
-    meliGif.style.transition = 'opacity 0.5s ease-out'; 
-    meliGif.style.opacity = '0';
-
-    setTimeout(() => {
-        meliGif.style.display = 'none';
-        
-        const nextAppearanceTime = MELI_REAPPEAR_DELAY; 
-        
-        meliState = 'hidden';
-        
-        setTimeout(() => {
-            startMeliAppearance();
-        }, nextAppearanceTime);
-        
-        console.log(`Meli reaparecerá en ${nextAppearanceTime / 60000} minutos.`);
-    }, 500); 
-}
-
-function meliClickInteraction() {
-    if (meliState === 'clicked' || meliState === 'disappearing') return; 
-
-    meliState = 'clicked';
-    cancelAnimationFrame(meliAnimationId);
-    
-    const centerX = window.innerWidth / 2 - MELI_SIZE / 2;
-    const centerY = window.innerHeight / 2 - MELI_SIZE / 2;
-    
-    meliGif.style.transition = 'transform 0.5s ease-in, opacity 0.5s ease-in';
-    meliGif.style.transform = `translate(${centerX}px, ${centerY}px) scale(1.5)`;
-    meliGif.style.opacity = '0';
-    
-    setTimeout(() => {
-        meliGif.style.display = 'none';
-        meliGif.style.transform = `translate(0px, 0px) scale(1)`; 
-        meliGif.style.transition = 'none'; 
-
-        if (secretClockModal.style.display !== 'block') {
-            secretClockModal.style.display = "block";
-            document.body.style.overflow = "hidden";
-        }
-        
-        const minDelay = 2 * 60 * 1000; 
-        const maxDelay = 6 * 60 * 1000; 
-        const nextAppearanceTime = Math.random() * (maxDelay - minDelay) + minDelay;
-        
-        meliState = 'hidden'; 
-        
-        setTimeout(() => {
-            startMeliAppearance();
-        }, nextAppearanceTime);
-
-    }, 500); 
-}
-
-meliGif.addEventListener('click', meliClickInteraction);
-
-
-// ====================================================================
-// --- LÓGICA DEL BOTÓN DE RECOMPENSA SECRETO ($) Y RICKROLL ---
-// ====================================================================
-
-function unlockRewardButton() {
-    rewardButton.classList.remove('hidden'); 
-    localStorage.setItem('rewardUnlocked', 'true'); 
-    rewardButton.classList.add('unlocked-flash'); 
-}
-
-/**
- * 🚨 Función Anti-Pausa. Se llama si el usuario hace clic DESPUÉS de que el video
- * haya comenzado, forzando la reproducción.
- */
-function preventVideoPause(event) {
-    // Es CRÍTICO prevenir la acción por defecto (pausa)
-    event.preventDefault();
-    event.stopPropagation();
-    
-    // Forzar la reproducción
-    secretVideoPlayer.play(); 
-}
-
-function openSecretReward() {
-    // 1. Resetear el video y la interfaz
-    if (secretVideoPlayer.getAttribute('src') !== 'rikroll.mp4') {
-         secretVideoPlayer.querySelector('source').setAttribute('src', 'rikroll.mp4');
-         secretVideoPlayer.load();
+    reader.onerror = function() {
+        displayProfileStatus('❌ Error al leer el archivo local. Intenta con otra imagen.', true);
     }
-    closeMenu(); 
-    document.getElementById('videoContent').style.display = 'block';
-    secretCodeDisplay.style.display = 'none';
-    copyMessage.style.display = 'none';
-    
-    videoRewardModal.style.display = "block";
-    document.body.style.overflow = "hidden";
-    
-    // 2. Limpiar Listeners Antiguos antes de empezar un nuevo ciclo
-    secretVideoPlayer.removeEventListener('click', preventVideoPause);
-    
-    const activationHandler = secretVideoPlayer._activationHandler;
-    if (activationHandler) {
-        secretVideoPlayer.removeEventListener('click', activationHandler);
-        secretVideoPlayer._activationHandler = null; 
-    }
-    
-    // 3. Intentar reproducir automáticamente sin controles (Fallará por audio)
-    secretVideoPlayer.controls = false; 
-    
-    secretVideoPlayer.play().then(() => {
-        // Éxito: La reproducción automática funcionó. Activar anti-pausa.
-        secretVideoPlayer.addEventListener('click', preventVideoPause);
-        
-    }).catch(error => {
-        // Fallo: Necesita el clic del usuario (el 99% de las veces).
-        console.error("Autoplay bloqueado. Se requiere interacción del usuario.", error);
-        
-        // Mostrar los controles para incitar al clic
-        secretVideoPlayer.controls = true; 
 
-        // Definir el manejador para el CLIC DE ACTIVACIÓN
-        const userActivationHandler = function(e) {
-            
-            // 🚨 Asegurar que el play() se ejecute en el clic
-            secretVideoPlayer.play(); 
-            
-            // 🚨 ACCIONES INMEDIATAS TRAS EL CLIC EXITOSO:
-            secretVideoPlayer.controls = false; // ¡Ocultar controles ahora!
-            
-            // Revertir a la lógica anti-pausa
-            secretVideoPlayer.removeEventListener('click', userActivationHandler);
-            secretVideoPlayer.addEventListener('click', preventVideoPause);
-            secretVideoPlayer._activationHandler = null; // Limpia la referencia
-        };
-        
-        // Guardar la referencia y añadir el listener de activación (solo para el primer clic)
-        secretVideoPlayer._activationHandler = userActivationHandler;
-        secretVideoPlayer.addEventListener('click', userActivationHandler, { once: true });
-    });
+    reader.readAsDataURL(file);
 }
 
+async function loadUserProfileData(user) {
+    if (!user) return;
 
-// Escuchar el evento de finalización del video para mostrar el código
-secretVideoPlayer.addEventListener('ended', () => {
-    // Ocultar el reproductor de video
-    document.getElementById('videoContent').style.display = 'none';
-    // Mostrar el código
-    secretCodeDisplay.style.display = 'block';
-    
-    // Cerrar el modal de recompensa automáticamente después de 5 segundos de mostrar el código
-    setTimeout(() => {
-        closeVideoRewardModal();
-    }, 5000); 
-});
+    const uid = user.uid;
+    const displayName = user.displayName || user.email.split('@')[0];
+    displayNameInput.value = displayName;
+    userEmailDisplay.textContent = user.email;
 
-function copySecretCode() {
-    const code = document.getElementById('secretCodeText').textContent;
-    
-    navigator.clipboard.writeText(code).then(() => {
-        copyMessage.textContent = '¡Copiado al portapapeles!';
-        copyMessage.style.color = '#2ECC71'; 
-        copyMessage.style.display = 'block';
-        setTimeout(() => {
-            copyMessage.style.display = 'none';
-        }, 2000);
-    }).catch(err => {
-        console.error('Error al intentar copiar:', err);
-        copyMessage.textContent = 'Error al copiar. Copie manualmente.';
-        copyMessage.style.color = '#E74C3C'; 
-        copyMessage.style.display = 'block';
-    });
-}
+    displayProfileStatus('', false);
 
-rewardButton.addEventListener('click', openSecretReward);
-if (copyButton) {
-    copyButton.addEventListener('click', copySecretCode);
-}
+    const initialChar = displayName.charAt(0).toUpperCase();
 
+    const localAvatarKey = getLocalStorageKey(uid, 'avatar');
+    const localBannerKey = getLocalStorageKey(uid, 'banner');
 
-// --- MODAL INFO DE JUEGOS (Contenido) --- 
-function openSnakeInfoModal() { openGameModal(`<h1>¡Snake!</h1><h2>El Clásico Juego de la Víborita</h2><p>Este juego es el clásico de los teléfonos viejos con <strong>3 modalidades</strong> de velocidad para desafiar tu habilidad:</p><ul><li><strong>Lento</strong> (Fácil)</li><li><strong>Normal</strong> (Medio)</li><li><strong>Rápido</strong> (Difícil)</li></ul><h2>Clasificación Mundial (¡Récords Globales!)</h2><p>Para poder registrar tu puntuación en la tabla clasificatoria solo necesitas iniciar sesión. Solo se pide:</p><ul><li><strong>Nombre de usuario</strong></li><li><strong>Contraseña</strong> (Recuerden no olvidarlas)</li></ul><p class="important">* ¡Importante! Necesitas internet para el registro de récords. *</p><h2>Tabla Clasificatoria</h2><p>Puedes ver la tabla de clasificación completa en el menú principal de Snake.</p>`); } 
-function openBuscaminasInfoModal() { openGameModal(`<h1>💣 Buscaminas | Modo Extremo</h1><h2>🚨 El Desafío de Récord</h2><p>Esta versión está configurada para una única, pero extrema, partida de alta dificultad:</p><ul><li>Dimensiones: 30 Columnas x 29 Filas</li><li>Minas: 99 Bombas Totales</li><li>Meta: Conseguir el menor tiempo posible para despejar todas las celdas seguras y establecer un nuevo récord mundial.</li></ul><h2>📱 Mecánica de Juego Táctil</h2><p>El juego está optimizado para pantallas táctiles y dispositivos móviles. Las acciones se realizan mediante un menú flotante al tocar una celda:</p><ul><li>Tocar Celda: Abre el menú de acciones.</li><li>⛏️ (Pico): Destapar. Destapa la celda seleccionada (equivalente al "clic izquierdo").</li><li>🚩 (Bandera): Marcar. Coloca o quita una bandera (equivalente al "clic derecho").</li></ul><h2>🏆 Envío de Tiempos a la Clasificación Global</h2><p>Para que tus victorias se registren en la tabla de récords mundial, solo necesitas iniciar sesión <strong>una única vez</strong>. Los datos necesarios son:</p><ul><li>Nombre de Usuario (El nombre que aparecerá en el ranking).</li><li>Contraseña (Recomendamos guardarla para futuros accesos).</li></ul><p class="important-buscaminas">🚩 ¡CLAVE! Solo los tiempos obtenidos en partidas ganadas mientras la sesión está activa serán enviados y validados en línea.</p><h2>🔗 Ver la Tabla de Récords</h2><p>¿Quién es el más rápido del mundo en esta configuración (30 x 29 / 99 Minas)? ¡Compruébalo en el ranking oficial!</p><p class="alert-mine-buscaminas">⚠️ ADVERTENCIA: Este modo es brutal. ¡Prepárate mentalmente para el sonido del "¡BOOM!" y no te rindas!</p>`); } 
-function openTetrisInfoModal() { openGameModal(`<h1>¡Tetris!</h1><p class="tetris-status">Actualmente está en desarrollo</p><h2>Pronto Disponible</h2><p>El juego de Tetris es uno de los próximos proyectos que estará disponible en la web y como App descargable.</p><p>Podrás encontrar la información de sus récords y cómo jugarlo una vez esté finalizado.</p>`); } 
-function openNavalInfoModal() { openGameModal(`<h1>Batalla Naval ONLINE</h1><p class="naval-status">En proceso de creación</p><h2>Objetivo: Multijugador en Línea</h2><p>Esta es una idea experimental y ambiciosa. La idea es hacer que puedas jugar en línea Batalla naval <strong>aleatoriamente</strong>, pero también podrías elegir con quién jugar (invitar a amigos).</p><h2>Implementación</h2><p>Los enlaces para jugar en la web y descargar la App se habilitarán una vez que la fase de desarrollo multijugador esté estable y lista para pruebas beta.</p>`); } 
-function openWcoartlInfoModal() { openGameModal(`<h1>Wcoartl</h1><h2 style="color: var(--color-wcoartl); border-bottom: none; text-align: left; font-size: 1.3em;">Proyecto de Gran Ambición</h2><p style="font-size: 1.2em; font-style: italic;">Esta es una idea experimental y súper ambiciosa.</p><p>Tendrá un <strong>Lore profundo</strong> y su jugabilidad mezclará elementos de <a href="https://es.wikipedia.org/wiki/Geometry_Dash" target="_blank" style="color: var(--color-link-azul);">Geometry Dash</a> y <a href="https://es.wikipedia.com/wiki/Undertale" target="_blank" style="color: var(--color-link-azul);">Undertale</a>.</p><p class="wcoartl-status">¡El desarrollo de este juego es definitivo!</p><h2 style="color: var(--color-wcoartl);">Descarga y Web</h2><p>Los enlaces para jugar en la web y descargar la App están en <strong>implementación</strong>. Sigue las noticias en mis redes sociales para saber cuándo estarán disponibles.</p>`); }
+    const localAvatarUrl = localStorage.getItem(localAvatarKey);
+    const localBannerUrl = localStorage.getItem(localBannerKey);
 
+    const avatarUrl = localAvatarUrl || user.photoURL || null;
 
-// --- INICIALIZACIÓN FINAL ---
-document.addEventListener('DOMContentLoaded', () => {
-    const initialView = window.location.hash.substring(1) || 'home';
-    showView(initialView);
-    
-    // MANEJO DEL BOTÓN DE RECOMPENSA AL CARGAR
-    if (localStorage.getItem('rewardUnlocked') === 'true') {
-        rewardButton.classList.remove('hidden'); 
+    if (avatarUrl) {
+        profilePhoto.src = avatarUrl;
+        profilePhoto.classList.remove('hidden');
+        profileIcon.style.display = 'none';
     } else {
-        rewardButton.classList.add('hidden'); 
+        profilePhoto.src = '';
+        profilePhoto.classList.add('hidden');
+        profileIcon.style.display = 'block';
     }
 
-    startMeliAppearance(); 
+    profileAvatar.src = avatarUrl || `https://via.placeholder.com/100/363a45/FFFFFF?text=${initialChar}`;
+
+    if (localBannerUrl) {
+        profileBannerArea.style.backgroundImage = `url('${localBannerUrl}')`;
+        profileBannerArea.style.backgroundColor = 'transparent';
+    } else {
+        profileBannerArea.style.backgroundImage = 'none';
+        profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
+    }
+}
+
+async function updateUserProfile() {
+    const user = auth.currentUser;
+    const newName = displayNameInput.value.trim();
+
+    if (!user) {
+        displayProfileStatus('Error: Debes iniciar sesión para actualizar tu perfil.', true);
+        return;
+    }
+
+    try {
+        await user.updateProfile({ displayName: newName });
+        loginText.textContent = newName;
+
+        loadUserProfileData(user);
+
+        displayProfileStatus('✅ Nombre de usuario actualizado con éxito.', false);
+    } catch (error) {
+        console.error("Error al actualizar el perfil:", error);
+        displayProfileStatus(`❌ Error al actualizar el perfil: ${error.message}`, true);
+    }
+}
+
+function displayProfileStatus(message, isError) {
+    profileStatus.textContent = message;
+    profileStatus.className = 'status-' + (isError ? 'error' : 'success');
+    profileStatus.style.display = message ? 'block' : 'none';
+}
+
+function renderContentCard(item) {
+    const card = document.createElement('div');
+    card.className = 'content-card';
+
+    const fileURL = item.fileURL || '';
+
+    let mediaElement;
+    const isVideo = item.fileType && item.fileType.startsWith('video/');
+    const defaultPreview = `https://via.placeholder.com/300x250/333/ccc?text=${isVideo ? 'Video' : 'Media'}`;
+
+    if (isVideo) {
+        mediaElement = `<div class="card-media" style="background-image: url('${defaultPreview}'); display: flex; align-items: center; justify-content: center;">
+                            <a href="${item.fileURL.replace('=s300', '')}" target="_blank" style="color: white; font-size: 2em;"><i class="fas fa-play-circle"></i></a>
+                        </div>`;
+    } else {
+        mediaElement = `<img class="card-media" src="${fileURL}" alt="${item.title}" onclick="window.open('${item.fileURL.replace('=s300', '')}', '_blank')">`;
+    }
+
+    const tagsHTML = Array.isArray(item.tags) ? item.tags.map(tag => `<span class="tag-button">${tag}</span>`).join('') : '';
+
+    const date = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Desconocida';
+    const defaultAuthorPhoto = 'https://via.placeholder.com/25/EA7900/FFFFFF?text=A';
+
+    card.innerHTML = `
+        ${mediaElement}
+        <div class="card-details">
+            <h3>${item.title}</h3>
+            <p>${item.description}</p>
+            <div class="card-tags">${tagsHTML}</div>
+            <div class="card-footer">
+                <div class="card-author">
+                    <img class="author-photo" src="${item.authorPhotoURL || defaultAuthorPhoto}" alt="Foto de autor">
+                    <span>${item.authorName}</span>
+                </div>
+                <span><i class="far fa-clock"></i> ${date}</span>
+            </div>
+        </div>
+    `;
+
+    return card;
+}
+
+async function loadContent() {
+    contentGallery.innerHTML = '';
+    loadingMessage.style.display = 'block';
+
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        const files = await response.json();
+
+        loadingMessage.style.display = 'none';
+        allContentData = files;
+
+        if (files.length === 0) {
+            contentGallery.innerHTML = '<p style="color: #999; width: 100%; text-align: center;">Aún no hay contenido indexado. ¡Sube algo!</p>';
+            return;
+        }
+
+        allContentData.forEach((item) => {
+            const cardElement = renderContentCard(item);
+            contentGallery.appendChild(cardElement);
+        });
+
+    } catch (error) {
+        console.error("Error al cargar el contenido: ", error);
+        loadingMessage.textContent = 'Error al cargar el contenido. Revisa el código y despliegue del Apps Script.';
+        loadingMessage.style.color = '#f44336';
+    }
+}
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.style.display = 'flex';
+    modal.classList.remove('exiting');
+    modal.classList.remove('entering');
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.style.display = 'none';
+    modal.classList.remove('entering');
+    modal.classList.remove('exiting');
+}
+
+auth.onAuthStateChanged(async (user) => {
+
+    if (user) {
+        const displayName = user.displayName || user.email.split('@')[0];
+
+        loginText.textContent = displayName;
+        logoutLink.style.display = 'flex';
+        sidebarProfileSection.onclick = handleProfileClick;
+
+        await loadUserProfileData(user);
+
+    } else {
+        loginText.textContent = 'Iniciar Sesión';
+        profilePhoto.src = '';
+        profilePhoto.classList.add('hidden');
+        profileIcon.style.display = 'block';
+
+        logoutLink.style.display = 'none';
+        sidebarProfileSection.onclick = openAuthModal;
+
+        profileAvatar.src = 'https://via.placeholder.com/100/363a45/FFFFFF?text=G';
+        profileBannerArea.style.backgroundImage = 'none';
+        profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
+        displayNameInput.value = '';
+        userEmailDisplay.textContent = '';
+        displayProfileStatus('', false);
+
+        if (document.getElementById('profile-screen')?.classList.contains('active')) {
+            showScreen('home-screen');
+        }
+    }
 });
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+
+window.addEventListener('resize', () => {
+     if (window.innerWidth >= 900) {
+         sidebar.style.width = "250px";
+         sidebar.classList.add('open');
+         menuOverlay.style.display = "none";
+     } else {
+          if (sidebar.classList.contains('open')) {
+             closeMenu();
+          }
+     }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+
+});
+
+window.showScreen = showScreen;
+window.goBack = goBack;
+window.toggleMenu = toggleMenu;
+window.closeMenu = closeMenu;
+window.handleProfileClick = handleProfileClick;
+window.signInWithGoogle = signInWithGoogle;
+window.logout = logout;
+window.updateUserProfile = updateUserProfile;
+window.displayLocalImage = displayLocalImage;
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.closeModalOnOutsideClick = closeModalOnOutsideClick;
+window.toggleGameOptions = toggleGameOptions;
+window.openModal = openModal;
+window.closeModal = closeModal;

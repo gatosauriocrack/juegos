@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>App Gatosauriocrack - Contenido y dibujos</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <div class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></div>
+    <div id="menuOverlay" onclick="closeMenu()"></div>
+    <header class="header-bar">
+        <div class="header-content">
+            <span class="menu-icon" onclick="toggleMenu()">&#9776;</span>
+            <span class="app-icon-custom"><i class="fas fa-paw"></i></span> 
+            <span class="app-title">Gatosauriocrack</span>
+            
+            <span id="localClock"></span> 
+        </div>
+    </header>
+    
+    <div id="meliGifContainer"> 
+        <span id="meliTimer" style="display:none;"></span> <img id="meliGif" src="Meli.gif" alt="Meli GIF" onclick="startMeliReward()">
+    </div>
+    
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeMenu()">&times;</a> 
+        <div id="sidebarProfileSection" class="sidebar-profile-login" onclick="handleProfileClick()">
+            <div id="profilePhotoContainer" class="profile-photo-container">
+                <i id="profileIcon" class="fas fa-user-circle default-profile-icon"></i>
+                <img id="profilePhoto" src="" alt="Foto de Perfil" class="profile-photo hidden">
+            </div>
+            <span id="loginText" class="login-text">Iniciar Sesión</span> 
+        </div>
+        <a href="javascript:void(0)" onclick="showScreen('home-screen')"><span class="icon"><i class="fas fa-home"></i></span> Home</a>             
+        <a href="javascript:void(0)" onclick="showScreen('juegos-screen')"><span class="icon"><i class="fas fa-gamepad"></i></span> Juegos</a> 
+        <a href="javascript:void(0)" onclick="showScreen('descargar-apps-screen')"><span class="icon"><i class="fas fa-download"></i></span> Descargar Apps</a> 
+        <a href="javascript:void(0)" onclick="showScreen('como-descargar-screen')"><span class="icon"><i class="fas fa-question-circle"></i></span> Como descargar</a> 
+        <a href="javascript:void(0)" onclick="showScreen('canales-screen')"><span class="icon"><i class="fas fa-link"></i></span> Canales</a> 
+        <a href="javascript:void(0)" onclick="showScreen('apoyo-screen')"><span class="icon"><i class="fas fa-handshake"></i></span> Apoyo</a>
+        <a href="javascript:void(0)" onclick="showScreen('info-screen')"><span class="icon"><i class="fas fa-info-circle"></i></span> Información web</a> 
+        <a href="javascript:void(0)" id="logoutLink" style="display: none;" onclick="logout()"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Cerrar Sesión</a>
+    </div>
+    <div id="home-screen" class="main-content active">
+        <div class="welcome-section">
+            <h1 class="welcome-title">¡Bienvenido!</h1>
+            <p>Hola, soy un programador independiente que lo hace por pasatiempo. También tengo canal de YouTube donde subo videos sobre Minecraft y animaciones sencillas.</p>
+            <p>También puedes seguirme en mi cuenta de <a href="https://www.instagram.com/gatosauriocrack" class="social-link">Instagram</a> o <a href="https://x.com/gatosauriocrack" class="social-link">X [Twitter]</a>.</p>
+            <p>Pues esto es todo y que disfruten el contenido.</p>
+            <h2 class="index-title">Índice</h2>
+            <ul class="index-list">
+                <li onclick="showScreen('juegos-screen')"><i class="fas fa-gamepad"></i> Juegos</li>
+                <li onclick="showScreen('descargar-apps-screen')"><i class="fas fa-download"></i> Descarga Apps</li>
+                <li onclick="showScreen('como-descargar-screen')"><i class="fas fa-question-circle"></i> Cómo Descargar</li>
+                <li onclick="showScreen('canales-screen')"><i class="fas fa-link"></i> Canales</li>
+                <li onclick="showScreen('apoyo-screen')"><i class="fas fa-handshake"></i> Apoyo</li>
+            </ul>
+            <button class="contact-button-large" onclick="showScreen('contact-screen')">
+                <i class="fas fa-envelope"></i> Contactar
+            </button>
+        </div>
+        <div id="contentGallery" class="content-gallery">
+            <p id="loadingMessage" style="color: #ccc; text-align: center; width: 100%;">Cargando contenido...</p>
+        </div>
+    </div>
+    <div id="profile-screen" class="main-content">
+        <div class="profile-container">
+            <div id="profileBannerArea" class="profile-banner-area">
+                <div class="banner-upload-wrapper">
+                    <input type="file" id="bannerFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'profileBannerArea', 'banner')">
+                    <label for="bannerFileInput" class="banner-upload-btn">
+                        <i class="fas fa-camera"></i> Elegir Banner
+                    </label>
+                </div>
+            </div>
+            <div class="profile-avatar-wrapper">
+                <img id="profileAvatar" class="profile-avatar" src="https://via.placeholder.com/100/363a45/FFFFFF?text=G" style="visibility: hidden;" onload="this.style.visibility='visible'">
+                <div class="avatar-upload-wrapper">
+                    <input type="file" id="avatarFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'profileAvatar', 'avatar')">
+                    <label for="avatarFileInput" class="avatar-upload-btn">
+                        <i class="fas fa-camera"></i> Elegir Ícono
+                    </label>
+                </div>
+            </div>
+            <div class="profile-info">
+                <div class="profile-field">
+                    <label for="displayNameInput">Nombre (Apodo)</label>
+                    <input type="text" id="displayNameInput" placeholder="Tu nombre público">
+                </div>
+                <div class="profile-field">
+                    <label>Correo Electrónico</label>
+                    <span id="userEmailDisplay" class="email-display"></span>
+                </div>
+                <button class="profile-save-btn" onclick="updateUserProfile()">Guardar Nombre</button>
+                <div id="profileStatus" class="status-success"></div>
+            </div>
+        </div>
+    </div>
+    <div id="info-screen" class="main-content">
+        <h2 style="color: var(--color-naranja-principal);">Información Web</h2>
+        <p>Detalles sobre la aplicación y sus creadores.</p>
+    </div>
+    <div id="contact-screen" class="main-content">
+        <div class="contact-card">
+            <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-envelope"></i> Contactar</h2>
+            <div class="email-list">
+                <a href="mailto:gatosauriocrackand@gmail.com" class="email-link"><i class="fas fa-envelope-open-text"></i> gatosauriocrackand@gmail.com</a>
+                <a href="mailto:gatosauriocrack0@gmail.com" class="email-link"><i class="fas fa-envelope-open-text"></i> gatosauriocrack0@gmail.com</a>
+                <a href="mailto:higwirefornite@gmail.com" class="email-link"><i class="fas fa-envelope-open-text"></i> higwirefornite@gmail.com</a>
+                <a href="mailto:gatitosaurio0@hotmail.com" class="email-link"><i class="fas fa-envelope-open-text"></i> gatitosaurio@hotmal.com</a>
+            </div>
+            <p class="contact-note">Al hacer clic se abrirá tu aplicación de correo predeterminada.</p>
+        </div>
+    </div>
+    <div id="juegos-screen" class="main-content">
+        <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-gamepad"></i> Juegos</h2>
+        <div class="welcome-section" style="max-width: 600px; margin-bottom: 20px;">
+            <p>En este apartado se encontrarán links de los juegos y app beta en desarrollo. Cada error o bug contactarme por Gmail. ¡Solo disfruta y diviértete!</p>
+        </div>
+        <div class="game-list">
+            <div class="game-item-container" id="snake-container">
+                <div class="game-item">
+                    <button class="game-button" onclick="toggleGameOptions('snake')">
+                        Snake <span class="game-status"><i class="fas fa-snake"></i> (beta)</span>
+                    </button>
+                    <button class="info-button" onclick="openModal('snakeModal')">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+                <div class="game-options" id="snake-options">
+                    <button class="option-button" onclick="window.open('https://gatosauriocrack.github.io/juegos/snake', '_blank')">
+                        <i class="fas fa-play"></i> Jugar
+                    </button>
+                    <button class="option-button" onclick="window.open('https://gatosauriocrack.github.io/juegos/recordsnake', '_blank')">
+                        <i class="fas fa-trophy"></i> Tabla de Clasificación
+                    </button>
+                    <button class="option-button" onclick="showScreen('descargar-apps-screen')"> 
+                        <i class="fas fa-download"></i> Descargar
+                    </button>
+                </div>
+            </div>
+            <div class="game-item-container" id="minesweeper-container">
+                <div class="game-item">
+                    <button class="game-button" onclick="toggleGameOptions('minesweeper')">
+                        Buscaminas <span class="game-status"><i class="fas fa-flag"></i> (beta)</span>
+                    </button>
+                    <button class="info-button" onclick="openModal('minesweeperModal')">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+                <div class="game-options" id="minesweeper-options">
+                    <button class="option-button" onclick="window.open('https://gatosauriocrack.github.io/juegos/Buscaminas', '_blank')">
+                        <i class="fas fa-play"></i> Jugar
+                    </button>
+                    <button class="option-button" onclick="window.open('https://gatosauriocrack.github.io/juegos/BuscaminasRecords', '_blank')">
+                        <i class="fas fa-trophy"></i> Tabla de Clasificación
+                    </button>
+                    <button class="option-button" onclick="showScreen('descargar-apps-screen')"> 
+                        <i class="fas fa-download"></i> Descargar
+                    </button>
+                </div>
+            </div>
+            <div class="game-item-container" id="tetris-container">
+                <div class="game-item">
+                    <button class="game-button" onclick="toggleGameOptions('tetris')">
+                        Tetris <span class="game-status">(en desarrollo)</span>
+                    </button>
+                    <button class="info-button" onclick="openModal('tetrisModal')">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+                <div class="game-options" id="tetris-options">
+                    <button class="option-button" onclick="/* Acción para Jugar Tetris */">
+                        <i class="fas fa-play"></i> Jugar (Pronto)
+                    </button>
+                    <button class="option-button" onclick="showScreen('descargar-apps-screen')"> 
+                        <i class="fas fa-download"></i> Descargar (Pronto)
+                    </button>
+                </div>
+            </div>
+            <div class="game-item-container" id="battleship-container">
+                <div class="game-item">
+                    <button class="game-button" onclick="toggleGameOptions('battleship')">
+                        Batalla Naval Online <span class="game-status">(en proceso de creación)</span>
+                    </button>
+                    <button class="info-button" onclick="openModal('battleshipModal')">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+                <div class="game-options" id="battleship-options">
+                    <button class="option-button" onclick="/* Acción para Jugar Batalla Naval */">
+                        <i class="fas fa-play"></i> Jugar (Pronto)
+                    </button>
+                    <button class="option-button" onclick="showScreen('descargar-apps-screen')"> 
+                        <i class="fas fa-download"></i> Descargar (Pronto)
+                    </button>
+                </div>
+            </div>
+            <div class="game-item-container" id="wcoartl-container">
+                <div class="game-item">
+                    <button class="game-button" onclick="toggleGameOptions('wcoartl')">
+                        Wcoartl <span class="game-status">(idea más o menos hecha)</span>
+                    </button>
+                    <button class="info-button" onclick="openModal('wcoartlModal')">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+                <div class="game-options" id="wcoartl-options">
+                    <button class="option-button" onclick="/* Acción para Jugar Wcoartl */">
+                        <i class="fas fa-play"></i> Jugar (Pronto)
+                    </button>
+                    <button class="option-button" onclick="showScreen('descargar-apps-screen')"> 
+                        <i class="fas fa-download"></i> Descargar (Pronto)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="descargar-apps-screen" class="main-content">
+        <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-download"></i> Descargar Apps <i class="fas fa-save"></i></h2>
+        <div class="welcome-section" style="max-width: 600px; margin-bottom: 20px;">
+            <p>Aquí se encuentran los links de descarga "APK" (versión de prueba) o de "Play Store" (versión final). Consulta la sección "Cómo Descargar" si tienes dudas.</p>
+        </div>
+        <div class="app-list-download">
+            <div class="app-item-download">
+                <span class="app-name-icon">Snake <i class="fas fa-snake" style="color: #4CAF50;"></i></span>
+                <div class="download-buttons">
+                    <a href="#" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
+                    <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
+                </div>
+            </div>
+            <div class="app-item-download">
+                <span class="app-name-icon">Buscaminas <i class="fas fa-flag" style="color: #E81A25;"></i></span>
+                <div class="download-buttons">
+                    <a href="#" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
+                    <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
+                </div>
+            </div>
+            <div class="app-item-download">
+                <span class="app-name-icon">Tetris <i class="fas fa-cube" style="color: #9b59b6;"></i></span>
+                <div class="download-buttons">
+                    <a href="#" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
+                    <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
+                </div>
+            </div>
+            <div class="app-item-download">
+                <span class="app-name-icon">Batalla Naval <i class="fas fa-ship" style="color: #929292;"></i></span>
+                <div class="download-buttons">
+                    <a href="#" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
+                    <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
+                </div>
+            </div>
+            <div class="app-item-download">
+                <span class="app-name-icon">Wcoartl <i class="fas fa-star" style="color: #ffb86c;"></i></span>
+                <div class="download-buttons">
+                    <a href="#" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
+                    <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
+                </div>
+            </div>
+        </div>
+        <div class="welcome-section download-footer" style="max-width: 600px; margin-top: 20px;">
+            <p>Consulta la sección <a href="javascript:void(0)" onclick="showScreen('como-descargar-screen')" style="color: var(--color-naranja-principal); font-weight: bold;">"Cómo Descargar"</a> si tienes dudas con la instalación del APK o el uso de Play Store.</p>
+        </div>
+    </div>
+    <div id="como-descargar-screen" class="main-content">
+        <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-question-circle"></i> Cómo Descargar</h2>
+        <div class="welcome-section" style="max-width: 600px; text-align: left;">
+            <h3 style="color: var(--color-naranja-claro);"><i class="fab fa-google-play"></i> Opción 1: Descarga por Play Store</h3>
+            <div class="info-card">
+                <p>Simplemente haga clic en el botón de Play Store que encontrará en la sección de descarga y se abrirá la aplicación para que inicie la descarga.</p>
+                <p class="contact-note">¡Es la forma más sencilla y recomendada!</p>
+            </div>
+            <h3 style="color: var(--color-naranja-claro); margin-top: 30px;"><i class="fas fa-file-download"></i> Opción 2: Descarga de Archivo APK</h3>
+            <div class="info-card">
+                <p style="font-style: italic;">Instrucciones paso a paso para el archivo APK (Versión de Prueba):</p>
+                <ol class="apk-steps-list">
+                    <li>Haga clic en el enlace de descarga APK de la app que desee.</li>
+                    <li>Vaya a la configuración de su dispositivo: "Configuración > Seguridad" y active la opción "Permitir fuentes desconocidas" (o "Instalar apps desconocidas").</li>
+                    <li>Busque el archivo descargado (generalmente en la carpeta de "Descargas") e instálelo.</li>
+                </ol>
+                <div class="modal-alert-box alert-red">
+                    ¡Listo! Disfrute el contenido y recuerde <a href="javascript:void(0)" onclick="showScreen('contact-screen')">contactarme</a> si encuentra algún error (bug).
+                </div>
+            </div>
+            <button class="contact-button-large" onclick="showScreen('descargar-apps-screen')" style="margin-top: 30px;">
+                <i class="fas fa-arrow-right"></i> Ir a la Sección de Descarga Apps
+            </button>
+        </div>
+    </div>
+    <div id="canales-screen" class="main-content">
+        <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-link"></i> Canales</h2>
+        <div class="canales-card">
+            <h3 style="color: #ccc;">Aquí tienes todos los enlaces directos a mis redes sociales</h3>
+            <div class="redes-list">
+                <a href="https://m.youtube.com/@gatosauriocrack" target="_blank" class="red-link">
+                    <i class="fab fa-youtube social-icon youtube"></i> YouTube
+                </a>
+                <a href="https://www.instagram.com/gatosauriocrack" target="_blank" class="red-link">
+                    <i class="fab fa-instagram social-icon instagram"></i> Instagram
+                </a>
+                <a href="https://x.com/gatosauriocrack" target="_blank" class="red-link">
+                    <i class="fab fa-twitter social-icon twitter"></i> X [Twitter]
+                </a>
+                <span class="red-link disabled-link">
+                    <i class="fab fa-tiktok social-icon tiktok"></i> TikTok (Por agregar link)
+                </span>
+                <span class="red-link disabled-link">
+                    <i class="fab fa-twitch social-icon twitch"></i> Twitch (Por agregar link)
+                </span>
+                <span class="red-link disabled-link">
+                    <i class="fab fa-discord social-icon discord"></i> Discord (Por agregar link)
+                </span>
+            </div>
+        </div>
+    </div>
+    <div id="apoyo-screen" class="main-content">
+        <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-handshake"></i> Apoyo</h2>
+        <p>Por implementar</p>
+    </div>
+    <div id="authModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)" style="display: none;">
+        <div class="modal-content">
+            <h2 id="modalTitle" class="modal-title">Elige cómo iniciar sesión</h2>
+            <div id="authMessage" class="auth-message"></div>
+            <div id="socialAuthContainer" class="social-auth-container">
+                <button class="social-auth-btn google-btn" onclick="signInWithGoogle()">
+                    <i class="fab fa-google"></i> Iniciar Sesión con Google
+                </button>
+                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()">
+                    <i class="fas fa-gamepad"></i> Iniciar Sesión con Play Juegos
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="rickrollModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999;">
+        <div id="rickrollContent" style="position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+            <p id="redeemText" style="color: white; font-size: 20px; margin-bottom: 20px;">Canjeando recompensa en <span id="redeemCountdown">3</span>...</p>
+            <video id="rickrollVideo" src="rikroll.mp4" playsinline style="width: 100%; height: auto; max-width: 800px; display: none;" preload="auto">
+                Tu navegador no soporta el elemento de video.
+            </video>
+            <div id="rewardContainer" style="display: none; margin-top: 20px;">
+                <h3 style="color: white; margin-bottom: 10px;">¡Recompensa Canjeada!</h3>
+                <div class="code-box" onclick="copyCode('M3L1 S3CR370')" style="background: #333; padding: 10px; border-radius: 5px; cursor: pointer;">
+                    <code id="rewardCode" style="color: #6AA84F; font-size: 18px; user-select: none;">M3L1 S3CR370</code>
+                    <i class="fas fa-copy" style="color: #ccc; margin-left: 10px;"></i>
+                </div>
+                <p style="color: #ccc; font-size: 12px; margin-top: 5px;">Haz clic para copiar el código.</p>
+            </div>
+        </div>
+    </div>
+    <div id="snakeModal" class="modal-overlay game-modal" style="display: none;" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal-content-game" onclick="event.stopPropagation()">
+            <span class="close-game-modal" onclick="closeModal('snakeModal')">&times;</span>
+            <h2 class="modal-title-game"><i class="fas fa-snake" style="color: #6AA84F;"></i> Snake!</h2>
+            <h3 class="modal-subtitle-game">El Clásico Juego de la Viborita</h3>
+            <p>Este juego es el clásico de los teléfonos viejos con 3 modalidades de velocidad para desafiar tu habilidad:</p>
+            <ul>
+                <li><strong>Lento (Fácil)</strong></li>
+                <li><strong>Normal (Medio)</strong></li>
+                <li><strong>Rápido (Difícil)</strong></li>
+            </ul>
+            <h3 class="modal-subtitle-game"><i class="fas fa-trophy"></i> Clasificación Mundial (¡Récords Globales!)</h3>
+            <p>Para poder registrar tu puntuación en la tabla clasificatoria solo necesitas iniciar sesión. Solo se pide:</p>
+            <ul>
+                <li>Nombre de usuario</li>
+                <li>Contraseña (Recuerden no olvidarlas)</li>
+            </ul>
+            <div class="modal-alert-box alert-orange">
+                <strong>* ¡Importante!</strong> Necesitas internet para el registro de récords. *
+            </div>
+            <h3 class="modal-subtitle-game">Tabla Clasificatoria</h3>
+            <p>Puedes ver la tabla de clasificación completa en el menú principal de Snake.</p>
+        </div>
+    </div>
+    <div id="minesweeperModal" class="modal-overlay game-modal" style="display: none;" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal-content-game" onclick="event.stopPropagation()">
+            <span class="close-game-modal" onclick="closeModal('minesweeperModal')">&times;</span>
+            <h2 class="modal-title-game"><i class="fas fa-flag" style="color: red;"></i> Buscaminas | Modo Extremo</h2>
+            <h3 class="modal-subtitle-game"><i class="fas fa-bomb"></i> El Desafío de Récord</h3>
+            <p>Esta versión está configurada para una única, pero extrema, partida de dificultad.</p>
+            <ul>
+                <li>Dimensiones: <strong>30 columnas x 29 Filas</strong></li>
+                <li>Minas: 99 Bombas Totales</li>
+                <li>Meta: Conseguir el menor tiempo posible para destapar todas las celdas seguras y establecer un nuevo récord mundial.</li>
+            </ul>
+            <h3 class="modal-subtitle-game"><i class="fas fa-mobile-alt"></i> Mecánica de Juego Táctil</h3>
+            <p>El modo está optimizado para pantallas táctiles y dispositivos móviles. Las principales acciones se realizan mediante un menú novedoso:</p>
+            <ul>
+                <li>Tocar Celda: Abre el menú de acciones.</li>
+                <li><i class="fas fa-hand-point-right"></i> (Pico): Destapar. (Destapa la celda, equivalente al "clic izquierdo").</li>
+                <li><i class="fas fa-flag"></i> (Bandera): Marcar. (Coloca o quita una bandera (equivalente al "clic derecho").</li>
+            </ul>
+            <h3 class="modal-subtitle-game"><i class="fas fa-medal"></i> Envío de Tiempos a la Clasificación Global</h3>
+            <p>Para que tus victorias se registren en la tabla de récords mundial, solo necesitas iniciar sesión. Solo se pide una vez. Los datos necesarios son:</p>
+            <ul>
+                <li>Nombre de Usuario (El nombre que aparecerá en el ranking).</li>
+                <li>Contraseña (Recomendamos guardarla para futuros accesos).</li>
+            </ul>
+            <div class="modal-alert-box alert-red">
+                ¡CLAVE! Solo los tiempos de las partidas ganadas mientras la sesión está activa son enviados y validados en línea.
+            </div>
+            <h3 class="modal-subtitle-game"><i class="fas fa-chart-bar"></i> Ver la Tabla de Récords</h3>
+            <p>¿Quién es el más rápido del mundo en esta configuración (30x29 / 99 Minas)? ¡Compruébalo en el ranking oficial!</p>
+            <div class="modal-alert-box alert-blue">
+                <i class="fas fa-exclamation-triangle"></i> ADVERTENCIA: Este modo es **MUY** difícil. Intenta mantenerte por debajo del 200 min y no te rindas!
+            </div>
+        </div>
+    </div>
+    <div id="tetrisModal" class="modal-overlay game-modal" style="display: none;" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal-content-game" onclick="event.stopPropagation()">
+            <span class="close-game-modal" onclick="closeModal('tetrisModal')">&times;</span>
+            <h2 class="modal-title-game" style="color: var(--color-verde-seleccion);"><i class="fas fa-puzzle-piece"></i> Tetris!</h2>
+            <div class="modal-alert-box alert-purple">
+                Actualmente está en desarrollo
+            </div>
+            <h3 class="modal-subtitle-game">Pronto Disponible</h3>
+            <p>El juego de Tetris es uno de los próximos proyectos que estará disponible en la web y como App descargable.</p>
+            <p>Podrás encontrar la información de sus récords y cómo jugarlo una vez esté finalizado.</p>
+        </div>
+    </div>
+    <div id="battleshipModal" class="modal-overlay game-modal" style="display: none;" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal-content-game" onclick="event.stopPropagation()">
+            <span class="close-game-modal" onclick="closeModal('battleshipModal')">&times;</span>
+            <h2 class="modal-title-game"><i class="fas fa-ship"></i> Batalla Naval ONLINE</h2>
+            <div class="modal-alert-box alert-gray">
+                En proceso de creación
+            </div>
+            <h3 class="modal-subtitle-game">Objetivo: Multijugador en Línea</h3>
+            <p>Esta es una idea experimental y ambiciosa. La idea es hacer que puedas jugar en línea Batalla Naval aleatoriamente, pero también podrías elegir con quién jugar (invitar a amigos).</p>
+            <h3 class="modal-subtitle-game">Implementación</h3>
+            <p>Los enlaces para jugar en la web y descargar la App se habilitarán una vez que la fase de desarrollo multijugador esté estable y lista para pruebas beta.</p>
+        </div>
+    </div>
+    <div id="wcoartlModal" class="modal-overlay game-modal" style="display: none;" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal-content-game" onclick="event.stopPropagation()">
+            <span class="close-game-modal" onclick="closeModal('wcoartlModal')">&times;</span>
+            <h2 class="modal-title-game" style="color: var(--color-rosado-pata);"><i class="fas fa-star"></i> Wcoartl</h2>
+            <h3 class="modal-subtitle-game">Proyecto de Gran Ambición</h3>
+            <p>Esta es una idea experimental y súper ambiciosa.</p>
+            <p>Tendrá un Lore profundo y su jugabilidad mezclará elementos de Geometry Dash y Undertale.</p>
+            <div class="modal-alert-box alert-pink">
+                ¡El desarrollo de este juego es definitivo!
+            </div>
+            <h3 class="modal-subtitle-game">Descarga y Web</h3>
+            <p>Los enlaces para jugar en la web y descargar la App se habilitarán una vez que la fase de desarrollo multijugador esté estable y lista para pruebas beta.</p>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+    
+    <script>
+        const GIF_DURATION = 120; // 2 minutos (el tiempo que estará visible)
+        const MELI_GIF_CONTAINER = document.getElementById('meliGifContainer');
+        const MELI_GIF_IMG = document.getElementById('meliGif');
+        const MELI_TIMER_DISPLAY = document.getElementById('meliTimer');
+        const LOCAL_CLOCK_DISPLAY = document.getElementById('localClock');
+        const RICKROLL_MODAL = document.getElementById('rickrollModal');
+        const RICKROLL_VIDEO = document.getElementById('rickrollVideo');
+        const REDEEM_TEXT = document.getElementById('redeemText');
+        const REDEEM_COUNTDOWN = document.getElementById('redeemCountdown');
+        const REWARD_CONTAINER = document.getElementById('rewardContainer');
+        let intervalTimer;
+        let gifTimeout;
+
+        function updateMeliTimer() {
+            const now = new Date();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // 1. Mostrar la hora local en el banner (Siempre visible)
+            LOCAL_CLOCK_DISPLAY.textContent = `${now.toLocaleTimeString()}`;
+
+            // 2. Comprobar si es el momento de mostrar el Easter Egg (minuto 0, 20 o 40, durante 2 minutos)
+            const isGifWindow = (minutes % 20) === 0 && seconds < GIF_DURATION;
+
+            if (isGifWindow) {
+                // Muestra el GIF como Easter Egg
+                MELI_GIF_CONTAINER.style.display = 'block'; 
+                
+                const remainingGifTime = GIF_DURATION - seconds;
+                
+                // Configurar el timeout para ocultar al final de la ventana de 2 minutos
+                if (!gifTimeout) {
+                    gifTimeout = setTimeout(() => {
+                        MELI_GIF_CONTAINER.style.display = 'none';
+                        gifTimeout = null;
+                        updateMeliTimer(); 
+                    }, (remainingGifTime) * 1000);
+                }
+            } else {
+                // Oculta el GIF si no es el momento
+                MELI_GIF_CONTAINER.style.display = 'none'; 
+                clearTimeout(gifTimeout);
+                gifTimeout = null;
+            }
+            
+            // Aseguramos que el contador de texto (meliTimer) nunca se muestre
+            if (MELI_TIMER_DISPLAY) {
+                MELI_TIMER_DISPLAY.style.display = 'none';
+            }
+        }
+
+        function startMeliReward() {
+            MELI_GIF_CONTAINER.style.display = 'none';
+            REWARD_CONTAINER.style.display = 'none';
+            REDEEM_TEXT.style.display = 'block';
+            RICKROLL_MODAL.style.display = 'flex';
+            RICKROLL_VIDEO.style.display = 'none'; 
+            
+            clearInterval(intervalTimer); // Detener el temporizador principal
+            
+            let count = 3;
+            REDEEM_COUNTDOWN.textContent = count;
+            
+            const countdownInterval = setInterval(() => {
+                count--;
+                REDEEM_COUNTDOWN.textContent = count;
+                if (count <= 0) {
+                    clearInterval(countdownInterval);
+                    playRickrollVideo();
+                }
+            }, 1000);
+        }
+
+        function playRickrollVideo() {
+            REDEEM_TEXT.style.display = 'none';
+            RICKROLL_VIDEO.style.display = 'block';
+            RICKROLL_VIDEO.controls = false; 
+            RICKROLL_VIDEO.onended = showRewardCode;
+            
+            RICKROLL_VIDEO.load();
+            RICKROLL_VIDEO.play().catch(error => {
+                console.error("Error al reproducir el video:", error);
+                RICKROLL_VIDEO.controls = true; 
+            });
+        }
+
+        function showRewardCode() {
+            RICKROLL_VIDEO.style.display = 'none';
+            REWARD_CONTAINER.style.display = 'block';
+            
+            setTimeout(() => {
+                RICKROLL_MODAL.style.display = 'none';
+                startMeliTimerLogic(); // Reiniciar el temporizador principal
+            }, 10000);
+        }
+
+        function copyCode(code) {
+             navigator.clipboard.writeText(code).then(() => {
+                alert('¡Código copiado al portapapeles: ' + code + '!');
+            }).catch(err => {
+                console.error('Error al copiar el código: ', err);
+            });
+        }
+
+        function startMeliTimerLogic() {
+            updateMeliTimer();
+            intervalTimer = setInterval(updateMeliTimer, 1000);
+        }
+
+        document.addEventListener('DOMContentLoaded', startMeliTimerLogic);
+        
+        // Exportación de funciones al scope global
+        window.copyCode = copyCode; 
+        window.startMeliReward = startMeliReward; 
+    </script>
+</body>
+</html>
