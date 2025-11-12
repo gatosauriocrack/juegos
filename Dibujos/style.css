@@ -9,7 +9,7 @@
 
     --color-azul-principal: #1A73E8; 
     --color-verde-seleccion: #4CAF50; 
-    --color-rosado-pata: #ffb86c; 
+    --color-rosado-pata: #FFADCE; 
 
     --color-barra-principal: var(--color-naranja-principal);
     --color-fondo-oscuro: var(--color-fondo);
@@ -516,3 +516,4 @@ input[type="file"] {
     background-color: #4CAF50; 
     color: white;
 }
+
