@@ -1,0 +1,436 @@
+// --- CONFIGURACIÓN IMPORTANTE ---
+const firebaseConfig = {
+    //firebase
+    apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
+    authDomain: "procesador-56b7a.firebaseapp.com", 
+    projectId: "procesador-56b7a", 
+    storageBucket: "procesador-56b7a.firebasestorage.app", 
+    messagingSenderId: "1029072924025", 
+    appId: "1:1029072924025:web:c32d735e453416ecfd93a8", 
+    measurementId: "G-WCBZTBPXZ4"
+};
+
+//firebase url
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIvOkpHvTPTKY-zvEJ_ab0tkqOOd0tRBkvPJNFM5PVf2Z0d0tRBkvPJNFM5PVrQ/exec';
+
+// Inicialización de Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const auth = app.auth();
+const db = app.firestore(); 
+
+// --- ELEMENTOS DEL DOM ---
+const sidebar = document.getElementById("mySidebar");
+const menuOverlay = document.getElementById("menuOverlay"); 
+const loginText = document.getElementById('loginText');
+const profilePhoto = document.getElementById('profilePhoto');
+const logoutLink = document.getElementById('logoutLink');
+const sidebarProfileSection = document.getElementById('sidebarProfileSection');
+const views = document.querySelectorAll('.main-content');
+const authModal = document.getElementById('authModal');
+const searchInput = document.getElementById('searchInput');
+
+const contentGallery = document.getElementById('contentGallery');
+const loadingMessage = document.getElementById('loadingMessage');
+let allContentData = []; 
+
+const profileAvatar = document.getElementById('profileAvatar');
+const profileBannerArea = document.getElementById('profileBannerArea');
+const displayNameInput = document.getElementById('displayNameInput');
+const userEmailDisplay = document.getElementById('userEmailDisplay');
+const profileStatus = document.getElementById('profileStatus');
+
+const DEFAULT_AVATAR = "https://via.placeholder.com/70/363a45/FFFFFF?text=G";
+const DEFAULT_BANNER_COLOR = "#444";
+
+
+// --- FUNCIONES DE NAVEGACIÓN Y UI ---
+
+function isMobile() {
+    return window.innerWidth < 900;
+}
+
+function closeMenu() {
+    if (isMobile()) {
+        sidebar.style.width = "0"; 
+        sidebar.classList.remove('open');
+        menuOverlay.style.display = "none"; 
+    }
+}
+
+function toggleMenu() {
+    if (isMobile()) {
+        if (sidebar.classList.contains('open')) {
+            closeMenu();
+        } else {
+            sidebar.style.width = "250px";
+            sidebar.classList.add('open');
+            menuOverlay.style.display = "block"; 
+        }
+    }
+}
+
+function showScreen(screenId) {
+    if (isMobile()) {
+        closeMenu(); 
+    }
+    
+    views.forEach(view => {
+        view.classList.remove('active');
+    });
+    const activeView = document.getElementById(screenId);
+    activeView.classList.add('active');
+    
+    if (screenId === 'home-screen') {
+        loadContent();
+    }
+    
+    if (screenId === 'profile-screen') {
+        if (auth.currentUser) {
+            loadUserProfileData(auth.currentUser); 
+        } else {
+            openAuthModal(); 
+        }
+    }
+}
+
+function handleProfileClick() {
+    const user = auth.currentUser;
+    if (user) {
+        showScreen('profile-screen');
+    } else {
+        openAuthModal();
+    }
+}
+
+function closeModalOnOutsideClick(event) {
+    if (event.target === authModal) {
+        closeAuthModal();
+    }
+}
+
+function initializeApp() {
+    if (!isMobile()) {
+        sidebar.style.width = "250px";
+        sidebar.classList.add('open');
+    }
+    
+    if (!document.querySelector('.main-content.active')) {
+        showScreen('home-screen');
+    }
+    
+    sidebar.addEventListener('click', (event) => {
+        if (sidebar.classList.contains('open')) {
+            event.stopPropagation();
+        }
+    });
+}
+
+// --- FUNCIONES DE AUTENTICACIÓN ---
+
+function openAuthModal() {
+    closeMenu();
+    authModal.style.display = "flex";
+    document.getElementById('modalTitle').textContent = 'Elige cómo iniciar sesión';
+    document.getElementById('authMessage').style.display = 'none'; 
+}
+
+function closeAuthModal() {
+    authModal.style.display = "none";
+}
+
+function displayAuthMessage(message, isError) {
+    const authMessage = document.getElementById('authModal').querySelector('.auth-message');
+    authMessage.textContent = message;
+    authMessage.className = 'auth-message';
+    if (isError) {
+        authMessage.classList.add('error');
+    } 
+    authMessage.style.display = 'block';
+}
+
+// FUNCIÓN: Inicio de Sesión con Google (cubre Google Sign-In y Play Games)
+function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    auth.signInWithPopup(provider)
+        .then(() => {
+            closeAuthModal();
+        })
+        .catch((error) => {
+            let errorMessage = 'Error al iniciar sesión con Google. Inténtalo de nuevo.';
+            if (error.code === 'auth/popup-closed-by-user') {
+                errorMessage = 'La ventana de inicio de sesión fue cerrada.';
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                errorMessage = 'El inicio de sesión fue cancelado. No se permite abrir múltiples ventanas emergentes.';
+            }
+            console.error("Error de autenticación con Google:", error);
+            displayAuthMessage(errorMessage, true);
+        });
+}
+
+function logout() {
+     auth.signOut()
+        .then(() => { 
+            closeMenu(); 
+            showScreen('home-screen'); 
+        })
+        .catch((error) => { console.error('Error al cerrar sesión:', error); });
+}
+
+
+// --- FUNCIONES DE PERFIL Y DATOS DE USUARIO ---
+
+function getLocalStorageKey(uid, type) {
+    if (type === 'avatar') {
+        return `user_${uid}_avatarDataURL`;
+    } else if (type === 'banner') {
+        return `user_${uid}_bannerDataURL`;
+    }
+    return null;
+}
+
+function displayLocalImage(file, elementId, type) {
+    const user = auth.currentUser;
+    if (!file || !user) {
+        displayProfileStatus('Error: Debes iniciar sesión para subir imágenes.', true);
+        return;
+    }
+    
+    const reader = new FileReader();
+    const storageKey = getLocalStorageKey(user.uid, type); 
+
+    reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        
+        if (type === 'avatar') {
+            profileAvatar.src = dataUrl;
+            profilePhoto.src = dataUrl;
+        } else if (type === 'banner') {
+            profileBannerArea.style.backgroundImage = `url('${dataUrl}')`;
+            profileBannerArea.style.backgroundColor = 'transparent'; 
+        }
+        
+        localStorage.setItem(storageKey, dataUrl);
+        displayProfileStatus(`✅ ${type === 'avatar' ? 'Ícono' : 'Banner'} de perfil actualizado localmente.`, false);
+    };
+    
+    reader.onerror = function() {
+        displayProfileStatus('❌ Error al leer el archivo local. Intenta con otra imagen.', true);
+    }
+
+    reader.readAsDataURL(file);
+}
+
+async function loadUserProfileData(user) {
+    if (!user) return;
+    
+    const uid = user.uid; 
+    // Ahora user.displayName siempre vendrá del proveedor de Google
+    const displayName = user.displayName || user.email.split('@')[0];
+    displayNameInput.value = displayName;
+    userEmailDisplay.textContent = user.email;
+
+    displayProfileStatus('', false); 
+    
+    const initialChar = displayName.charAt(0).toUpperCase();
+    
+    const localAvatarKey = getLocalStorageKey(uid, 'avatar'); 
+    const localBannerKey = getLocalStorageKey(uid, 'banner');
+    
+    const localAvatarUrl = localStorage.getItem(localAvatarKey); 
+    const localBannerUrl = localStorage.getItem(localBannerKey);
+
+    const avatarUrl = localAvatarUrl || user.photoURL || `https://via.placeholder.com/100/363a45/FFFFFF?text=${initialChar}`;
+    profileAvatar.src = avatarUrl;
+    profilePhoto.src = avatarUrl; 
+    
+    if (localBannerUrl) {
+        profileBannerArea.style.backgroundImage = `url('${localBannerUrl}')`;
+        profileBannerArea.style.backgroundColor = 'transparent'; 
+    } else {
+        profileBannerArea.style.backgroundImage = 'none'; 
+        profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
+    }
+}
+
+async function updateUserProfile() {
+    const user = auth.currentUser;
+    const newName = displayNameInput.value.trim();
+    
+    if (!user) {
+        displayProfileStatus('Error: Debes iniciar sesión para actualizar tu perfil.', true);
+        return;
+    }
+
+    try {
+        await user.updateProfile({ displayName: newName });
+        loginText.textContent = newName; 
+        
+        loadUserProfileData(user); 
+        
+        displayProfileStatus('✅ Nombre de usuario actualizado con éxito.', false);
+    } catch (error) {
+        console.error("Error al actualizar el perfil:", error);
+        displayProfileStatus(`❌ Error al actualizar el perfil: ${error.message}`, true);
+    }
+}
+
+function displayProfileStatus(message, isError) {
+    profileStatus.textContent = message;
+    profileStatus.className = 'status-' + (isError ? 'error' : 'success');
+    profileStatus.style.display = message ? 'block' : 'none';
+}
+
+
+// --- FUNCIONES DE GALERÍA DE CONTENIDO (HOME) ---
+
+function renderContentCard(item) {
+    const card = document.createElement('div');
+    card.className = 'content-card';
+    
+    const fileURL = item.fileURL || ''; 
+    
+    let mediaElement;
+    const isVideo = item.fileType && item.fileType.startsWith('video/');
+    const defaultPreview = `https://via.placeholder.com/300x250/333/ccc?text=${isVideo ? 'Video' : 'Media'}`;
+    
+    if (isVideo) {
+        mediaElement = `<div class="card-media" style="background-image: url('${defaultPreview}'); display: flex; align-items: center; justify-content: center;">
+                            <a href="${item.fileURL.replace('=s300', '')}" target="_blank" style="color: white; font-size: 2em;"><i class="fas fa-play-circle"></i></a>
+                        </div>`;
+    } else {
+        mediaElement = `<img class="card-media" src="${fileURL}" alt="${item.title}" onclick="window.open('${item.fileURL.replace('=s300', '')}', '_blank')">`;
+    }
+
+    const tagsHTML = Array.isArray(item.tags) ? item.tags.map(tag => `<span class="tag-button" onclick="filterContent('${tag}')">${tag}</span>`).join('') : '';
+    
+    const date = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Desconocida';
+    const defaultAuthorPhoto = 'https://via.placeholder.com/25/EA7900/FFFFFF?text=A';
+
+    card.innerHTML = `
+        ${mediaElement}
+        <div class="card-details">
+            <h3>${item.title}</h3>
+            <p>${item.description}</p>
+            <div class="card-tags">${tagsHTML}</div>
+            <div class="card-footer">
+                <div class="card-author">
+                    <img class="author-photo" src="${item.authorPhotoURL || defaultAuthorPhoto}" alt="Foto de autor">
+                    <span>${item.authorName}</span>
+                </div>
+                <span><i class="far fa-clock"></i> ${date}</span>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+async function loadContent() {
+    contentGallery.innerHTML = '';
+    loadingMessage.style.display = 'block';
+
+    try {
+        const response = await fetch(APPS_SCRIPT_URL);
+        const files = await response.json();
+        
+        loadingMessage.style.display = 'none';
+        allContentData = files; 
+
+        if (files.length === 0) {
+            contentGallery.innerHTML = '<p style="color: #999; width: 100%; text-align: center;">Aún no hay contenido indexado. ¡Sube algo!</p>';
+            return;
+        }
+        
+        allContentData.forEach((item) => {
+            const cardElement = renderContentCard(item);
+            contentGallery.appendChild(cardElement);
+        });
+        
+    } catch (error) {
+        console.error("Error al cargar el contenido: ", error);
+        loadingMessage.textContent = 'Error al cargar el contenido. Revisa el código y despliegue del Apps Script.';
+        loadingMessage.style.color = '#f44336';
+    }
+}
+
+function filterContent(tagToFilter) {
+    const query = (tagToFilter || searchInput.value || '').toLowerCase().trim();
+    contentGallery.innerHTML = '';
+
+    const filteredData = allContentData.filter(item => {
+        if (!query) return true; 
+        
+        const titleMatch = item.title.toLowerCase().includes(query);
+        const descMatch = item.description.toLowerCase().includes(query);
+        const authorMatch = item.authorName.toLowerCase().includes(query);
+        
+        const tagsMatch = item.tags && item.tags.some(tag => tag.toLowerCase().includes(query));
+
+        return titleMatch || descMatch || authorMatch || tagsMatch;
+    });
+    
+    if (filteredData.length === 0) {
+         contentGallery.innerHTML = `<p style="color: #999; width: 100%; text-align: center;">No se encontraron resultados para "${query}".</p>`;
+    } else {
+         filteredData.forEach((item) => {
+            const cardElement = renderContentCard(item);
+            contentGallery.appendChild(cardElement);
+        });
+    }
+}
+
+
+// --- EVENT LISTENERS Y ESTADO DE AUTENTICACIÓN ---
+
+auth.onAuthStateChanged(async (user) => {
+    
+    if (user) {
+        // Usar displayName si existe (viene de Google o fue actualizado), si no, usar el email
+        const displayName = user.displayName || user.email.split('@')[0];
+        
+        loginText.textContent = displayName; 
+        logoutLink.style.display = 'flex'; 
+        sidebarProfileSection.onclick = handleProfileClick;
+        
+        await loadUserProfileData(user); 
+
+    } else {
+        loginText.textContent = 'Iniciar Sesión';
+        profilePhoto.src = DEFAULT_AVATAR; 
+        logoutLink.style.display = 'none'; 
+        sidebarProfileSection.onclick = openAuthModal; 
+        
+        // Resetear la vista de perfil en caso de cierre de sesión
+        profileAvatar.src = 'https://via.placeholder.com/100/363a45/FFFFFF?text=G';
+        profileBannerArea.style.backgroundImage = 'none'; 
+        profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
+        displayNameInput.value = '';
+        userEmailDisplay.textContent = '';
+        displayProfileStatus('', false);
+
+        // Si el usuario estaba en la pantalla de perfil, redirigir a Home
+        if (document.getElementById('profile-screen')?.classList.contains('active')) {
+            showScreen('home-screen');
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+
+window.addEventListener('resize', () => {
+     if (window.innerWidth >= 900) {
+         // Asegura que el sidebar esté abierto en desktop
+         sidebar.style.width = "250px";
+         sidebar.classList.add('open');
+         menuOverlay.style.display = "none";
+     } else {
+          // Si se reduce el tamaño, cierra el menú si estaba abierto (para evitar conflictos)
+          if (sidebar.classList.contains('open')) {
+             closeMenu();
+          }
+     }
+});
+
+// Establece la pantalla inicial al cargar
+document.addEventListener('DOMContentLoaded', () => showScreen('home-screen'));

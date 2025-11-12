@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Gatosauriocrack- Contenido y dibujos</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+    <div id="menuOverlay" onclick="closeMenu()"></div>
+
+    <header class="header-bar">
+        <div class="header-content">
+            <span class="menu-icon" onclick="toggleMenu()">&#9776;</span>
+            <span class="app-icon-custom"><i class="fas fa-paw"></i></span> 
+            <span class="app-title">Gatosauriocrack</span>
+        </div>
+    </header>
+
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeMenu()">&times;</a> 
+        
+        <div id="sidebarProfileSection" class="sidebar-profile-login" onclick="handleProfileClick()">
+            <img id="profilePhoto" src="https://via.placeholder.com/70/363a45/FFFFFF?text=G" alt="Foto de Perfil" class="profile-photo">
+            <span id="loginText" class="login-text">Iniciar Sesión</span> 
+        </div>
+        
+        <a href="javascript:void(0)" onclick="showScreen('home-screen')"><span class="icon"><i class="fas fa-home"></i></span> Home</a>             
+        <a href="javascript:void(0)" onclick="showScreen('info-screen')"><span class="icon"><i class="fas fa-info-circle"></i></span> Información web</a> 
+        
+        <a href="javascript:void(0)" id="logoutLink" style="display: none;" onclick="logout()"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Cerrar Sesión</a>
+    </div>
+
+    <div id="home-screen" class="main-content active">
+        <div class="search-container">
+            <span class="search-icon"><i class="fas fa-search"></i></span> 
+            <input type="text" id="searchInput" class="search-input" placeholder="Buscar contenido o etiqueta..." onkeyup="filterContent()">
+        </div>
+        
+        <div id="contentGallery" class="content-gallery">
+            <p id="loadingMessage" style="color: #ccc; text-align: center; width: 100%;">Cargando contenido...</p>
+        </div>
+        
+    </div>
+
+    <div id="profile-screen" class="main-content">
+        <div class="profile-container">
+            
+            <div id="profileBannerArea" class="profile-banner-area">
+                <div class="banner-upload-wrapper">
+                    <input type="file" id="bannerFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'profileBannerArea', 'banner')">
+                    <label for="bannerFileInput" class="banner-upload-btn">
+                        <i class="fas fa-camera"></i> Elegir Banner
+                    </label>
+                </div>
+            </div>
+
+            <div class="profile-avatar-wrapper">
+                <img id="profileAvatar" class="profile-avatar" src="https://via.placeholder.com/100/363a45/FFFFFF?text=G" style="visibility: hidden;" onload="this.style.visibility='visible'">
+                <div class="avatar-upload-wrapper">
+                    <input type="file" id="avatarFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'profileAvatar', 'avatar')">
+                    <label for="avatarFileInput" class="avatar-upload-btn">
+                        <i class="fas fa-camera"></i> Elegir Ícono
+                    </label>
+                </div>
+            </div>
+
+            <div class="profile-info">
+                <div class="profile-field">
+                    <label for="displayNameInput">Nombre (Apodo)</label>
+                    <input type="text" id="displayNameInput" placeholder="Tu nombre público">
+                </div>
+
+                <div class="profile-field">
+                    <label>Correo Electrónico</label>
+                    <span id="userEmailDisplay" class="email-display"></span>
+                </div>
+
+                <button class="profile-save-btn" onclick="updateUserProfile()">Guardar Nombre</button>
+                
+                <div id="profileStatus" class="status-success"></div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <div id="info-screen" class="main-content">
+        <h2 style="color: var(--color-naranja-principal);">Información Web</h2>
+        <p>Detalles sobre la aplicación y sus creadores.</p>
+    </div>
+
+    <div id="authModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)" style="display: none;">
+        <div class="modal-content">
+            
+            <h2 id="modalTitle" class="modal-title">Elige cómo iniciar sesión</h2>
+            <div id="authMessage" class="auth-message"></div>
+
+            <div id="socialAuthContainer" class="social-auth-container">
+                <button class="social-auth-btn google-btn" onclick="signInWithGoogle()">
+                    <i class="fab fa-google"></i> Iniciar Sesión con Google
+                </button>
+                
+                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()">
+                    <i class="fas fa-gamepad"></i> Iniciar Sesión con Play Juegos
+                </button>
+                
+            </div>
+            
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
