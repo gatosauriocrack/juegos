@@ -8,7 +8,7 @@
     --color-error-bg: #f44336; 
     --color-azul-principal: #1A73E8; 
     --color-verde-seleccion: #4CAF50; 
-    --color-rosado-pata: #ffb86c; 
+    --color-rosado-pata: #FFADCE; 
     --color-purple: #9b59b6; 
     --color-pink: #e91e63; 
     --color-gray-alert: #6c757d; 
@@ -1325,3 +1325,4 @@ input[type="file"] {
     position: relative; 
     z-index: 100; 
 }
+
