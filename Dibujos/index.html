@@ -21,7 +21,10 @@
     <header class="header-bar">
         <div class="header-content">
             <span class="menu-icon" onclick="toggleMenu()">&#9776;</span>
-            <span class="app-icon-custom"><i class="fas fa-paw"></i></span> 
+            
+            <span id="appIconHolder" class="app-icon-custom">
+                </span> 
+            
             <span class="app-title">Gatosauriocrack</span>
         </div>
     </header>
@@ -30,13 +33,15 @@
         <a href="javascript:void(0)" class="closebtn" onclick="closeMenu()">&times;</a> 
         
         <div id="sidebarProfileSection" class="sidebar-profile-login" onclick="handleProfileClick()">
-            <img id="profilePhoto" src="https://via.placeholder.com/70/363a45/FFFFFF?text=G" alt="Foto de Perfil" class="profile-photo">
+            <span id="profileIcon" class="profile-icon fas fa-user-circle"></span>
             <span id="loginText" class="login-text">Iniciar Sesión</span> 
         </div>
         
         <a href="javascript:void(0)" onclick="showScreen('home-screen')"><span class="icon"><i class="fas fa-home"></i></span> Home</a>             
         <a href="javascript:void(0)" onclick="showScreen('info-screen')"><span class="icon"><i class="fas fa-info-circle"></i></span> Información web</a> 
         
+        <a href="javascript:void(0)" onclick="showScreen('pets-screen')"><span class="icon"><i class="fas fa-icons"></i></span> Símbolos Font Awesome</a>
+
         <a href="javascript:void(0)" id="logoutLink" style="display: none;" onclick="logout()"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Cerrar Sesión</a>
     </div>
 
@@ -98,6 +103,33 @@
         <p>Detalles sobre la aplicación y sus creadores.</p>
     </div>
 
+    <div id="pets-screen" class="main-content">
+        <h2 style="color: var(--color-naranja-principal);">Símbolos Font Awesome</h2>
+        <div class="icon-display-container">
+            
+            <div class="icon-item">
+                <span class="icon icon-gato"></span>
+                <p>Gato</p>
+            </div>
+            
+            <div class="icon-item">
+                <span class="icon icon-michi"></span>
+                <p>Michi</p>
+            </div>
+            
+            <div class="icon-item">
+                <span class="icon icon-dino"></span>
+                <p>Dino</p>
+            </div>
+            
+            <div class="icon-item">
+                <span class="icon icon-Meli"></span>
+                <p>Meli</p>
+            </div>
+            
+        </div>
+    </div>
+
     <div id="authModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)" style="display: none;">
         <div class="modal-content">
             
@@ -121,4 +153,3 @@
     <script src="script.js"></script>
 </body>
 </html>
-

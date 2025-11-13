@@ -1,6 +1,4 @@
-// --- CONFIGURACIÓN IMPORTANTE ---
 const firebaseConfig = {
-    //firebase
     apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
     authDomain: "procesador-56b7a.firebaseapp.com", 
     projectId: "procesador-56b7a", 
@@ -10,19 +8,17 @@ const firebaseConfig = {
     measurementId: "G-WCBZTBPXZ4"
 };
 
-//firebase url
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIvOkpHvTPTKY-zvEJ_ab0tkqOOd0tRBkvPJNFM5PVf2Z0d0tRBkvPJNFM5PVrQ/exec';
 
-// Inicialización de Firebase
 const app = firebase.initializeApp(firebaseConfig);
 const auth = app.auth();
 const db = app.firestore(); 
 
-// --- ELEMENTOS DEL DOM ---
 const sidebar = document.getElementById("mySidebar");
 const menuOverlay = document.getElementById("menuOverlay"); 
 const loginText = document.getElementById('loginText');
 const profilePhoto = document.getElementById('profilePhoto');
+const profileIcon = document.getElementById('profileIcon');
 const logoutLink = document.getElementById('logoutLink');
 const sidebarProfileSection = document.getElementById('sidebarProfileSection');
 const views = document.querySelectorAll('.main-content');
@@ -38,12 +34,12 @@ const profileBannerArea = document.getElementById('profileBannerArea');
 const displayNameInput = document.getElementById('displayNameInput');
 const userEmailDisplay = document.getElementById('userEmailDisplay');
 const profileStatus = document.getElementById('profileStatus');
+const appIconHolder = document.getElementById('appIconHolder'); 
+
 
 const DEFAULT_AVATAR = "https://via.placeholder.com/70/363a45/FFFFFF?text=G";
 const DEFAULT_BANNER_COLOR = "#444";
 
-
-// --- FUNCIONES DE NAVEGACIÓN Y UI ---
 
 function isMobile() {
     return window.innerWidth < 900;
@@ -68,6 +64,55 @@ function toggleMenu() {
         }
     }
 }
+
+function updateHeaderIcon() {
+    if (!appIconHolder) return; 
+
+    const today = new Date().getDay();
+    
+    let iconHTML = '';
+    let colorClass = 'icon-color-negro'; 
+
+    switch (today) {
+        case 0: 
+            iconHTML = '<span class="icon icon-Meli"></span>'; // Ahora icon-Meli
+            colorClass = 'icon-color-negro';
+            break;
+        case 1: 
+            iconHTML = '<i class="fas fa-paw"></i>';
+            colorClass = 'icon-color-rosa'; 
+            break;
+        case 2: 
+            iconHTML = '<span class="icon icon-Meli"></span>'; // Corregido: icon-Meli para Martes
+            colorClass = 'icon-color-negro';
+            break;
+        case 3: 
+            iconHTML = '<span class="icon icon-Meli"></span>'; // Corregido: icon-Meli para Miércoles
+            colorClass = 'icon-color-negro';
+            break;
+        case 4: 
+            iconHTML = '<i class="fas fa-paw"></i>';
+            colorClass = 'icon-color-rosa'; 
+            break;
+        case 5: 
+            iconHTML = '<span class="icon icon-gato"></span>'; 
+            colorClass = 'icon-color-negro';
+            break;
+        case 6: 
+            iconHTML = '<span class="icon icon-dino"></span>'; 
+            colorClass = 'icon-color-negro';
+            break;
+        default:
+            iconHTML = '<i class="fas fa-question-circle"></i>';
+            colorClass = 'icon-color-negro';
+            break;
+    }
+
+    appIconHolder.className = 'app-icon-custom ' + colorClass; 
+    
+    appIconHolder.innerHTML = iconHTML;
+}
+
 
 function showScreen(screenId) {
     if (isMobile()) {
@@ -109,6 +154,8 @@ function closeModalOnOutsideClick(event) {
 }
 
 function initializeApp() {
+    updateHeaderIcon(); 
+    
     if (!isMobile()) {
         sidebar.style.width = "250px";
         sidebar.classList.add('open');
@@ -124,8 +171,6 @@ function initializeApp() {
         }
     });
 }
-
-// --- FUNCIONES DE AUTENTICACIÓN ---
 
 function openAuthModal() {
     closeMenu();
@@ -148,7 +193,6 @@ function displayAuthMessage(message, isError) {
     authMessage.style.display = 'block';
 }
 
-// FUNCIÓN: Inicio de Sesión con Google (cubre Google Sign-In y Play Games)
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -177,8 +221,6 @@ function logout() {
         .catch((error) => { console.error('Error al cerrar sesión:', error); });
 }
 
-
-// --- FUNCIONES DE PERFIL Y DATOS DE USUARIO ---
 
 function getLocalStorageKey(uid, type) {
     if (type === 'avatar') {
@@ -225,7 +267,6 @@ async function loadUserProfileData(user) {
     if (!user) return;
     
     const uid = user.uid; 
-    // Ahora user.displayName siempre vendrá del proveedor de Google
     const displayName = user.displayName || user.email.split('@')[0];
     displayNameInput.value = displayName;
     userEmailDisplay.textContent = user.email;
@@ -241,9 +282,15 @@ async function loadUserProfileData(user) {
     const localBannerUrl = localStorage.getItem(localBannerKey);
 
     const avatarUrl = localAvatarUrl || user.photoURL || `https://via.placeholder.com/100/363a45/FFFFFF?text=${initialChar}`;
+    
     profileAvatar.src = avatarUrl;
     profilePhoto.src = avatarUrl; 
     
+    if (profileIcon) {
+        profileIcon.style.display = 'none';
+    }
+    profilePhoto.style.display = 'block';
+
     if (localBannerUrl) {
         profileBannerArea.style.backgroundImage = `url('${localBannerUrl}')`;
         profileBannerArea.style.backgroundColor = 'transparent'; 
@@ -281,8 +328,6 @@ function displayProfileStatus(message, isError) {
     profileStatus.style.display = message ? 'block' : 'none';
 }
 
-
-// --- FUNCIONES DE GALERÍA DE CONTENIDO (HOME) ---
 
 function renderContentCard(item) {
     const card = document.createElement('div');
@@ -381,12 +426,9 @@ function filterContent(tagToFilter) {
 }
 
 
-// --- EVENT LISTENERS Y ESTADO DE AUTENTICACIÓN ---
-
 auth.onAuthStateChanged(async (user) => {
     
     if (user) {
-        // Usar displayName si existe (viene de Google o fue actualizado), si no, usar el email
         const displayName = user.displayName || user.email.split('@')[0];
         
         loginText.textContent = displayName; 
@@ -397,11 +439,15 @@ auth.onAuthStateChanged(async (user) => {
 
     } else {
         loginText.textContent = 'Iniciar Sesión';
-        profilePhoto.src = DEFAULT_AVATAR; 
+        
+        if (profileIcon) {
+            profileIcon.style.display = 'block'; 
+        }
+        profilePhoto.style.display = 'none';
+        
         logoutLink.style.display = 'none'; 
         sidebarProfileSection.onclick = openAuthModal; 
         
-        // Resetear la vista de perfil en caso de cierre de sesión
         profileAvatar.src = 'https://via.placeholder.com/100/363a45/FFFFFF?text=G';
         profileBannerArea.style.backgroundImage = 'none'; 
         profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
@@ -409,7 +455,6 @@ auth.onAuthStateChanged(async (user) => {
         userEmailDisplay.textContent = '';
         displayProfileStatus('', false);
 
-        // Si el usuario estaba en la pantalla de perfil, redirigir a Home
         if (document.getElementById('profile-screen')?.classList.contains('active')) {
             showScreen('home-screen');
         }
@@ -420,17 +465,14 @@ document.addEventListener('DOMContentLoaded', initializeApp);
 
 window.addEventListener('resize', () => {
      if (window.innerWidth >= 900) {
-         // Asegura que el sidebar esté abierto en desktop
          sidebar.style.width = "250px";
          sidebar.classList.add('open');
          menuOverlay.style.display = "none";
      } else {
-          // Si se reduce el tamaño, cierra el menú si estaba abierto (para evitar conflictos)
           if (sidebar.classList.contains('open')) {
              closeMenu();
           }
      }
 });
 
-// Establece la pantalla inicial al cargar
 document.addEventListener('DOMContentLoaded', () => showScreen('home-screen'));
