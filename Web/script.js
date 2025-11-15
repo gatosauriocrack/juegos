@@ -11,8 +11,8 @@ const firebaseConfig = {
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIvOkpHvTPTKY-zvEJ_ab0tkqOOd0tRBkvPJNFM5PVf2Z0d0tRBkvPJNFM5PVrQ/exec';
 
 const app = firebase.initializeApp(firebaseConfig);
-const auth = app.auth();
-const db = app.firestore(); 
+const auth = firebase.auth();
+const db = firebase.firestore(); 
 
 const sidebar = document.getElementById("mySidebar");
 const menuOverlay = document.getElementById("menuOverlay"); 
@@ -406,7 +406,6 @@ function filterContent(tagToFilter) {
     }
 }
 
-// --- LÓGICA DE AUTENTICACIÓN Y REGISTRO EN FIRESTORE (SOLUCIÓN) ---
 auth.onAuthStateChanged(async (user) => {
     
     if (user) {
@@ -422,6 +421,7 @@ auth.onAuthStateChanged(async (user) => {
                 displayName: initialDisplayName,
                 email: user.email,
                 photoURL: user.photoURL || null,
+                alias: initialDisplayName.toLowerCase(),
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 snakeHighscore: 0,
                 buscaminasHighscore: 0,
@@ -459,7 +459,6 @@ auth.onAuthStateChanged(async (user) => {
         }
     }
 });
-// --------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', initializeApp);
 
