@@ -1,22 +1,3 @@
-const chatListView = document.getElementById('chat-list-view');
-const conversationView = document.getElementById('conversation-view');
-const settingsView = document.getElementById('settings-view');
-const attachmentMenu = document.getElementById('attachment-menu');
-const mainMenu = document.getElementById('main-menu');
-const messagesArea = document.getElementById('messages-area');
-const globalBgSwatch = document.getElementById('chat-bg-color-swatch');
-const authStatusText = document.getElementById('auth-status-text');
-const fileExplorerInput = document.getElementById('file-explorer-input');
-const messageInput = document.getElementById('message-input'); 
-const sendButton = document.getElementById('send-button'); 
-const chatsContainer = document.querySelector('.chats-container');
-
-// --- CONSTANTES DEL WORKER Y CHAT (AJUSTADAS) ---
-const WORKER_URL = 'https://gatosauriocrack-social.gatosauriocrackgames.workers.dev/send-message'; 
-let USER_DRIVE_TOKEN = 'SIMULATED_DRIVE_TOKEN_12345'; 
-let ACTIVE_CHAT_ID = null; 
-
-// --- CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
     authDomain: "procesador-56b7a.firebaseapp.com", 
@@ -27,356 +8,483 @@ const firebaseConfig = {
     measurementId: "G-WCBZTBPXZ4"
 };
 
-const app = firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth(); 
-const db = firebase.firestore(); // ¡INICIALIZACIÓN DE FIRESTORE AÑADIDA!
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIvOkpHvTPTKY-zvEJ_ab0tkqOOd0tRBkvPJNFM5PVf2Z0d0tRBkvPJNFM5PVrQ/exec';
 
-// --- LÓGICA DE FIREBASE Y AUTH ---
+const app = firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore(); 
+
+const sidebar = document.getElementById("mySidebar");
+const menuOverlay = document.getElementById("menuOverlay"); 
+const loginText = document.getElementById('loginText');
+const profilePhoto = document.getElementById('profilePhoto');
+const profileIcon = document.getElementById('profileIcon');
+const logoutLink = document.getElementById('logoutLink');
+const sidebarProfileSection = document.getElementById('sidebarProfileSection');
+const views = document.querySelectorAll('.main-content');
+const authModal = document.getElementById('authModal');
+const searchInput = document.getElementById('searchInput');
+
+const contentGallery = document.getElementById('contentGallery');
+const loadingMessage = document.getElementById('loadingMessage');
+let allContentData = []; 
+
+const profileAvatar = document.getElementById('profileAvatar');
+const profileBannerArea = document.getElementById('profileBannerArea');
+const displayNameInput = document.getElementById('displayNameInput');
+const userEmailDisplay = document.getElementById('userEmailDisplay');
+const profileStatus = document.getElementById('profileStatus');
+const appIconHolder = document.getElementById('appIconHolder'); 
+
+
+const DEFAULT_AVATAR = "https://via.placeholder.com/70/363a45/FFFFFF?text=G";
+const DEFAULT_BANNER_COLOR = "#444";
+
+
+function isMobile() {
+    return window.innerWidth < 900;
+}
+
+function closeMenu() {
+    if (isMobile()) {
+        sidebar.style.width = "0"; 
+        sidebar.classList.remove('open');
+        menuOverlay.style.display = "none"; 
+    }
+}
+
+function toggleMenu() {
+    if (isMobile()) {
+        if (sidebar.classList.contains('open')) {
+            closeMenu();
+        } else {
+            sidebar.style.width = "250px";
+            sidebar.classList.add('open');
+            menuOverlay.style.display = "block"; 
+        }
+    }
+}
+
+function updateHeaderIcon() {
+    if (!appIconHolder) return; 
+
+    const today = new Date().getDay(); 
+    
+    let iconHTML = '';
+    let colorClass = 'icon-color-negro'; 
+
+    if (today === 0 || today === 1 || today === 3 || today === 5) {
+        iconHTML = '<span class="icon icon-Meli"></span>'; 
+        colorClass = 'icon-color-negro';
+    } 
+    else if (today === 2 || today === 4 || today === 6) {
+        iconHTML = '<i class="fas fa-paw"></i>';
+        colorClass = 'icon-color-rosa'; 
+    } 
+    else {
+        iconHTML = '<i class="fas fa-question-circle"></i>';
+        colorClass = 'icon-color-negro';
+    }
+
+    appIconHolder.className = 'app-icon-custom ' + colorClass; 
+    appIconHolder.innerHTML = iconHTML;
+}
+
+
+function showScreen(screenId) {
+    if (isMobile()) {
+        closeMenu(); 
+    }
+    
+    views.forEach(view => {
+        view.classList.remove('active');
+    });
+    const activeView = document.getElementById(screenId);
+    activeView.classList.add('active');
+    
+    if (screenId === 'home-screen') {
+        loadContent();
+    }
+    
+    if (screenId === 'profile-screen') {
+        if (auth.currentUser) {
+            loadUserProfileData(auth.currentUser); 
+        } else {
+            openAuthModal(); 
+        }
+    }
+}
+
+function handleProfileClick() {
+    const user = auth.currentUser;
+    if (user) {
+        showScreen('profile-screen');
+    } else {
+        openAuthModal();
+    }
+}
+
+function closeModalOnOutsideClick(event) {
+    if (event.target === authModal) {
+        closeAuthModal();
+    }
+}
+
+function initializeApp() {
+    updateHeaderIcon(); 
+    
+    if (!isMobile()) {
+        sidebar.style.width = "250px";
+        sidebar.classList.add('open');
+    }
+    
+    if (!document.querySelector('.main-content.active')) {
+        showScreen('home-screen');
+    }
+    
+    sidebar.addEventListener('click', (event) => {
+        if (sidebar.classList.contains('open')) {
+            event.stopPropagation();
+        }
+    });
+}
+
+function openAuthModal() {
+    closeMenu();
+    authModal.style.display = "flex";
+    document.getElementById('modalTitle').textContent = 'Elige cómo iniciar sesión';
+    document.getElementById('authMessage').style.display = 'none'; 
+}
+
+function closeAuthModal() {
+    authModal.style.display = "none";
+}
+
+function displayAuthMessage(message, isError) {
+    const authMessage = document.getElementById('authModal').querySelector('.auth-message');
+    authMessage.textContent = message;
+    authMessage.className = 'auth-message';
+    if (isError) {
+        authMessage.classList.add('error');
+    } 
+    authMessage.style.display = 'block';
+}
 
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
+
     auth.signInWithPopup(provider)
         .then(() => {
-            console.log("Inicio de sesión con Google exitoso.");
-            mainMenu.classList.remove('active');
+            closeAuthModal();
         })
         .catch((error) => {
+            let errorMessage = 'Error al iniciar sesión con Google. Inténtalo de nuevo.';
+            if (error.code === 'auth/popup-closed-by-user') {
+                errorMessage = 'La ventana de inicio de sesión fue cerrada.';
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                errorMessage = 'El inicio de sesión fue cancelado. No se permite abrir múltiples ventanas emergentes.';
+            }
             console.error("Error de autenticación con Google:", error);
-            alert(`Error al iniciar sesión: ${error.message}`);
+            displayAuthMessage(errorMessage, true);
         });
 }
 
 function logout() {
-    auth.signOut()
+     auth.signOut()
         .then(() => { 
-            console.log("Sesión cerrada.");
-            mainMenu.classList.remove('active');
-            loadChatList(null); // Recargar la lista al cerrar sesión
+            closeMenu(); 
+            showScreen('home-screen'); 
         })
         .catch((error) => { console.error('Error al cerrar sesión:', error); });
 }
 
-function handleLoginLogout() {
-    if (auth.currentUser) {
-        logout();
+
+function getLocalStorageKey(uid, type) {
+    if (type === 'avatar') {
+        return `user_${uid}_avatarDataURL`;
+    } else if (type === 'banner') {
+        return `user_${uid}_bannerDataURL`;
+    }
+    return null;
+}
+
+function displayLocalImage(file, elementId, type) {
+    const user = auth.currentUser;
+    if (!file || !user) {
+        displayProfileStatus('Error: Debes iniciar sesión para subir imágenes.', true);
+        return;
+    }
+    
+    const reader = new FileReader();
+    const storageKey = getLocalStorageKey(user.uid, type); 
+
+    reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        
+        if (type === 'avatar') {
+            profileAvatar.src = dataUrl;
+            profilePhoto.src = dataUrl;
+        } else if (type === 'banner') {
+            profileBannerArea.style.backgroundImage = `url('${dataUrl}')`;
+            profileBannerArea.style.backgroundColor = 'transparent'; 
+        }
+        
+        localStorage.setItem(storageKey, dataUrl);
+        displayProfileStatus(`✅ ${type === 'avatar' ? 'Ícono' : 'Banner'} de perfil actualizado localmente.`, false);
+    };
+    
+    reader.onerror = function() {
+        displayProfileStatus('❌ Error al leer el archivo local. Intenta con otra imagen.', true);
+    }
+
+    reader.readAsDataURL(file);
+}
+
+async function loadUserProfileData(user) {
+    if (!user) return;
+    
+    const uid = user.uid; 
+    const displayName = user.displayName || user.email.split('@')[0];
+    displayNameInput.value = displayName;
+    userEmailDisplay.textContent = user.email;
+
+    displayProfileStatus('', false); 
+    
+    const initialChar = displayName.charAt(0).toUpperCase();
+    
+    const localAvatarKey = getLocalStorageKey(uid, 'avatar'); 
+    const localBannerKey = getLocalStorageKey(uid, 'banner');
+    
+    const localAvatarUrl = localStorage.getItem(localAvatarKey); 
+    const localBannerUrl = localStorage.getItem(localBannerKey);
+
+    const avatarUrl = localAvatarUrl || user.photoURL || `https://via.placeholder.com/100/363a45/FFFFFF?text=${initialChar}`;
+    
+    profileAvatar.src = avatarUrl;
+    profilePhoto.src = avatarUrl; 
+    
+    if (profileIcon) {
+        profileIcon.style.display = 'none';
+    }
+    profilePhoto.style.display = 'block';
+
+    if (localBannerUrl) {
+        profileBannerArea.style.backgroundImage = `url('${localBannerUrl}')`;
+        profileBannerArea.style.backgroundColor = 'transparent'; 
     } else {
-        signInWithGoogle();
+        profileBannerArea.style.backgroundImage = 'none'; 
+        profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
     }
 }
 
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        const displayName = user.displayName || user.email.split('@')[0];
-        authStatusText.textContent = `Cerrar Sesión (${displayName})`;
-        loadChatList(user.uid); 
-    } else {
-        authStatusText.textContent = 'Iniciar Sesión';
-        loadChatList(null); 
+async function updateUserProfile() {
+    const user = auth.currentUser;
+    const newName = displayNameInput.value.trim();
+    
+    if (!user) {
+        displayProfileStatus('Error: Debes iniciar sesión para actualizar tu perfil.', true);
+        return;
     }
-});
+
+    try {
+        await user.updateProfile({ displayName: newName });
+
+        const userDocRef = db.collection('usernames').doc(user.uid);
+        // La actualización aquí funciona porque el documento ya existe
+        await userDocRef.update({ displayName: newName });
+        
+        loginText.textContent = newName; 
+        
+        loadUserProfileData(user); 
+        
+        displayProfileStatus('✅ Nombre de usuario actualizado con éxito.', false);
+    } catch (error) {
+        console.error("Error al actualizar el perfil:", error);
+        displayProfileStatus(`❌ Error al actualizar el perfil: ${error.message}`, true);
+    }
+}
+
+function displayProfileStatus(message, isError) {
+    profileStatus.textContent = message;
+    profileStatus.className = 'status-' + (isError ? 'error' : 'success');
+    profileStatus.style.display = message ? 'block' : 'none';
+}
 
 
-// --- LÓGICA DE LISTA DE CHATS DINÁMICA ---
+function renderContentCard(item) {
+    const card = document.createElement('div');
+    card.className = 'content-card';
+    
+    const fileURL = item.fileURL || ''; 
+    
+    let mediaElement;
+    const isVideo = item.fileType && item.fileType.startsWith('video/');
+    const defaultPreview = `https://via.placeholder.com/300x250/333/ccc?text=${isVideo ? 'Video' : 'Media'}`;
+    
+    if (isVideo) {
+        mediaElement = `<div class="card-media" style="background-image: url('${defaultPreview}'); display: flex; align-items: center; justify-content: center;">
+                            <a href="${item.fileURL.replace('=s300', '')}" target="_blank" style="color: white; font-size: 2em;"><i class="fas fa-play-circle"></i></a>
+                        </div>`;
+    } else {
+        mediaElement = `<img class="card-media" src="${fileURL}" alt="${item.title}" onclick="window.open('${item.fileURL.replace('=s300', '')}', '_blank')">`;
+    }
 
-function renderChatItem(userId, name) {
-    const chatItem = document.createElement('div');
-    chatItem.className = 'chat-item';
-    chatItem.setAttribute('onclick', `openChat('${userId}', '${name}')`);
+    const tagsHTML = Array.isArray(item.tags) ? item.tags.map(tag => `<span class="tag-button" onclick="filterContent('${tag}')">${tag}</span>`).join('') : '';
+    
+    const date = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Desconocida';
+    const defaultAuthorPhoto = 'https://via.placeholder.com/25/EA7900/FFFFFF?text=A';
 
-    chatItem.innerHTML = `
-        <div class="profile-icon-wrapper">
-            <i class="fas fa-user profile-icon-fa"></i>
+    card.innerHTML = `
+        ${mediaElement}
+        <div class="card-details">
+            <h3>${item.title}</h3>
+            <p>${item.description}</p>
+            <div class="card-tags">${tagsHTML}</div>
+            <div class="card-footer">
+                <div class="card-author">
+                    <img class="author-photo" src="${item.authorPhotoURL || defaultAuthorPhoto}" alt="Foto de autor">
+                    <span>${item.authorName}</span>
+                </div>
+                <span><i class="far fa-clock"></i> ${date}</span>
+            </div>
         </div>
-        <span class="username">${name}</span>
     `;
-    chatsContainer.appendChild(chatItem);
+    
+    return card;
 }
 
-function loadChatList(currentUserId) {
-    chatsContainer.innerHTML = ''; 
+async function loadContent() {
+    contentGallery.innerHTML = '';
+    loadingMessage.style.display = 'block';
 
-    if (!currentUserId) {
-        chatsContainer.innerHTML = '<p style="text-align: center; margin-top: 20px;">Inicia sesión para ver tus chats.</p>';
-        return;
-    }
-    
-    // NOTA: Esta sección debería escuchar a la colección de chats del usuario.
-    // Por ahora, solo ponemos el mensaje dinámico.
-    chatsContainer.innerHTML = '<p style="text-align: center; margin-top: 20px;">Tus chats aparecerán aquí cuando aceptes una invitación.</p>';
-}
-
-// --- LÓGICA DE SOLICITUD DE AMISTAD (NUEVO) ---
-
-function promptAddContact() {
-    if (!auth.currentUser) {
-        alert("Debes iniciar sesión para agregar contactos.");
-        return;
-    }
-    
-    const targetAlias = prompt("Ingresa el apodo (alias) del usuario que deseas agregar:");
-
-    if (targetAlias) {
-        findAndSendRequest(targetAlias.toLowerCase());
-    }
-}
-
-async function findAndSendRequest(alias) {
-    const currentUser = auth.currentUser;
-    const currentUserName = currentUser.displayName || currentUser.email.split('@')[0];
-    
     try {
-        // 1. Buscar el usuario en la colección 'usernames' por el campo 'alias'.
-        const usersRef = db.collection('usernames'); 
-        const querySnapshot = await usersRef.where('alias', '==', alias).limit(1).get();
+        const response = await fetch(APPS_SCRIPT_URL);
+        const files = await response.json();
+        
+        loadingMessage.style.display = 'none';
+        allContentData = files; 
 
-        if (querySnapshot.empty) {
-            alert(`No se encontró ningún usuario con el apodo (alias): ${alias}`);
+        if (files.length === 0) {
+            contentGallery.innerHTML = '<p style="color: #999; width: 100%; text-align: center;">Aún no hay contenido indexado. ¡Sube algo!</p>';
             return;
         }
-
-        const contactDoc = querySnapshot.docs[0];
-        const contactId = contactDoc.id; 
-        const contactAlias = contactDoc.data().alias; 
-
-        if (currentUser.uid === contactId) {
-             alert("No puedes enviarte una solicitud a ti mismo.");
-             return;
-        }
         
-        // 2. Verificar si ya existe una solicitud (para evitar duplicados)
-        const existingRequest = await db.collection('invitaciones-social')
-            .where('fromId', '==', currentUser.uid)
-            .where('toId', '==', contactId)
-            .where('status', '==', 'pending')
-            .get();
-
-        if (!existingRequest.empty) {
-            alert(`Ya existe una solicitud pendiente para ${contactAlias}.`);
-            return;
-        }
-
-        // 3. Crear el documento de Solicitud de Amistad
-        await db.collection('invitaciones-social').add({
-            toId: contactId,
-            fromId: currentUser.uid,
-            fromName: currentUserName,
-            status: 'pending',
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        allContentData.forEach((item) => {
+            const cardElement = renderContentCard(item);
+            contentGallery.appendChild(cardElement);
         });
-
-        alert(`¡Solicitud de amistad enviada a ${contactAlias}! Esperando confirmación.`);
         
     } catch (error) {
-        console.error("Error al buscar/enviar solicitud:", error);
-        alert("Ocurrió un error al intentar enviar la solicitud.");
+        console.error("Error al cargar el contenido: ", error);
+        loadingMessage.textContent = 'Error al cargar el contenido. Revisa el código y despliegue del Apps Script.';
+        loadingMessage.style.color = '#f44336';
     }
 }
 
-// --- LÓGICA DE NAVEGACIÓN Y AJUSTES (RESTO SIN CAMBIOS) ---
+function filterContent(tagToFilter) {
+    const query = (tagToFilter || searchInput.value || '').toLowerCase().trim();
+    contentGallery.innerHTML = '';
 
-function toggleMainMenu(event) {
-    if (event) event.stopPropagation();
-    mainMenu.classList.toggle('active');
-}
+    const filteredData = allContentData.filter(item => {
+        if (!query) return true; 
+        
+        const titleMatch = item.title.toLowerCase().includes(query);
+        const descMatch = item.description.toLowerCase().includes(query);
+        const authorMatch = item.authorName.toLowerCase().includes(query);
+        
+        const tagsMatch = item.tags && item.tags.some(tag => tag.toLowerCase().includes(query));
 
-document.addEventListener('click', function(event) {
-    const isClickInside = mainMenu.contains(event.target) || document.querySelector('.menu-btn').contains(event.target);
-    if (!isClickInside) {
-        mainMenu.classList.remove('active');
-    }
-});
-
-function openChat(chatId, chatName) {
-    chatListView.classList.remove('active');
-    conversationView.classList.add('active');
-    document.getElementById('current-chat-name').textContent = chatName;
-    mainMenu.classList.remove('active');
-    messagesArea.style.backgroundImage = 'none';
-    
-    ACTIVE_CHAT_ID = chatId; 
-    console.log(`Chat Abierto: ${chatId}`);
-}
-
-function closeChat() {
-    conversationView.classList.remove('active');
-    chatListView.classList.add('active');
-    attachmentMenu.classList.remove('open');
-    ACTIVE_CHAT_ID = null; 
-}
-
-function openSettingsView() {
-    chatListView.classList.remove('active');
-    settingsView.classList.add('active');
-    mainMenu.classList.remove('active');
-}
-
-function closeSettingsView() {
-    settingsView.classList.remove('active');
-    chatListView.classList.add('active');
-}
-
-function toggleAttachmentMenu() {
-    attachmentMenu.classList.toggle('open');
-}
-
-function changeThemeColor(color) {
-    document.documentElement.style.setProperty('--color-primary', color);
-    document.documentElement.style.setProperty('--color-separator', color);
-    console.log(`Color del Banner cambiado a: ${color}`);
-}
-
-function promptForBannerColor() {
-    const currentColor = document.documentElement.style.getPropertyValue('--color-primary') || '#EA7900';
-    const selectedColor = prompt(
-        "Ingresa un código de color HEX (ej: #FF0000) o un nombre (ej: red, blue):",
-        currentColor
-    );
-
-    if (selectedColor) {
-        changeThemeColor(selectedColor);
-    }
-}
-
-function changeGlobalBackground(color) {
-    document.documentElement.style.setProperty('--color-background', color);
-    globalBgSwatch.style.backgroundColor = color;
-    console.log(`Fondo global cambiado a color: ${color}`);
-}
-
-function promptForGlobalBackground() {
-    const currentColor = document.documentElement.style.getPropertyValue('--color-background') || '#000000';
-    const selectedColor = prompt(
-        "Elige el Fondo Global:\n\n1. Negro (#000000)\n2. Gris Claro (#DDDDDD)\n3. Ingresar código HEX (#RRGGBB) o nombre:", 
-        currentColor
-    );
-
-    if (selectedColor === '1') {
-        changeGlobalBackground('#000000');
-    } else if (selectedColor === '2') {
-        changeGlobalBackground('#DDDDDD');
-    } else if (selectedColor) {
-        changeGlobalBackground(selectedColor);
-    }
-}
-
-function setChatBackgroundImage() {
-    if (!conversationView.classList.contains('active')) {
-        alert("Por favor, abre un chat primero para establecer la imagen de fondo.");
-        return;
-    }
-    
-    const imageUrl = prompt("Introduce la URL de la imagen de fondo (solo para este chat):");
-    
-    if (imageUrl) {
-        messagesArea.style.backgroundImage = `url('${imageUrl}')`;
-        messagesArea.style.backgroundSize = 'cover';
-        messagesArea.style.backgroundRepeat = 'no-repeat';
-        messagesArea.style.backgroundPosition = 'center';
-        console.log(`Fondo del Chat cambiado a imagen: ${imageUrl}`);
-    } else if (imageUrl === "") {
-        messagesArea.style.backgroundImage = 'none';
-        console.log("Imagen de fondo del chat eliminada.");
-    }
-}
-
-// --- LÓGICA DE ENVÍO DE MENSAJES AL WORKER ---
-
-function displayMessage(body, isOwnMessage) {
-    const messageElement = document.createElement('div');
-    messageElement.className = 'message ' + (isOwnMessage ? 'own-message' : 'contact-message');
-    messageElement.innerHTML = `<p>${body}</p>`;
-    
-    messagesArea.appendChild(messageElement);
-    messagesArea.scrollTop = messagesArea.scrollHeight;
-}
-
-async function sendMessage() {
-    const messageBody = messageInput.value.trim();
-    const currentUser = auth.currentUser; 
-
-    if (messageBody === "") return;
-
-    if (!currentUser) {
-        alert("Debes iniciar sesión para enviar mensajes.");
-        messageInput.value = '';
-        return;
-    }
-    
-    if (!ACTIVE_CHAT_ID) {
-        alert("Por favor, selecciona un chat para enviar mensajes.");
-        return;
-    }
-
-    displayMessage(messageBody, true);
-    messageInput.value = '';
-    
-    try {
-        const response = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                chatId: ACTIVE_CHAT_ID,
-                content: messageBody,
-                userId: currentUser.uid, 
-                driveToken: USER_DRIVE_TOKEN 
-            })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            console.log("Mensaje y Respaldo enviados al Worker:", result);
-            setTimeout(() => {
-                displayMessage("¡Recibido! (Worker OK)", false);
-            }, 1500);
-
-        } else {
-            console.error("Error del Worker:", result);
-            displayMessage(`Error al enviar: ${result.error || 'Desconocido'}`, true);
-        }
-
-    } catch (error) {
-        console.error("Error de red al contactar al Worker:", error);
-        displayMessage("Error de conexión al servidor (Worker).", true);
-    }
-}
-
-// --- LÓGICA DE EXPLORADOR DE ARCHIVOS ---
-
-function openFileExplorer(acceptType) {
-    if (!auth.currentUser) {
-        alert("Debes iniciar sesión para adjuntar archivos.");
-        toggleAttachmentMenu();
-        return;
-    }
-    
-    fileExplorerInput.setAttribute('accept', acceptType);
-    fileExplorerInput.click();
-    toggleAttachmentMenu();
-}
-
-fileExplorerInput.addEventListener('change', (event) => {
-    const files = event.target.files;
-    if (files.length > 0) {
-        console.log(`Archivos seleccionados: ${files.length}`);
-        alert(`Listo para subir ${files.length} archivos. ¡Implementa Firebase Storage!`);
-    }
-    fileExplorerInput.value = ''; 
-});
-
-
-// --- EVENT LISTENERS FINALES ---
-
-if (sendButton) {
-    sendButton.addEventListener('click', sendMessage);
-}
-
-if (messageInput) {
-    messageInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
+        return titleMatch || descMatch || authorMatch || tagsMatch;
     });
+    
+    if (filteredData.length === 0) {
+         contentGallery.innerHTML = `<p style="color: #999; width: 100%; text-align: center;">No se encontraron resultados para "${query}".</p>`;
+    } else {
+         filteredData.forEach((item) => {
+            const cardElement = renderContentCard(item);
+            contentGallery.appendChild(cardElement);
+        });
+    }
 }
+
+auth.onAuthStateChanged(async (user) => {
+    
+    if (user) {
+        
+        const userDocRef = db.collection('usernames').doc(user.uid);
+        const doc = await userDocRef.get();
+
+        if (!doc.exists) {
+            const initialDisplayName = user.displayName || user.email.split('@')[0];
+            
+            await userDocRef.set({
+                uid: user.uid,
+                displayName: initialDisplayName,
+                email: user.email,
+                photoURL: user.photoURL || null,
+                alias: initialDisplayName.toLowerCase(),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                snakeHighscore: 0,
+                buscaminasHighscore: 0,
+            }, { merge: true });
+        } 
+
+        const displayName = user.displayName || user.email.split('@')[0];
+        
+        loginText.textContent = displayName; 
+        logoutLink.style.display = 'flex'; 
+        sidebarProfileSection.onclick = handleProfileClick;
+        
+        await loadUserProfileData(user); 
+
+    } else {
+        loginText.textContent = 'Iniciar Sesión';
+        
+        if (profileIcon) {
+            profileIcon.style.display = 'block'; 
+        }
+        profilePhoto.style.display = 'none';
+        
+        logoutLink.style.display = 'none'; 
+        sidebarProfileSection.onclick = openAuthModal; 
+        
+        profileAvatar.src = 'https://via.placeholder.com/100/363a45/FFFFFF?text=G';
+        profileBannerArea.style.backgroundImage = 'none'; 
+        profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
+        displayNameInput.value = '';
+        userEmailDisplay.textContent = '';
+        displayProfileStatus('', false);
+
+        if (document.getElementById('profile-screen')?.classList.contains('active')) {
+            showScreen('home-screen');
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+
+window.addEventListener('resize', () => {
+     if (window.innerWidth >= 900) {
+         sidebar.style.width = "250px";
+         sidebar.classList.add('open');
+         menuOverlay.style.display = "none";
+     } else {
+          if (sidebar.classList.contains('open')) {
+             closeMenu();
+          }
+     }
+});
+
+document.addEventListener('DOMContentLoaded', () => showScreen('home-screen'));
+
+window.showScreen = showScreen;
+window.toggleMenu = toggleMenu;
+window.handleProfileClick = handleProfileClick;
+window.signInWithGoogle = signInWithGoogle;
+window.logout = logout;
+window.updateUserProfile = updateUserProfile;
+window.displayLocalImage = displayLocalImage;
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.closeModalOnOutsideClick = closeModalOnOutsideClick;
+window.filterContent = filterContent;
