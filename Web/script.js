@@ -68,27 +68,48 @@ function toggleMenu() {
 function updateHeaderIcon() {
     if (!appIconHolder) return; 
 
-    const today = new Date().getDay(); 
+    const today = new Date().getDay();
     
     let iconHTML = '';
     let colorClass = 'icon-color-negro'; 
 
-    // Meli (icon-Meli): Domingo (0), Lunes (1), Miércoles (3), Viernes (5)
-    if (today === 0 || today === 1 || today === 3 || today === 5) {
-        iconHTML = '<span class="icon icon-Meli"></span>'; 
-        colorClass = 'icon-color-negro';
-    } 
-    // Huella (fas fa-paw): Martes (2), Jueves (4), Sábado (6)
-    else if (today === 2 || today === 4 || today === 6) {
-        iconHTML = '<i class="fas fa-paw"></i>';
-        colorClass = 'icon-color-rosa'; 
-    } 
-    else {
-        iconHTML = '<i class="fas fa-question-circle"></i>';
-        colorClass = 'icon-color-negro';
+    switch (today) {
+        case 0: 
+            iconHTML = '<span class="icon icon-Meli"></span>';
+            colorClass = 'icon-color-negro';
+            break;
+        case 1: 
+            iconHTML = '<i class="fas fa-paw"></i>';
+            colorClass = 'icon-color-rosa'; 
+            break;
+        case 2: 
+            iconHTML = '<span class="icon icon-Meli"></span>';
+            colorClass = 'icon-color-negro';
+            break;
+        case 3: 
+            iconHTML = '<span class="icon icon-Meli"></span>';
+            colorClass = 'icon-color-negro';
+            break;
+        case 4: 
+            iconHTML = '<i class="fas fa-paw"></i>';
+            colorClass = 'icon-color-rosa'; 
+            break;
+        case 5: 
+            iconHTML = '<span class="icon icon-gato"></span>'; 
+            colorClass = 'icon-color-negro';
+            break;
+        case 6: 
+            iconHTML = '<span class="icon icon-dino"></span>'; 
+            colorClass = 'icon-color-negro';
+            break;
+        default:
+            iconHTML = '<i class="fas fa-question-circle"></i>';
+            colorClass = 'icon-color-negro';
+            break;
     }
 
     appIconHolder.className = 'app-icon-custom ' + colorClass; 
+    
     appIconHolder.innerHTML = iconHTML;
 }
 
@@ -290,6 +311,10 @@ async function updateUserProfile() {
 
     try {
         await user.updateProfile({ displayName: newName });
+        
+        const userDocRef = db.collection('usernames').doc(user.uid);
+        await userDocRef.update({ displayName: newName });
+        
         loginText.textContent = newName; 
         
         loadUserProfileData(user); 
@@ -408,6 +433,28 @@ function filterContent(tagToFilter) {
 auth.onAuthStateChanged(async (user) => {
     
     if (user) {
+        const userDocRef = db.collection('usernames').doc(user.uid);
+        const doc = await userDocRef.get();
+
+        if (!doc.exists) {
+            console.log("Creando registro inicial en Firestore...");
+            const initialDisplayName = user.displayName || user.email.split('@')[0];
+            
+            await userDocRef.set({
+                uid: user.uid,
+                displayName: initialDisplayName,
+                email: user.email,
+                photoURL: user.photoURL || null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                snakeHighscore: 0,
+                buscaminasHighscore: 0,
+            }, { merge: true });
+            
+            console.log("✅ Usuario registrado en Firestore.");
+        } else {
+            console.log("Usuario existente, cargando datos de Firestore.");
+        }
+        
         const displayName = user.displayName || user.email.split('@')[0];
         
         loginText.textContent = displayName; 
@@ -455,15 +502,3 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => showScreen('home-screen'));
-
-window.showScreen = showScreen;
-window.toggleMenu = toggleMenu;
-window.handleProfileClick = handleProfileClick;
-window.signInWithGoogle = signInWithGoogle;
-window.logout = logout;
-window.updateUserProfile = updateUserProfile;
-window.displayLocalImage = displayLocalImage;
-window.openAuthModal = openAuthModal;
-window.closeAuthModal = closeAuthModal;
-window.closeModalOnOutsideClick = closeModalOnOutsideClick;
-window.filterContent = filterContent;
