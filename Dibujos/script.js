@@ -267,8 +267,7 @@ async function loadUserProfileData(user) {
     if (!user) return;
     
     const uid = user.uid; 
-    const displayName = user.displayName || user.email.split('@')[0];
-    displayNameInput.value = displayName;
+    const displayName = displayNameInput.value;
     userEmailDisplay.textContent = user.email;
 
     displayProfileStatus('', false); 
@@ -435,24 +434,19 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         const userDocRef = db.collection('usernames').doc(user.uid);
         const doc = await userDocRef.get();
+        const initialDisplayName = user.displayName || user.email.split('@')[0];
 
         if (!doc.exists) {
-            console.log("Creando registro inicial en Firestore...");
-            const initialDisplayName = user.displayName || user.email.split('@')[0];
-            
             await userDocRef.set({
                 uid: user.uid,
                 displayName: initialDisplayName,
                 email: user.email,
                 photoURL: user.photoURL || null,
+                alias: initialDisplayName.toLowerCase(),
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 snakeHighscore: 0,
                 buscaminasHighscore: 0,
             }, { merge: true });
-            
-            console.log("✅ Usuario registrado en Firestore.");
-        } else {
-            console.log("Usuario existente, cargando datos de Firestore.");
         }
         
         const displayName = user.displayName || user.email.split('@')[0];
@@ -461,6 +455,7 @@ auth.onAuthStateChanged(async (user) => {
         logoutLink.style.display = 'flex'; 
         sidebarProfileSection.onclick = handleProfileClick;
         
+        displayNameInput.value = displayName;
         await loadUserProfileData(user); 
 
     } else {
@@ -502,3 +497,15 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => showScreen('home-screen'));
+
+window.showScreen = showScreen;
+window.toggleMenu = toggleMenu;
+window.handleProfileClick = handleProfileClick;
+window.signInWithGoogle = signInWithGoogle;
+window.logout = logout;
+window.updateUserProfile = updateUserProfile;
+window.displayLocalImage = displayLocalImage;
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.closeModalOnOutsideClick = closeModalOnOutsideClick;
+window.filterContent = filterContent;
