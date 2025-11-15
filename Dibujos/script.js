@@ -75,7 +75,7 @@ function updateHeaderIcon() {
 
     switch (today) {
         case 0: 
-            iconHTML = '<span class="icon icon-Meli"></span>'; // Ahora icon-Meli
+            iconHTML = '<span class="icon icon-Meli"></span>';
             colorClass = 'icon-color-negro';
             break;
         case 1: 
@@ -83,11 +83,11 @@ function updateHeaderIcon() {
             colorClass = 'icon-color-rosa'; 
             break;
         case 2: 
-            iconHTML = '<span class="icon icon-Meli"></span>'; // Corregido: icon-Meli para Martes
+            iconHTML = '<span class="icon icon-Meli"></span>';
             colorClass = 'icon-color-negro';
             break;
         case 3: 
-            iconHTML = '<span class="icon icon-Meli"></span>'; // Corregido: icon-Meli para Miércoles
+            iconHTML = '<span class="icon icon-Meli"></span>';
             colorClass = 'icon-color-negro';
             break;
         case 4: 
@@ -311,6 +311,10 @@ async function updateUserProfile() {
 
     try {
         await user.updateProfile({ displayName: newName });
+        
+        const userDocRef = db.collection('usernames').doc(user.uid);
+        await userDocRef.update({ displayName: newName });
+        
         loginText.textContent = newName; 
         
         loadUserProfileData(user); 
@@ -429,6 +433,28 @@ function filterContent(tagToFilter) {
 auth.onAuthStateChanged(async (user) => {
     
     if (user) {
+        const userDocRef = db.collection('usernames').doc(user.uid);
+        const doc = await userDocRef.get();
+
+        if (!doc.exists) {
+            console.log("Creando registro inicial en Firestore...");
+            const initialDisplayName = user.displayName || user.email.split('@')[0];
+            
+            await userDocRef.set({
+                uid: user.uid,
+                displayName: initialDisplayName,
+                email: user.email,
+                photoURL: user.photoURL || null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                snakeHighscore: 0,
+                buscaminasHighscore: 0,
+            }, { merge: true });
+            
+            console.log("✅ Usuario registrado en Firestore.");
+        } else {
+            console.log("Usuario existente, cargando datos de Firestore.");
+        }
+        
         const displayName = user.displayName || user.email.split('@')[0];
         
         loginText.textContent = displayName; 
