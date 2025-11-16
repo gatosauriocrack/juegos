@@ -33,14 +33,18 @@
         <a href="javascript:void(0)" class="closebtn" onclick="closeMenu()">&times;</a> 
         
         <div id="sidebarProfileSection" class="sidebar-profile-login" onclick="handleProfileClick()">
-            <span id="profileIcon" class="profile-icon fas fa-user-circle"></span>
+            <div id="profilePhotoContainer" class="profile-photo-container">
+                <span id="profileIcon" class="profile-icon fas fa-user-circle"></span>
+                <img id="profilePhoto" src="" alt="Foto de Perfil" class="profile-photo hidden">
+            </div>
             <span id="loginText" class="login-text">Iniciar Sesión</span> 
         </div>
         
         <a href="javascript:void(0)" onclick="showScreen('home-screen')"><span class="icon"><i class="fas fa-home"></i></span> Home</a>             
-        <a href="javascript:void(0)" onclick="showScreen('info-screen')"><span class="icon"><i class="fas fa-info-circle"></i></span> Información web</a> 
         
         <a href="javascript:void(0)" onclick="showScreen('pets-screen')"><span class="icon"><i class="fas fa-icons"></i></span> Símbolos Font Awesome</a>
+        
+        <a href="javascript:void(0)" onclick="showScreen('info-screen')"><span class="icon"><i class="fas fa-info-circle"></i></span> Información web</a> 
 
         <a href="javascript:void(0)" id="logoutLink" style="display: none;" onclick="logout()"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Cerrar Sesión</a>
     </div>

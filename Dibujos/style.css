@@ -1,18 +1,20 @@
 :root {
-    --color-naranja-principal: #EA7900;
-    --color-naranja-claro: #ffb86c;
-    --color-naranja-fuerte: #CC6600;
-    --color-fondo: #282c34;
+    --color-naranja-principal: #EA7900; 
+    --color-naranja-claro: #ffb86c;     
+    --color-naranja-fuerte: #CC6600;    
+    --color-fondo: #282c34; 
     --color-texto: #e0e0e0;
     --color-success-bg: #4CAF50;
-    --color-error-bg: #f44336;
-    --color-azul-principal: #1A73E8;
-    --color-verde-seleccion: #4CAF50;
-    --color-rosado-pata: #FFADCE;
+    --color-error-bg: #f44336; 
+
+    --color-azul-principal: #1A73E8; 
+    --color-verde-seleccion: #4CAF50; 
+    --color-rosado-pata: #FFADCE; 
+
     --color-barra-principal: var(--color-naranja-principal);
     --color-fondo-oscuro: var(--color-fondo);
     --color-texto-principal: var(--color-texto);
-    --color-fondo-claro-menu: #333742;
+    --color-fondo-claro-menu: #333742; 
 }
 
 body {
@@ -45,19 +47,19 @@ body {
 }
 
 .menu-icon {
-    font-size: 28px;
+    font-size: 28px; 
     cursor: pointer;
-    margin-right: 15px;
+    margin-right: 15px; 
 }
 
 .app-icon-custom {
     font-size: 60px;
     margin-right: 15px;
-    line-height: 1;
+    line-height: 1; 
 }
 
 .icon-color-negro {
-    color: #000000;
+    color: #000000; 
 }
 
 .icon-color-rosa {
@@ -65,8 +67,8 @@ body {
 }
 
 .app-icon {
-    display: none;
-    width: 40px;
+    display: none; 
+    width: 40px; 
     height: 40px;
     object-fit: contain;
     margin-right: 10px;
@@ -76,12 +78,12 @@ body {
     font-weight: bold;
     font-size: 1.5em;
     color: var(--color-texto);
-    line-height: 1;
+    line-height: 1; 
 }
 
 .sidebar {
     height: 100%;
-    width: 0;
+    width: 0; 
     position: fixed;
     z-index: 999;
     top: 0;
@@ -102,20 +104,16 @@ body {
     padding: 15px;
     display: flex;
     align-items: center;
-    flex-direction: column;
+    flex-direction: column; 
     text-align: center;
     border-bottom: 1px solid var(--color-naranja-fuerte);
     margin-bottom: 10px;
     cursor: pointer;
 }
 
-/* ------------------------------------------------ */
-/* === AJUSTES DE PERFIL DE BARRA LATERAL === */
-
-/* Icono genérico: Visible por defecto hasta que JS cargue la foto */
 .profile-icon {
-    display: block; /* Mantenemos 'block' o 'flex' para que se muestre */
-    width: 70px;
+    display: block;
+    width: 70px; 
     height: 70px;
     border-radius: 50%;
     line-height: 70px;
@@ -124,22 +122,17 @@ body {
     color: #fff;
     background-color: #363a45;
     margin-bottom: 10px;
-    border: 2px solid var(--color-naranja-claro);
+    border: 2px solid var(--color-naranja-claro); 
 }
 
-/* Foto de perfil: OCULTA por defecto, solo visible por JS */
 .profile-photo {
-    /* Estado inicial: OCULTO. JS lo cambiará a 'block' al iniciar sesión */
-    display: none; 
-    
-    width: 70px;
+    width: 70px; 
     height: 70px;
     border-radius: 50%;
     object-fit: cover;
     margin-bottom: 10px;
-    border: 2px solid var(--color-naranja-claro);
+    border: 2px solid var(--color-naranja-claro); 
 }
-/* ------------------------------------------------ */
 
 .login-text {
     font-weight: bold;
@@ -166,7 +159,7 @@ body {
     margin-right: 15px;
     width: 20px;
     text-align: center;
-    font-size: 1.1em;
+    font-size: 1.1em; 
 }
 
 .closebtn {
@@ -179,7 +172,7 @@ body {
 }
 
 .main-content {
-    padding-top: 80px;
+    padding-top: 80px; 
     padding-left: 20px;
     padding-right: 20px;
     width: 100%;
@@ -188,28 +181,28 @@ body {
     box-sizing: border-box;
     display: none;
     flex-direction: column;
-    align-items: center;
+    align-items: center; 
 }
 
 .main-content.active {
-    display: flex;
+    display: flex; 
 }
 
 @media (min-width: 900px) {
     .sidebar {
-        width: 250px;
+        width: 250px; 
         box-shadow: none;
     }
     .sidebar .closebtn {
-        display: none;
+        display: none; 
     }
     .header-bar .menu-icon {
-        display: none;
+        display: none; 
     }
     .main-content {
-        margin-left: 250px;
+        margin-left: 250px; 
         width: calc(100% - 250px);
-        padding-left: 40px;
+        padding-left: 40px; 
         padding-right: 40px;
     }
 }
@@ -221,7 +214,7 @@ body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index: 998;
+    z-index: 998; 
     display: none;
     cursor: pointer;
 }
@@ -231,17 +224,17 @@ body {
     max-width: 500px;
     margin-bottom: 25px;
     border-radius: 8px;
-    background-color: #363a45;
+    background-color: #363a45; 
     display: flex;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--color-naranja-claro);
+    border: 1px solid var(--color-naranja-claro); 
 }
 
 .search-icon {
     padding-left: 15px;
     font-size: 1.2em;
-    color: var(--color-naranja-claro);
+    color: var(--color-naranja-claro); 
 }
 
 .search-input {
@@ -279,7 +272,7 @@ body {
 
 .card-media {
     width: 100%;
-    height: 250px;
+    height: 250px; 
     object-fit: cover;
     display: block;
     background-color: #333;
@@ -370,7 +363,7 @@ body {
 .banner-upload-wrapper, .avatar-upload-wrapper {
     position: relative;
     display: inline-block;
-    margin-left: 10px;
+    margin-left: 10px; 
 }
 
 .banner-upload-btn, .avatar-upload-btn {
@@ -385,12 +378,12 @@ body {
 }
 
 input[type="file"] {
-    display: none;
+    display: none; 
 }
 
 .profile-avatar-wrapper {
     position: relative;
-    margin-top: -50px;
+    margin-top: -50px; 
     padding-left: 20px;
     display: flex;
     align-items: flex-end;
@@ -421,7 +414,7 @@ input[type="file"] {
 }
 
 .profile-field input[type="text"] {
-    width: calc(100% - 24px);
+    width: calc(100% - 24px); 
     padding: 10px;
     border: 1px solid #555;
     border-radius: 5px;
@@ -456,25 +449,18 @@ input[type="file"] {
     font-weight: bold;
 }
 
-.status-success {
-    background-color: var(--color-success-bg);
-    color: white;
-}
-
-.status-error {
-    background-color: var(--color-error-bg);
-    color: white;
-}
+.status-success { background-color: var(--color-success-bg); color: white; }
+.status-error { background-color: var(--color-error-bg); color: white; }
 
 .modal-overlay {
     position: fixed;
-    z-index: 2000;
+    z-index: 2000; 
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(3px);
+    background-color: rgba(0, 0, 0, 0.7); 
+    backdrop-filter: blur(3px); 
     display: flex;
     align-items: center;
     justify-content: center;
@@ -482,7 +468,7 @@ input[type="file"] {
 
 .modal-content {
     background-color: var(--color-fondo-claro-menu);
-    padding: 20px;
+    padding: 20px; 
     width: 90%;
     max-width: 350px;
     border-radius: 10px;
@@ -516,7 +502,7 @@ input[type="file"] {
     padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 15px; 
 }
 
 .social-auth-btn {
@@ -543,53 +529,51 @@ input[type="file"] {
 }
 
 .google-btn {
-    background-color: #4285F4;
+    background-color: #4285F4; 
     color: white;
 }
 
 .play-games-btn {
-    background-color: #4CAF50;
+    background-color: #4CAF50; 
     color: white;
 }
 
+/* --- ACTUALIZACIÓN DE FUENTE Y CÓDIGOS DE ICOMON --- */
 @font-face {
-    font-family: 'Gatosauriocrack-fonts-awesome';
-    src: url('fonts/Gatosauriocrack-fonts-awesome.eot?f7fp5j');
-    src: url('fonts/Gatosauriocrack-fonts-awesome.eot?f7fp5j#iefix') format('embedded-opentype'),
-        url('fonts/Gatosauriocrack-fonts-awesome.ttf?f7fp5j') format('truetype'),
-        url('fonts/Gatosauriocrack-fonts-awesome.woff?f7fp5j') format('woff'),
-        url('fonts/Gatosauriocrack-fonts-awesome.svg?f7fp5j#Gatosauriocrack-fonts-awesome') format('svg');
-    font-weight: normal;
-    font-style: normal;
-    font-display: block;
+  font-family: 'Gatosauriocrack-fonts-awesome'; /* Nombre de fuente actualizado */
+  src:  url('fonts/Gatosauriocrack-fonts-awesome.eot?f7fp5j');
+  src:  url('fonts/Gatosauriocrack-fonts-awesome.eot?f7fp5j#iefix') format('embedded-opentype'),
+    url('fonts/Gatosauriocrack-fonts-awesome.ttf?f7fp5j') format('truetype'),
+    url('fonts/Gatosauriocrack-fonts-awesome.woff?f7fp5j') format('woff'),
+    url('fonts/Gatosauriocrack-fonts-awesome.svg?f7fp5j#Gatosauriocrack-fonts-awesome') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
 }
 
 .icon {
-    font-family: 'Gatosauriocrack-fonts-awesome' !important;
-    speak: never;
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-family: 'Gatosauriocrack-fonts-awesome' !important; /* Familia de fuente actualizada */
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .icon-dino:before {
-    content: "\e900";
+  content: "\e900"; /* Código de dino actualizado */
 }
-
 .icon-gato:before {
-    content: "\e901";
+  content: "\e901"; /* Código de gato actualizado */
 }
-
 .icon-Meli:before {
-    content: "\e902";
+  content: "\e902"; /* Código de Meli actualizado */
 }
-
 .icon-michi:before {
-    content: "\e903";
+  content: "\e903"; /* Código de michi actualizado */
 }
 
 .icon-display-container {
@@ -605,7 +589,7 @@ input[type="file"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #FFFFFF;
+    background-color: #FFFFFF; /* Recuadro blanco */
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -614,7 +598,7 @@ input[type="file"] {
 
 .icon-item .icon {
     font-size: 50px;
-    color: #000000;
+    color: #000000; /* Símbolo negro */
     margin-bottom: 10px;
 }
 
