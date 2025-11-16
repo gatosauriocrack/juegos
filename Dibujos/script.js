@@ -274,10 +274,10 @@ async function loadUserProfileData(user) {
     const initialChar = displayName.charAt(0).toUpperCase();
 
     const localAvatarKey = getLocalStorageKey(uid, 'avatar');
-    const localBannerKey = getLocalStorageKey(uid, 'banner');
 
     const localAvatarUrl = localStorage.getItem(localAvatarKey);
-    const photoUrl = localAvatarUrl || user.photoURL; 
+    // Prioriza la foto local, luego la de Firebase, luego el placeholder
+    const photoUrl = localAvatarUrl || user.photoURL;
 
     if (photoUrl) {
         profilePhoto.src = photoUrl;
@@ -289,6 +289,9 @@ async function loadUserProfileData(user) {
         profilePhoto.style.display = 'none';
         profileAvatar.src = `https://via.placeholder.com/100/363a45/FFFFFF?text=${initialChar}`;
     }
+
+    const localBannerKey = getLocalStorageKey(uid, 'banner');
+    const localBannerUrl = localStorage.getItem(localBannerKey);
 
     if (localBannerUrl) {
         profileBannerArea.style.backgroundImage = `url('${localBannerUrl}')`;
@@ -460,7 +463,7 @@ auth.onAuthStateChanged(async (user) => {
         logoutLink.style.display = 'flex';
         sidebarProfileSection.onclick = handleProfileClick;
 
-        await loadUserProfileData(user);
+        await loadUserProfileData(user); // Carga la URL de la foto y establece la visibilidad
 
     } else {
         loginText.textContent = 'Iniciar Sesión';
