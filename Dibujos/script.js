@@ -261,6 +261,7 @@ function displayLocalImage(file, elementId, type) {
     reader.readAsDataURL(file);
 }
 
+// === MODIFICACIÓN CLAVE EN loadUserProfileData ===
 async function loadUserProfileData(user) {
     if (!user) return;
 
@@ -274,25 +275,36 @@ async function loadUserProfileData(user) {
     const initialChar = displayName.charAt(0).toUpperCase();
 
     const localAvatarKey = getLocalStorageKey(uid, 'avatar');
+    const localBannerKey = getLocalStorageKey(uid, 'banner');
 
     const localAvatarUrl = localStorage.getItem(localAvatarKey);
-    // Prioriza la foto local, luego la de Firebase, luego el placeholder
-    const photoUrl = localAvatarUrl || user.photoURL;
+    const localBannerUrl = localStorage.getItem(localBannerKey);
 
-    if (photoUrl) {
-        profilePhoto.src = photoUrl;
-        profileAvatar.src = photoUrl;
-        profileIcon.style.display = 'none';
-        profilePhoto.style.display = 'block';
+    // Prioriza la foto local, luego la de Firebase, y si no hay, un placeholder
+    const avatarUrl = localAvatarUrl || user.photoURL; 
+    
+    // 1. Establece la URL de la foto en ambos elementos (sidebar y perfil)
+    if (avatarUrl) {
+        profileAvatar.src = avatarUrl;
+        profilePhoto.src = avatarUrl;
     } else {
-        profileIcon.style.display = 'block';
-        profilePhoto.style.display = 'none';
+        // Usa placeholder solo en la pantalla de perfil si no hay foto
         profileAvatar.src = `https://via.placeholder.com/100/363a45/FFFFFF?text=${initialChar}`;
     }
 
-    const localBannerKey = getLocalStorageKey(uid, 'banner');
-    const localBannerUrl = localStorage.getItem(localBannerKey);
+    // 2. Controla la visibilidad de los elementos en el header/sidebar
+    if (profileIcon && profilePhoto) {
+        if (avatarUrl) {
+            profileIcon.style.display = 'none';
+            profilePhoto.style.display = 'block';
+        } else {
+            // Si no hay foto, muestra el ícono genérico
+            profileIcon.style.display = 'block';
+            profilePhoto.style.display = 'none';
+        }
+    }
 
+    // Banner
     if (localBannerUrl) {
         profileBannerArea.style.backgroundImage = `url('${localBannerUrl}')`;
         profileBannerArea.style.backgroundColor = 'transparent';
@@ -301,6 +313,7 @@ async function loadUserProfileData(user) {
         profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
     }
 }
+// ===============================================
 
 async function updateUserProfile() {
     const user = auth.currentUser;
@@ -463,11 +476,26 @@ auth.onAuthStateChanged(async (user) => {
         logoutLink.style.display = 'flex';
         sidebarProfileSection.onclick = handleProfileClick;
 
-        await loadUserProfileData(user); // Carga la URL de la foto y establece la visibilidad
+        await loadUserProfileData(user);
+        
+        // === Lógica de visibilidad en el sidebar después de cargar el perfil ===
+        const localAvatarUrl = localStorage.getItem(getLocalStorageKey(user.uid, 'avatar'));
+        const finalPhotoUrl = localAvatarUrl || user.photoURL;
+
+        if (finalPhotoUrl) {
+            profilePhoto.src = finalPhotoUrl;
+            profilePhoto.style.display = 'block';
+            profileIcon.style.display = 'none';
+        } else {
+            profilePhoto.style.display = 'none';
+            profileIcon.style.display = 'block';
+        }
+        // ======================================================================
 
     } else {
         loginText.textContent = 'Iniciar Sesión';
 
+        // Asegurar que solo se muestre el ícono genérico al cerrar sesión
         if (profileIcon) {
             profileIcon.style.display = 'block';
         }
