@@ -9,6 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     <style>
         :root {
             --color-naranja-principal: #EA7900;
@@ -17,6 +19,10 @@
             --color-tablero: #3b4252;
             --color-sombra-naranja: #a45400;
             --color-texto: #e0e0e0;
+            
+            --color-fondo-claro-menu: #333742;
+            --color-azul-principal: #1A73E8; 
+            --color-verde-seleccion: #4CAF50; 
         }
 
         body {
@@ -137,9 +143,10 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            backdrop-filter: blur(3px);
         }
         .modal-content {
-            background-color: var(--color-tablero);
+            background-color: var(--color-fondo-claro-menu);
             padding: 40px;
             border-radius: 15px;
             text-align: center;
@@ -148,6 +155,8 @@
             flex-direction: column;
             align-items: center; 
             position: relative; 
+            width: 90%;
+            max-width: 350px;
         }
         .modal-content h2 {
             font-size: 3em;
@@ -162,7 +171,7 @@
             width: 100%;
         }
 
-        #startModal button, #authModal button {
+        #startModal button {
             padding: 15px 30px;
             margin: 10px 0;
             font-size: 1.2em;
@@ -175,20 +184,52 @@
             box-shadow: 0 4px var(--color-sombra-naranja);
             transition: all 0.1s;
         }
-        #startModal button:active, #authModal button:active {
+        #startModal button:active {
             box-shadow: 0 1px var(--color-sombra-naranja);
             transform: translateY(3px);
         }
-        #authModal input[type="text"], #authModal input[type="password"] {
-            padding: 10px; 
-            margin: 5px; 
-            border-radius: 5px; 
-            border: 1px solid #ccc; 
-            width: 80%;
-            background-color: #f0f0f0;
-            color: var(--color-fondo);
+        
+        .social-auth-container {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; 
+            width: 100%;
         }
 
+        .social-auth-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+
+        .social-auth-btn:hover {
+            opacity: 0.9;
+        }
+
+        .social-auth-btn i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .google-btn {
+            background-color: #4285F4;
+            color: white;
+        }
+
+        .play-games-btn {
+            background-color: var(--color-verde-seleccion);
+            color: white;
+        }
+        
         #btnClasificatoria {
             position: absolute;
             top: 15px;
@@ -376,43 +417,37 @@
 
             <p style="margin-top: 10px; font-size: 0.9em; color: var(--color-naranja-claro);"><span id="sessionStatus">Sesión: No iniciada</span></p>
 
-            <button onclick="document.getElementById('authModal').style.display = 'flex';" style="background-color: #007bff; color: white; padding: 10px 20px;">
+            <button onclick="openAuthModal()" id="mainLoginButton" style="background-color: #007bff; color: white; padding: 10px 20px; display: block;">
                 Iniciar Sesión
+            </button>
+            
+            <button onclick="logout()" id="mainLogoutButton" style="background-color: #D32F2F; color: white; padding: 10px 20px; display: none;">
+                Cerrar Sesión
             </button>
         </div>
     </div>
     
     <div id="authModal" class="game-modal">
         <div class="modal-content">
-            <h2>Iniciar Sesión/Registro</h2>
-            <div style="margin-bottom: 20px; width: 100%;">
+            <h2 id="modalTitle" style="font-size: 2em;">Elige cómo iniciar sesión</h2>
+            <div id="authMessage" style="color: #F44336; margin: 10px 0;"></div>
+
+            <div id="socialAuthContainer" class="social-auth-container">
+                <button class="social-auth-btn google-btn" onclick="signInWithGoogle()">
+                    <i class="fab fa-google"></i> Iniciar Sesión con Google
+                </button>
                 
-                <input type="text" id="authEmail" placeholder="Correo Electrónico"> 
-                <input type="text" id="authAlias" placeholder="Alias (Nombre de Usuario)"> 
-                <input type="password" id="authPassword" placeholder="Contraseña (mín 6 caracteres)">
+                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()">
+                    <i class="fas fa-gamepad"></i> Iniciar Sesión con Play Juegos
+                </button>
                 
-                <div style="text-align: left; margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;">
-                    <input type="checkbox" id="rememberMe" checked>
-                    <label for="rememberMe" style="font-size: 1em; color: var(--color-texto);">Mantener sesión iniciada</label>
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="handleAuthentication(false)" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 1em;">Iniciar Sesión</button>
-                <button onclick="handleAuthentication(true)" style="padding: 10px 20px; background-color: var(--color-naranja-principal); color: var(--color-fondo); border: none; border-radius: 5px; font-size: 1em;">Registrarse</button>
             </div>
             
-            <button id="logoutButton" onclick="logout()" 
-                    style="margin-top: 20px; padding: 10px 20px; background-color: #D32F2F; color: white; display: none; font-size: 1em;">
-                Cerrar Sesión
-            </button>
-
-            <p style="margin-top: 15px; font-size: 0.8em; color: #aaa;">Solo necesitas iniciar sesión una vez.</p>
-            <button onclick="document.getElementById('authModal').style.display = 'none';" style="margin-top: 20px; padding: 10px 20px; background-color: #555; color: white; font-size: 1em;">
+             <button onclick="closeAuthModal()" style="margin-top: 20px; padding: 10px 20px; background-color: #555; color: white; font-size: 1em;">
                 ← Regresar
             </button>
         </div>
     </div>
-
     <div id="gameOverModal" class="game-modal">
         <div class="modal-content">
             <h2>¡Game Over!</h2>
@@ -447,71 +482,94 @@
         const FieldValue = firebase.firestore.FieldValue;
         
         const leaderboardCol = db.collection('leaderboard_snake_game');
-        const usernamesCol = db.collection('usernames');
+        const usernamesCol = db.collection('usernames'); 
 
-        async function handleFirebaseRegister(email, password, alias) {
-            const username = alias.trim();
-            
+        function openAuthModal() {
+            document.getElementById('authModal').style.display = 'flex';
+            document.getElementById('authMessage').textContent = ''; 
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+        
+        function displayAuthMessage(message, isError) {
+            const authMessage = document.getElementById('authMessage');
+            authMessage.textContent = message;
+            authMessage.style.color = isError ? '#F44336' : '#4CAF50';
+        }
+
+        async function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
             try {
-                const querySnapshot = await usernamesCol.where('username', '==', username).limit(1).get();
-                if (!querySnapshot.empty) {
-                    return { success: false, message: "El alias de usuario ya está tomado. Elige otro." };
-                }
-            } catch (error) {
-                 console.error("Error al buscar alias:", error);
-                 return { success: false, message: "Error al verificar el alias. Intenta de nuevo." };
-            }
-
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                const uid = userCredential.user.uid;
-
-                await usernamesCol.doc(uid).set({
-                    username: username, 
-                    email: email,
-                    timestamp: FieldValue.serverTimestamp()
-                });
-
-                return { success: true, user: username, token: uid };
-            } catch (error) {
-                let message = "Error: " + error.message;
-                if (error.code === 'auth/email-already-in-use') { message = "El correo ya está registrado."; } 
-                else if (error.code === 'auth/weak-password') { message = "La contraseña debe tener al menos 6 caracteres."; } 
-                else if (error.code === 'auth/invalid-email') { message = "Formato de correo electrónico inválido."; }
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
                 
-                return { success: false, message: message };
+                await initializeUserRecord(user);
+                
+                closeAuthModal();
+                showNotification(true);
+                alert(`¡Éxito! Bienvenido/a, ${user.displayName || user.email.split('@')[0]}. Ahora tus récords se enviarán.`); 
+
+            } catch (error) {
+                let errorMessage = 'Error al iniciar sesión con Google. Inténtalo de nuevo.';
+                if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = 'La ventana de inicio de sesión fue cerrada.';
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    errorMessage = 'El inicio de sesión fue cancelado. No se permite abrir múltiples ventanas emergentes.';
+                }
+                console.error("Error de autenticación con Google:", error);
+                displayAuthMessage(errorMessage, true);
+            }
+        }
+        
+        async function initializeUserRecord(user) {
+            const userDocRef = usernamesCol.doc(user.uid);
+            const doc = await userDocRef.get();
+
+            if (!doc.exists) {
+                const initialDisplayName = user.displayName || user.email.split('@')[0];
+
+                await userDocRef.set({
+                    uid: user.uid,
+                    displayName: initialDisplayName,
+                    email: user.email,
+                    photoURL: user.photoURL || null,
+                    createdAt: FieldValue.serverTimestamp(),
+                    snakeHighscore: 0, 
+                }, { merge: true });
+                console.log("Usuario registrado en Firestore (Colección usernames).");
             }
         }
 
+
+        function logout() {
+            auth.signOut()
+            .then(() => {
+                updateSessionUI(null);
+                document.getElementById('authModal').style.display = 'none';
+                alert("¡Sesión cerrada correctamente!");
+            }).catch((error) => {
+                 alert("Error al cerrar sesión.");
+            });
+        }
+        
         async function getAliasFromUID(uid) {
              try {
                 const doc = await usernamesCol.doc(uid).get();
-                if (doc.exists) {
-                    return doc.data().username;
+                if (doc.exists && doc.data().displayName) {
+                    return doc.data().displayName;
                 }
-                return auth.currentUser.email.split('@')[0] || "Usuario Desconocido"; 
+                const user = auth.currentUser;
+                return (user.displayName || user.email.split('@')[0]) || "Usuario Desconocido"; 
              } catch(e) {
                 console.error("Fallo al buscar el alias por UID:", e);
                 return "Error al cargar alias";
              }
         }
         
-        async function handleFirebaseLogin(email, password) {
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                const uid = userCredential.user.uid;
-                const username = await getAliasFromUID(uid); 
-                
-                return { success: true, user: username, token: uid };
-            } catch (error) {
-                let message = "Error al iniciar sesión: " + error.message;
-                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                    message = "Correo electrónico o contraseña incorrectos.";
-                }
-                return { success: false, message: message };
-            }
-        }
-
         async function saveUserRecord(score, speedLevel) {
             const user = auth.currentUser;
             if (!user) {
@@ -531,7 +589,17 @@
 
             try {
                 await leaderboardCol.add(recordData); 
-                console.log("Récord guardado en Firebase con éxito en leaderboard_snake_game.");
+                console.log("Récord guardado en Firebase en leaderboard_snake_game.");
+
+                const userDocRef = usernamesCol.doc(uid);
+                const userDoc = await userDocRef.get();
+                const currentDBHighscore = userDoc.exists ? (userDoc.data().snakeHighscore || 0) : 0;
+                
+                if (score > currentDBHighscore) {
+                    await userDocRef.update({ snakeHighscore: score });
+                    console.log("Highscore actualizado en la colección usernames.");
+                }
+
                 showNotification(true); 
                 return { success: true };
             } catch (error) {
@@ -562,6 +630,8 @@
         const playAgainBtn = document.getElementById('playAgainBtn');
         const sessionStatusElement = document.getElementById('sessionStatus');
         const notificationIcon = document.getElementById('notification-icon');
+        const mainLoginButton = document.getElementById('mainLoginButton');
+        const mainLogoutButton = document.getElementById('mainLogoutButton');
 
         let currentUser = null; 
         let gameSpeedName = 'Normal (Medio)'; 
@@ -619,91 +689,31 @@
             }, 2500);
         }
 
-        function updateSessionUI(userEmail) {
-            const logoutBtn = document.getElementById('logoutButton');
-            const authEmailInput = document.getElementById('authEmail');
-            const authAliasInput = document.getElementById('authAlias');
-            const authPasswordInput = document.getElementById('authPassword');
-            const authButtons = document.querySelectorAll('#authModal button'); 
-            
+        async function updateSessionUI(userEmail) {
             if (userEmail) {
-                currentUser = userEmail.split('@')[0];
+                const uid = auth.currentUser.uid;
+                const username = await getAliasFromUID(uid);
+
+                currentUser = username;
                 sessionStatusElement.textContent = `Sesión: ${currentUser} (Activa)`;
                 sessionStatusElement.style.color = 'lightgreen';
                 
-                logoutBtn.style.display = 'block';
-                authEmailInput.value = userEmail; 
-                authEmailInput.disabled = true;
-                authAliasInput.style.display = 'none'; 
-                authPasswordInput.style.display = 'none';
-                
-                authButtons.forEach(btn => {
-                    if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
-                        btn.style.display = 'none';
-                    }
-                });
+                mainLoginButton.style.display = 'none';
+                mainLogoutButton.style.display = 'block';
 
             } else {
                 currentUser = null;
                 sessionStatusElement.textContent = `Sesión: No iniciada`;
                 sessionStatusElement.style.color = 'var(--color-naranja-claro)';
                 
-                logoutBtn.style.display = 'none';
-                authEmailInput.value = '';
-                authEmailInput.disabled = false;
-                authAliasInput.style.display = 'block'; 
-                authPasswordInput.style.display = 'block';
-                
-                authButtons.forEach(btn => {
-                     if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
-                        btn.style.display = 'inline-block';
-                    }
-                });
+                mainLoginButton.style.display = 'block';
+                mainLogoutButton.style.display = 'none';
             }
         }
         
-        function logout() {
-            auth.signOut().then(() => {
-                updateSessionUI(null);
-                document.getElementById('authModal').style.display = 'none';
-                alert("¡Sesión cerrada correctamente!");
-            }).catch((error) => {
-                 alert("Error al cerrar sesión.");
-            });
-        }
-
         auth.onAuthStateChanged((user) => {
             updateSessionUI(user ? user.email : null);
         });
-
-        async function handleAuthentication(isRegister) {
-            const email = document.getElementById('authEmail').value;
-            const alias = document.getElementById('authAlias').value; 
-            const password = document.getElementById('authPassword').value;
-            const rememberMe = document.getElementById('rememberMe').checked; 
-            
-            if (!email || !password || (isRegister && !alias)) {
-                 alert("Por favor, introduce Correo Electrónico, Contraseña y, si te registras, un Alias.");
-                 return;
-            }
-            
-            auth.setPersistence(rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION);
-
-            let result;
-            if (isRegister) {
-                 result = await handleFirebaseRegister(email, password, alias); 
-            } else {
-                 result = await handleFirebaseLogin(email, password);
-            }
-
-            if (result.success) {
-                alert(`¡Éxito! Bienvenido/a, ${result.user}. Ahora tus récords se enviarán.`); 
-                document.getElementById('authModal').style.display = 'none';
-                document.getElementById('authPassword').value = '';
-            } else {
-                alert(result.message);
-            }
-        }
 
         async function sendRecordToServer(score, speed) {
             if (auth.currentUser) {
@@ -758,7 +768,7 @@
 
             snake.unshift(head);
 
-            if (head.x === food.x && head.y === food.y) {
+            if (head.x === food.x && food.y) { 
                 score += 1;
                 scoreElement.textContent = `Puntuación: ${score}`;
                 placeFood();
