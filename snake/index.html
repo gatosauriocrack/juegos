@@ -468,7 +468,6 @@
 
     <script>
         const firebaseConfig = {
-            // Reemplaza esto con tu configuración real de Firebase
             apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
             authDomain: "procesador-56b7a.firebaseapp.com",
             projectId: "procesador-56b7a",
@@ -484,6 +483,9 @@
         
         const leaderboardCol = db.collection('leaderboard_snake_game');
         const usernamesCol = db.collection('usernames'); 
+        
+        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/snake/Records?from=game";
+
 
         function openAuthModal() {
             document.getElementById('authModal').style.display = 'flex';
@@ -614,8 +616,6 @@
             }
         }
         
-        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/juegos/recordsnake";
-        const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`;
 
         const canvas = document.getElementById('gameCanvas');
         canvas.width = 375; 
@@ -995,7 +995,7 @@
         });
         
         document.getElementById('btnClasificatoria').addEventListener('click', () => {
-            window.open(URL_CLASIFICACION_CON_ORIGEN, '_blank'); 
+            window.open(CLASIFICACION_URL, '_blank'); 
         });
 
         window.onload = () => {
