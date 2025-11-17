@@ -36,6 +36,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: var(--color-texto);
             gap: 15px;
+            /* Esta propiedad es CRUCIAL para evitar el zoom y permitir toques rápidos en móviles */
             touch-action: manipulation; 
         }
         #scoreContainer {
@@ -391,10 +392,10 @@
 
     <div id="mainControls">
         <div id="controls">
-            <button id="up" class="control-btn">↑</button>
-            <button id="left" class="control-btn">←</button>
-            <button id="right" class="control-btn">→</button>
-            <button id="down" class="control-btn">↓</button>
+            <button id="up" class="control-btn" data-direction="ArrowUp">↑</button>
+            <button id="left" class="control-btn" data-direction="ArrowLeft">←</button>
+            <button id="right" class="control-btn" data-direction="ArrowRight">→</button>
+            <button id="down" class="control-btn" data-direction="ArrowDown">↓</button>
         </div>
         <button id="pauseButton" style="display: none;">⏸</button>
     </div>
@@ -437,7 +438,7 @@
                     <i class="fab fa-google"></i> Iniciar Sesión con Google
                 </button>
                 
-                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()">
+                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()"> 
                     <i class="fas fa-gamepad"></i> Iniciar Sesión con Play Juegos
                 </button>
                 
@@ -468,7 +469,8 @@
 
     <script>
         const firebaseConfig = {
-            apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
+            // Reemplaza esto con tu configuración real de Firebase
+            apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
             authDomain: "procesador-56b7a.firebaseapp.com",
             projectId: "procesador-56b7a",
             storageBucket: "procesador-56b7a.firebasestorage.app",
@@ -544,7 +546,6 @@
             }
         }
 
-
         function logout() {
             auth.signOut()
             .then(() => {
@@ -562,7 +563,8 @@
                 if (doc.exists && doc.data().displayName) {
                     return doc.data().displayName;
                 }
-                const user = auth.currentUser;
+                // Si el alias no existe en Firestore, usa el nombre de la cuenta de Google
+                const user = auth.currentUser; 
                 return (user.displayName || user.email.split('@')[0]) || "Usuario Desconocido"; 
              } catch(e) {
                 console.error("Fallo al buscar el alias por UID:", e);
@@ -577,6 +579,7 @@
             }
 
             const uid = user.uid;
+            // Asegura que obtenemos el nombre de usuario (alias o display name)
             const username = await getAliasFromUID(uid); 
 
             const recordData = {
@@ -588,6 +591,7 @@
             };
 
             try {
+                // Guarda el récord en la colección de clasificación
                 await leaderboardCol.add(recordData); 
                 console.log("Récord guardado en Firebase en leaderboard_snake_game.");
 
@@ -595,6 +599,7 @@
                 const userDoc = await userDocRef.get();
                 const currentDBHighscore = userDoc.exists ? (userDoc.data().snakeHighscore || 0) : 0;
                 
+                // Actualiza el highscore personal en la colección de usuarios
                 if (score > currentDBHighscore) {
                     await userDocRef.update({ snakeHighscore: score });
                     console.log("Highscore actualizado en la colección usernames.");
@@ -761,18 +766,22 @@
 
             const head = { x: snake[0].x + velocityX, y: snake[0].y + velocityY };
 
+            // 1. Detección de Colisión (Paredes o Cuerpo)
             if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount || snake.slice(1).some(part => part.x === head.x && part.y === head.y)) {
                 gameOver();
                 return;
             }
 
+            // Mueve la serpiente (añade la nueva cabeza)
             snake.unshift(head);
 
-            if (head.x === food.x && food.y) { 
+            // 2. Detección de Comida (CORREGIDO: head.x === food.x && head.y === food.y)
+            if (head.x === food.x && head.y === food.y) { 
                 score += 1;
                 scoreElement.textContent = `Puntuación: ${score}`;
                 placeFood();
             } else {
+                // Si no come, quita la cola (la serpiente no crece)
                 snake.pop();
             }
 
@@ -797,11 +806,13 @@
                 ctx.stroke();
             }
 
+            // Dibuja la comida (Manzana)
             ctx.fillStyle = '#ffb86c';
             ctx.beginPath();
             ctx.arc(food.x * gridSize + gridSize / 2, food.y * gridSize + gridSize / 2, gridSize / 2 * 0.7, 0, Math.PI * 2);
             ctx.fill();
 
+            // Dibuja la serpiente
             snake.forEach((part, index) => {
                 ctx.fillStyle = '#EA7900';
                 ctx.strokeStyle = '#282c34';
@@ -811,6 +822,7 @@
                 const y = part.y * gridSize;
                 const radius = gridSize / 4; 
 
+                // Dibuja el cuerpo redondeado
                 ctx.beginPath();
                 ctx.moveTo(x + radius, y);
                 ctx.lineTo(x + gridSize - radius, y);
@@ -825,6 +837,7 @@
                 ctx.fill();
                 ctx.stroke();
 
+                // Dibuja los ojos en la cabeza
                 if (index === 0) {
                     ctx.fillStyle = 'white';
                     const eyeSize = gridSize * 0.15;
@@ -834,9 +847,11 @@
                     let vx = velocityX;
                     let vy = velocityY;
                     if (gamePaused || (vx === 0 && vy === 0)) { 
-                        vx = (currentDirection === 'ArrowLeft') ? -1 : 1;
-                        vy = (currentDirection === 'ArrowUp') ? -1 : ((currentDirection === 'ArrowDown') ? 1 : 0);
-                        if (vx === 0 && vy === 0) { vx = 1; } 
+                        // Si está pausado o al inicio, usa la última dirección conocida
+                        if (currentDirection === 'ArrowLeft') { vx = -1; vy = 0; }
+                        else if (currentDirection === 'ArrowUp') { vx = 0; vy = -1; }
+                        else if (currentDirection === 'ArrowDown') { vx = 0; vy = 1; }
+                        else { vx = 1; vy = 0; } // Default: Derecha
                     } 
 
                     let eye1 = { x: center.x, y: center.y };
@@ -855,6 +870,7 @@
 
         function changeDirection(key) {
             if (!gameRunning || gamePaused) return; 
+            // Permite que se almacenen hasta 2 cambios de dirección en la cola (para entradas simultáneas)
             if (directionQueue.length < 2) {
                 directionQueue.push(key);
             }
@@ -902,11 +918,12 @@
             gameSpeedName = speedName; 
             let count = 3;
             
+            // Inicializar la dirección y posición
             currentDirection = 'ArrowRight'; 
             velocityX = 1; 
             velocityY = 0;
-            
             snake = [{ x: 12, y: 12 }];
+            
             placeFood();
             drawGame();
             pauseButton.style.display = 'flex'; 
@@ -951,6 +968,9 @@
             gameOverModal.style.display = 'flex';
         }
         
+        // --- Manejo de Eventos ---
+        
+        // Evento para teclado
         document.addEventListener('keydown', (event) => {
             if(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
                 event.preventDefault();
@@ -965,10 +985,21 @@
             }
         });
 
-        document.getElementById('up').addEventListener('click', () => changeDirection('ArrowUp'));
-        document.getElementById('down').addEventListener('click', () => changeDirection('ArrowDown'));
-        document.getElementById('left').addEventListener('click', () => changeDirection('ArrowLeft'));
-        document.getElementById('right').addEventListener('click', () => changeDirection('ArrowRight'));
+        // Eventos para botones táctiles (permite toques rápidos/simultáneos)
+        document.querySelectorAll('.control-btn').forEach(button => {
+            const direction = button.getAttribute('data-direction');
+            
+            // Uso de touchstart y mousedown para máxima reactividad
+            const handleInput = (event) => {
+                event.preventDefault(); // Evita el zoom/scroll en móviles
+                if (gameRunning && !gamePaused) {
+                    changeDirection(direction);
+                }
+            };
+
+            button.addEventListener('mousedown', handleInput);
+            button.addEventListener('touchstart', handleInput);
+        });
         
         pauseButton.addEventListener('click', togglePause);
         resumeButton.addEventListener('click', togglePause);
