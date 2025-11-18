@@ -1,22 +1,23 @@
 const firebaseConfig = {
-    apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
-    authDomain: "procesador-56b7a.firebaseapp.com",
-    projectId: "procesador-56b7a",
-    storageBucket: "procesador-56b7a.firebasestorage.app",
-    messagingSenderId: "1029072924025",
-    appId: "1:1029072924025:web:c32d735e453416ecfd93a8",
+    apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
+    authDomain: "procesador-56b7a.firebaseapp.com", 
+    projectId: "procesador-56b7a", 
+    storageBucket: "procesador-56b7a.firebasestorage.app", 
+    messagingSenderId: "1029072924025", 
+    appId: "1:1029072924025:web:c32d735e453416ecfd93a8", 
     measurementId: "G-WCBZTBPXZ4"
 };
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIvOkpHvTPTKY-zvEJ_ab0tkqOOd0tRBkvPJNFM5PVf2Z0d0tRBkvPJNFM5PVrQ/exec';
 
+// --- INICIALIZACIÓN CORREGIDA ---
 const app = firebase.initializeApp(firebaseConfig);
-const auth = app.auth();
-const db = app.firestore();
-const storage = app.storage();
+const auth = app.auth(); // Correcto: Usar el objeto app
+const db = app.firestore(); // Correcto: Usar el objeto app
+const storage = app.storage(); // Añadido Storage
 
 const sidebar = document.getElementById("mySidebar");
-const menuOverlay = document.getElementById("menuOverlay");
+const menuOverlay = document.getElementById("menuOverlay"); 
 const loginText = document.getElementById('loginText');
 const profilePhoto = document.getElementById('profilePhoto');
 const profileIcon = document.getElementById('profileIcon');
@@ -28,20 +29,21 @@ const searchInput = document.getElementById('searchInput');
 
 const contentGallery = document.getElementById('contentGallery');
 const loadingMessage = document.getElementById('loadingMessage');
-let allContentData = [];
+let allContentData = []; 
 
 const profileAvatar = document.getElementById('profileAvatar');
 const profileBannerArea = document.getElementById('profileBannerArea');
 const displayNameInput = document.getElementById('displayNameInput');
 const userEmailDisplay = document.getElementById('userEmailDisplay');
 const profileStatus = document.getElementById('profileStatus');
-const appIconHolder = document.getElementById('appIconHolder');
+const appIconHolder = document.getElementById('appIconHolder'); 
 
-let pendingAvatarFile = null;
-let pendingBannerFile = null;
+let pendingAvatarFile = null; // Archivo de avatar pendiente de subir
+let pendingBannerFile = null; // Archivo de banner pendiente de subir
 
 const DEFAULT_AVATAR = "https://via.placeholder.com/70/363a45/FFFFFF?text=G";
 const DEFAULT_BANNER_COLOR = "#444";
+
 
 function isMobile() {
     return window.innerWidth < 900;
@@ -49,9 +51,9 @@ function isMobile() {
 
 function closeMenu() {
     if (isMobile()) {
-        sidebar.style.width = "0";
+        sidebar.style.width = "0"; 
         sidebar.classList.remove('open');
-        menuOverlay.style.display = "none";
+        menuOverlay.style.display = "none"; 
     }
 }
 
@@ -62,80 +64,57 @@ function toggleMenu() {
         } else {
             sidebar.style.width = "250px";
             sidebar.classList.add('open');
-            menuOverlay.style.display = "block";
+            menuOverlay.style.display = "block"; 
         }
     }
 }
 
 function updateHeaderIcon() {
-    if (!appIconHolder) return;
+    if (!appIconHolder) return; 
 
-    const today = new Date().getDay();
-
+    const today = new Date().getDay(); 
+    
     let iconHTML = '';
-    let colorClass = 'icon-color-negro';
+    let colorClass = 'icon-color-negro'; 
 
-    switch (today) {
-        case 0:
-            iconHTML = '<span class="icon icon-Meli"></span>';
-            colorClass = 'icon-color-negro';
-            break;
-        case 1:
-            iconHTML = '<i class="fas fa-paw"></i>';
-            colorClass = 'icon-color-rosa';
-            break;
-        case 2:
-            iconHTML = '<span class="icon icon-Meli"></span>';
-            colorClass = 'icon-color-negro';
-            break;
-        case 3:
-            iconHTML = '<span class="icon icon-Meli"></span>';
-            colorClass = 'icon-color-negro';
-            break;
-        case 4:
-            iconHTML = '<i class="fas fa-paw"></i>';
-            colorClass = 'icon-color-rosa';
-            break;
-        case 5:
-            iconHTML = '<span class="icon icon-gato"></span>';
-            colorClass = 'icon-color-negro';
-            break;
-        case 6:
-            iconHTML = '<span class="icon icon-dino"></span>';
-            colorClass = 'icon-color-negro';
-            break;
-        default:
-            iconHTML = '<i class="fas fa-question-circle"></i>';
-            colorClass = 'icon-color-negro';
-            break;
+    if (today === 0 || today === 1 || today === 3 || today === 5) {
+        iconHTML = '<span class="icon icon-Meli"></span>'; 
+        colorClass = 'icon-color-negro';
+    } 
+    else if (today === 2 || today === 4 || today === 6) {
+        iconHTML = '<i class="fas fa-paw"></i>';
+        colorClass = 'icon-color-rosa'; 
+    } 
+    else {
+        iconHTML = '<i class="fas fa-question-circle"></i>';
+        colorClass = 'icon-color-negro';
     }
 
-    appIconHolder.className = 'app-icon-custom ' + colorClass;
-
+    appIconHolder.className = 'app-icon-custom ' + colorClass; 
     appIconHolder.innerHTML = iconHTML;
 }
 
 
 function showScreen(screenId) {
     if (isMobile()) {
-        closeMenu();
+        closeMenu(); 
     }
-
+    
     views.forEach(view => {
         view.classList.remove('active');
     });
     const activeView = document.getElementById(screenId);
     activeView.classList.add('active');
-
+    
     if (screenId === 'home-screen') {
         loadContent();
     }
-
+    
     if (screenId === 'profile-screen') {
         if (auth.currentUser) {
-            loadUserProfileData(auth.currentUser);
+            loadUserProfileData(auth.currentUser); 
         } else {
-            openAuthModal();
+            openAuthModal(); 
         }
     }
 }
@@ -156,17 +135,17 @@ function closeModalOnOutsideClick(event) {
 }
 
 function initializeApp() {
-    updateHeaderIcon();
-
+    updateHeaderIcon(); 
+    
     if (!isMobile()) {
         sidebar.style.width = "250px";
         sidebar.classList.add('open');
     }
-
+    
     if (!document.querySelector('.main-content.active')) {
         showScreen('home-screen');
     }
-
+    
     sidebar.addEventListener('click', (event) => {
         if (sidebar.classList.contains('open')) {
             event.stopPropagation();
@@ -178,7 +157,7 @@ function openAuthModal() {
     closeMenu();
     authModal.style.display = "flex";
     document.getElementById('modalTitle').textContent = 'Elige cómo iniciar sesión';
-    document.getElementById('authMessage').style.display = 'none';
+    document.getElementById('authMessage').style.display = 'none'; 
 }
 
 function closeAuthModal() {
@@ -191,7 +170,7 @@ function displayAuthMessage(message, isError) {
     authMessage.className = 'auth-message';
     if (isError) {
         authMessage.classList.add('error');
-    }
+    } 
     authMessage.style.display = 'block';
 }
 
@@ -216,45 +195,45 @@ function signInWithGoogle() {
 
 function logout() {
      auth.signOut()
-        .then(() => {
-            closeMenu();
-            showScreen('home-screen');
+        .then(() => { 
+            closeMenu(); 
+            showScreen('home-screen'); 
         })
         .catch((error) => { console.error('Error al cerrar sesión:', error); });
 }
 
-function getLocalStorageKey(uid, type) {
-    if (type === 'avatar') {
-        return `user_${uid}_avatarDataURL`;
-    } else if (type === 'banner') {
-        return `user_${uid}_bannerDataURL`;
-    }
-    return null;
-}
 
-function displayLocalImage(file, elementId, type) {
+// --- LÓGICA DE FIREBASE STORAGE ---
+
+/**
+ * Muestra la imagen seleccionada localmente y la guarda en una variable.
+ * @param {File} file - El archivo de imagen.
+ * @param {string} type - 'avatar' o 'banner'.
+ */
+function displayLocalImage(file, type) {
     if (!file || !auth.currentUser) {
         displayProfileStatus('Error: Debes iniciar sesión.', true);
         return;
     }
-
+    
     const reader = new FileReader();
 
     reader.onload = function(e) {
         const dataUrl = e.target.result;
-
+        
         if (type === 'avatar') {
             profileAvatar.src = dataUrl;
             profilePhoto.src = dataUrl;
-            pendingAvatarFile = file;
+            pendingAvatarFile = file; // Guarda el archivo pendiente de subir
         } else if (type === 'banner') {
             profileBannerArea.style.backgroundImage = `url('${dataUrl}')`;
-            profileBannerArea.style.backgroundColor = 'transparent';
-            pendingBannerFile = file;
+            profileBannerArea.style.backgroundColor = 'transparent'; 
+            pendingBannerFile = file; // Guarda el archivo pendiente de subir
         }
+        
         displayProfileStatus(`Imagen de ${type} lista para guardar. Presiona "Guardar Nombre".`, false);
     };
-
+    
     reader.onerror = function() {
         displayProfileStatus('❌ Error al leer el archivo local. Intenta con otra imagen.', true);
     }
@@ -262,10 +241,19 @@ function displayLocalImage(file, elementId, type) {
     reader.readAsDataURL(file);
 }
 
+/**
+ * Sube un archivo a Firebase Storage y devuelve su URL. Reemplaza el archivo si ya existe.
+ * @param {File} file - El archivo a subir.
+ * @param {string} path - La carpeta de destino ('avatars' o 'banners').
+ * @param {firebase.User} user - El objeto de usuario actual.
+ * @returns {Promise<string|null>} La URL de descarga o null.
+ */
 async function uploadFileToStorage(file, path, user) {
     if (!file) return null;
 
-    const storageRef = storage.ref(`${path}/${user.uid}.jpg`);
+    // Usamos el UID del usuario como nombre de archivo para asegurar el reemplazo directo
+    // Usamos .jpg fijo para simplicidad, aunque el archivo original puede ser otro (PNG, etc.)
+    const storageRef = storage.ref(`${path}/${user.uid}.jpg`); 
     const uploadTask = storageRef.put(file);
 
     return new Promise((resolve, reject) => {
@@ -289,25 +277,27 @@ async function uploadFileToStorage(file, path, user) {
 
 async function loadUserProfileData(user) {
     if (!user) return;
-
-    const uid = user.uid;
+    
+    const uid = user.uid; 
     const displayName = user.displayName || user.email.split('@')[0];
     displayNameInput.value = displayName;
     userEmailDisplay.textContent = user.email;
 
-    displayProfileStatus('', false);
-
+    displayProfileStatus('', false); 
+    
     const initialChar = displayName.charAt(0).toUpperCase();
+    
     const userDocRef = db.collection('usernames').doc(uid);
     const doc = await userDocRef.get();
     const userData = doc.data() || {};
     
+    // Obtener URLs de Firestore, si existen
     const avatarURL = userData.photoURL || user.photoURL || `https://via.placeholder.com/100/363a45/FFFFFF?text=${initialChar}`;
     const bannerURL = userData.bannerURL; 
 
     profileAvatar.src = avatarURL;
-    profilePhoto.src = avatarURL;
-
+    profilePhoto.src = avatarURL; 
+    
     if (profileIcon) {
         profileIcon.style.display = 'none';
     }
@@ -315,20 +305,21 @@ async function loadUserProfileData(user) {
 
     if (bannerURL) {
         profileBannerArea.style.backgroundImage = `url('${bannerURL}')`;
-        profileBannerArea.style.backgroundColor = 'transparent';
+        profileBannerArea.style.backgroundColor = 'transparent'; 
     } else {
-        profileBannerArea.style.backgroundImage = 'none';
+        profileBannerArea.style.backgroundImage = 'none'; 
         profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
     }
     
-    localStorage.removeItem(getLocalStorageKey(uid, 'avatar'));
-    localStorage.removeItem(getLocalStorageKey(uid, 'banner'));
+    // Limpiar archivos pendientes después de la carga exitosa
+    pendingAvatarFile = null;
+    pendingBannerFile = null;
 }
 
 async function updateUserProfile() {
     const user = auth.currentUser;
     const newName = displayNameInput.value.trim();
-
+    
     if (!user) {
         displayProfileStatus('Error: Debes iniciar sesión para actualizar tu perfil.', true);
         return;
@@ -338,34 +329,36 @@ async function updateUserProfile() {
 
     try {
         const userDocRef = db.collection('usernames').doc(user.uid);
-        let updateData = { displayName: newName };
+        let updateData = { displayName: newName, alias: newName.toLowerCase() }; // Actualiza alias
         let avatarURL = user.photoURL;
-        let bannerURL = null;
-
+        
+        // 1. Subir Avatar si hay uno pendiente
         if (pendingAvatarFile) {
             const uploadedURL = await uploadFileToStorage(pendingAvatarFile, 'avatars', user);
             updateData.photoURL = uploadedURL;
-            avatarURL = uploadedURL;
+            avatarURL = uploadedURL; // Usamos esta URL para actualizar Firebase Auth
             pendingAvatarFile = null;
         }
 
+        // 2. Subir Banner si hay uno pendiente
         if (pendingBannerFile) {
             const uploadedURL = await uploadFileToStorage(pendingBannerFile, 'banners', user);
             updateData.bannerURL = uploadedURL;
-            bannerURL = uploadedURL;
             pendingBannerFile = null;
         }
 
+        // 3. Actualizar Firebase Authentication (nombre y avatar)
         await user.updateProfile({ 
             displayName: newName,
             photoURL: avatarURL
         });
 
+        // 4. Actualizar Firestore
         await userDocRef.set(updateData, { merge: true });
-
-        loginText.textContent = newName;
-        loadUserProfileData(user);
-
+        
+        loginText.textContent = newName; 
+        loadUserProfileData(user); 
+        
         displayProfileStatus('✅ Perfil actualizado y guardado en la nube con éxito.', false);
 
     } catch (error) {
@@ -384,13 +377,13 @@ function displayProfileStatus(message, isError) {
 function renderContentCard(item) {
     const card = document.createElement('div');
     card.className = 'content-card';
-
-    const fileURL = item.fileURL || '';
-
+    
+    const fileURL = item.fileURL || ''; 
+    
     let mediaElement;
     const isVideo = item.fileType && item.fileType.startsWith('video/');
     const defaultPreview = `https://via.placeholder.com/300x250/333/ccc?text=${isVideo ? 'Video' : 'Media'}`;
-
+    
     if (isVideo) {
         mediaElement = `<div class="card-media" style="background-image: url('${defaultPreview}'); display: flex; align-items: center; justify-content: center;">
                             <a href="${item.fileURL.replace('=s300', '')}" target="_blank" style="color: white; font-size: 2em;"><i class="fas fa-play-circle"></i></a>
@@ -400,7 +393,7 @@ function renderContentCard(item) {
     }
 
     const tagsHTML = Array.isArray(item.tags) ? item.tags.map(tag => `<span class="tag-button" onclick="filterContent('${tag}')">${tag}</span>`).join('') : '';
-
+    
     const date = item.timestamp ? new Date(item.timestamp).toLocaleDateString() : 'Desconocida';
     const defaultAuthorPhoto = 'https://via.placeholder.com/25/EA7900/FFFFFF?text=A';
 
@@ -419,7 +412,7 @@ function renderContentCard(item) {
             </div>
         </div>
     `;
-
+    
     return card;
 }
 
@@ -430,20 +423,20 @@ async function loadContent() {
     try {
         const response = await fetch(APPS_SCRIPT_URL);
         const files = await response.json();
-
+        
         loadingMessage.style.display = 'none';
-        allContentData = files;
+        allContentData = files; 
 
         if (files.length === 0) {
             contentGallery.innerHTML = '<p style="color: #999; width: 100%; text-align: center;">Aún no hay contenido indexado. ¡Sube algo!</p>';
             return;
         }
-
+        
         allContentData.forEach((item) => {
             const cardElement = renderContentCard(item);
             contentGallery.appendChild(cardElement);
         });
-
+        
     } catch (error) {
         console.error("Error al cargar el contenido: ", error);
         loadingMessage.textContent = 'Error al cargar el contenido. Revisa el código y despliegue del Apps Script.';
@@ -456,17 +449,17 @@ function filterContent(tagToFilter) {
     contentGallery.innerHTML = '';
 
     const filteredData = allContentData.filter(item => {
-        if (!query) return true;
-
+        if (!query) return true; 
+        
         const titleMatch = item.title.toLowerCase().includes(query);
         const descMatch = item.description.toLowerCase().includes(query);
         const authorMatch = item.authorName.toLowerCase().includes(query);
-
+        
         const tagsMatch = item.tags && item.tags.some(tag => tag.toLowerCase().includes(query));
 
         return titleMatch || descMatch || authorMatch || tagsMatch;
     });
-
+    
     if (filteredData.length === 0) {
          contentGallery.innerHTML = `<p style="color: #999; width: 100%; text-align: center;">No se encontraron resultados para "${query}".</p>`;
     } else {
@@ -477,53 +470,147 @@ function filterContent(tagToFilter) {
     }
 }
 
+// =================================================================
+// === LÓGICA DE CHAT ==============================================
+// =================================================================
+
+async function startOrGetChat(alias) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+        alert("Debes iniciar sesión para chatear.");
+        return null;
+    }
+
+    try {
+        const usersRef = db.collection('usernames');
+        const querySnapshot = await usersRef.where('alias', '==', alias.toLowerCase()).limit(1).get();
+
+        if (querySnapshot.empty) {
+            alert(`No se encontró ningún usuario con el apodo (alias): ${alias}`);
+            return null;
+        }
+        
+        const contactDoc = querySnapshot.docs[0];
+        const contactId = contactDoc.id; 
+        
+        if (currentUser.uid === contactId) {
+             alert("No puedes iniciar un chat contigo mismo.");
+             return null;
+        }
+
+        const participants = [currentUser.uid, contactId].sort();
+        
+        const chatRef = db.collection('chats');
+        
+        // La consulta array-contains-any es más robusta, pero requiere índices. 
+        // Usaremos la búsqueda por UID y filtro manual por el momento.
+        const existingChat = await chatRef
+            .where('participants', 'array-contains', currentUser.uid)
+            .get();
+            
+        const chatDoc = existingChat.docs.find(doc => 
+            doc.data().participants.includes(contactId)
+        );
+
+        if (chatDoc) {
+            console.log(`Chat existente encontrado: ${chatDoc.id}`);
+            return chatDoc.id; 
+        }
+
+        const newChat = await chatRef.add({
+            participants: participants,
+            lastMessage: "Chat iniciado.",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log(`Nuevo chat creado: ${newChat.id}`);
+        return newChat.id; 
+
+    } catch (error) {
+        console.error("Error al iniciar o buscar chat:", error);
+        alert("Ocurrió un error al intentar iniciar el chat.");
+        return null;
+    }
+}
+
+async function sendMessage(chatId, text) {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !chatId || !text.trim()) {
+        console.error("No se puede enviar el mensaje: falta usuario, ID de chat o texto.");
+        return;
+    }
+
+    try {
+        const messageData = {
+            senderId: currentUser.uid,
+            senderName: currentUser.displayName || currentUser.email.split('@')[0],
+            text: text.trim(),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('chats').doc(chatId).collection('messages').add(messageData);
+
+        await db.collection('chats').doc(chatId).update({
+            lastMessage: text.trim().substring(0, 50) + (text.length > 50 ? '...' : ''),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log(`Mensaje enviado al chat ${chatId}`);
+
+    } catch (error) {
+        console.error("Error al enviar mensaje:", error);
+    }
+}
+
+
+// =================================================================
+// === AUTH STATE CHANGED ==========================================
+// =================================================================
 
 auth.onAuthStateChanged(async (user) => {
-
+    
     if (user) {
+        
         const userDocRef = db.collection('usernames').doc(user.uid);
         const doc = await userDocRef.get();
 
         if (!doc.exists) {
-            console.log("Creando registro inicial en Firestore...");
             const initialDisplayName = user.displayName || user.email.split('@')[0];
-
+            
             await userDocRef.set({
                 uid: user.uid,
                 displayName: initialDisplayName,
                 email: user.email,
                 photoURL: user.photoURL || null,
+                alias: initialDisplayName.toLowerCase(), 
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 snakeHighscore: 0,
                 buscaminasHighscore: 0,
             }, { merge: true });
-
-            console.log("✅ Usuario registrado en Firestore.");
-        } else {
-            console.log("Usuario existente, cargando datos de Firestore.");
-        }
+        } 
 
         const displayName = user.displayName || user.email.split('@')[0];
-
-        loginText.textContent = displayName;
-        logoutLink.style.display = 'flex';
+        
+        loginText.textContent = displayName; 
+        logoutLink.style.display = 'flex'; 
         sidebarProfileSection.onclick = handleProfileClick;
-
-        await loadUserProfileData(user);
+        
+        await loadUserProfileData(user); 
 
     } else {
         loginText.textContent = 'Iniciar Sesión';
-
+        
         if (profileIcon) {
-            profileIcon.style.display = 'block';
+            profileIcon.style.display = 'block'; 
         }
         profilePhoto.style.display = 'none';
-
-        logoutLink.style.display = 'none';
-        sidebarProfileSection.onclick = openAuthModal;
-
+        
+        logoutLink.style.display = 'none'; 
+        sidebarProfileSection.onclick = openAuthModal; 
+        
         profileAvatar.src = 'https://via.placeholder.com/100/363a45/FFFFFF?text=G';
-        profileBannerArea.style.backgroundImage = 'none';
+        profileBannerArea.style.backgroundImage = 'none'; 
         profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
         displayNameInput.value = '';
         userEmailDisplay.textContent = '';
@@ -534,6 +621,7 @@ auth.onAuthStateChanged(async (user) => {
         }
     }
 });
+
 
 document.addEventListener('DOMContentLoaded', initializeApp);
 
@@ -550,3 +638,17 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => showScreen('home-screen'));
+
+window.showScreen = showScreen;
+window.toggleMenu = toggleMenu;
+window.handleProfileClick = handleProfileClick;
+window.signInWithGoogle = signInWithGoogle;
+window.logout = logout;
+window.updateUserProfile = updateUserProfile;
+window.displayLocalImage = displayLocalImage;
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.closeModalOnOutsideClick = closeModalOnOutsideClick;
+window.filterContent = filterContent;
+window.startOrGetChat = startOrGetChat;
+window.sendMessage = sendMessage;
