@@ -8,13 +8,12 @@ const firebaseConfig = {
     measurementId: "G-WCBZTBPXZ4"
 };
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIvOkpHvTPTKY-zvEJ_ab0tkqOOd0tRBkvPJNFM5PVf2Z0d0tRBkvPJNFM5PVrQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIvOkpHvTPTKY-zvEJ_ab0tkqOOd0tRBkvPJF2Z0d0tRBkvPJF2Z0d0tRBkvPJNFM5PVrQ/exec';
 
-// --- INICIALIZACIÓN CORREGIDA ---
 const app = firebase.initializeApp(firebaseConfig);
-const auth = app.auth(); // Correcto: Usar el objeto app
-const db = app.firestore(); // Correcto: Usar el objeto app
-const storage = app.storage(); // Añadido Storage
+const auth = app.auth();
+const db = app.firestore();
+const storage = app.storage();
 
 const sidebar = document.getElementById("mySidebar");
 const menuOverlay = document.getElementById("menuOverlay"); 
@@ -26,6 +25,7 @@ const sidebarProfileSection = document.getElementById('sidebarProfileSection');
 const views = document.querySelectorAll('.main-content');
 const authModal = document.getElementById('authModal');
 const searchInput = document.getElementById('searchInput');
+const backButton = document.querySelector('.back-button');
 
 const contentGallery = document.getElementById('contentGallery');
 const loadingMessage = document.getElementById('loadingMessage');
@@ -38,11 +38,14 @@ const userEmailDisplay = document.getElementById('userEmailDisplay');
 const profileStatus = document.getElementById('profileStatus');
 const appIconHolder = document.getElementById('appIconHolder'); 
 
-let pendingAvatarFile = null; // Archivo de avatar pendiente de subir
-let pendingBannerFile = null; // Archivo de banner pendiente de subir
+let pendingAvatarFile = null;
+let pendingBannerFile = null;
 
 const DEFAULT_AVATAR = "https://via.placeholder.com/70/363a45/FFFFFF?text=G";
 const DEFAULT_BANNER_COLOR = "#444";
+
+let navigationHistory = ['home-screen'];
+let currentScreen = 'home-screen';
 
 
 function isMobile() {
@@ -94,10 +97,23 @@ function updateHeaderIcon() {
     appIconHolder.innerHTML = iconHTML;
 }
 
-
 function showScreen(screenId) {
     if (isMobile()) {
         closeMenu(); 
+    }
+    
+    if (screenId !== currentScreen) {
+        if (navigationHistory[navigationHistory.length - 1] !== screenId) {
+            navigationHistory.push(screenId);
+        }
+        currentScreen = screenId;
+    }
+    
+    if (screenId === 'home-screen') {
+        backButton.style.display = 'none';
+        navigationHistory = ['home-screen'];
+    } else {
+        backButton.style.display = 'flex';
     }
     
     views.forEach(view => {
@@ -116,6 +132,33 @@ function showScreen(screenId) {
         } else {
             openAuthModal(); 
         }
+    }
+}
+
+function showScreenInternal(screenId) {
+    views.forEach(view => {
+        view.classList.remove('active');
+    });
+    document.getElementById(screenId).classList.add('active');
+    
+    currentScreen = screenId; 
+    
+    if (screenId === 'home-screen') {
+        backButton.style.display = 'none';
+    } else {
+        backButton.style.display = 'flex'; 
+    }
+}
+
+function goBack() {
+    if (navigationHistory.length > 1) {
+        navigationHistory.pop();
+        const previousScreenId = navigationHistory[navigationHistory.length - 1];
+        showScreenInternal(previousScreenId); 
+    }
+    
+    if (navigationHistory.length === 1 && navigationHistory[0] === 'home-screen') {
+        backButton.style.display = 'none';
     }
 }
 
@@ -202,14 +245,6 @@ function logout() {
         .catch((error) => { console.error('Error al cerrar sesión:', error); });
 }
 
-
-// --- LÓGICA DE FIREBASE STORAGE ---
-
-/**
- * Muestra la imagen seleccionada localmente y la guarda en una variable.
- * @param {File} file - El archivo de imagen.
- * @param {string} type - 'avatar' o 'banner'.
- */
 function displayLocalImage(file, type) {
     if (!file || !auth.currentUser) {
         displayProfileStatus('Error: Debes iniciar sesión.', true);
@@ -224,11 +259,11 @@ function displayLocalImage(file, type) {
         if (type === 'avatar') {
             profileAvatar.src = dataUrl;
             profilePhoto.src = dataUrl;
-            pendingAvatarFile = file; // Guarda el archivo pendiente de subir
+            pendingAvatarFile = file;
         } else if (type === 'banner') {
             profileBannerArea.style.backgroundImage = `url('${dataUrl}')`;
             profileBannerArea.style.backgroundColor = 'transparent'; 
-            pendingBannerFile = file; // Guarda el archivo pendiente de subir
+            pendingBannerFile = file;
         }
         
         displayProfileStatus(`Imagen de ${type} lista para guardar. Presiona "Guardar Nombre".`, false);
@@ -241,18 +276,9 @@ function displayLocalImage(file, type) {
     reader.readAsDataURL(file);
 }
 
-/**
- * Sube un archivo a Firebase Storage y devuelve su URL. Reemplaza el archivo si ya existe.
- * @param {File} file - El archivo a subir.
- * @param {string} path - La carpeta de destino ('avatars' o 'banners').
- * @param {firebase.User} user - El objeto de usuario actual.
- * @returns {Promise<string|null>} La URL de descarga o null.
- */
 async function uploadFileToStorage(file, path, user) {
     if (!file) return null;
 
-    // Usamos el UID del usuario como nombre de archivo para asegurar el reemplazo directo
-    // Usamos .jpg fijo para simplicidad, aunque el archivo original puede ser otro (PNG, etc.)
     const storageRef = storage.ref(`${path}/${user.uid}.jpg`); 
     const uploadTask = storageRef.put(file);
 
@@ -291,7 +317,6 @@ async function loadUserProfileData(user) {
     const doc = await userDocRef.get();
     const userData = doc.data() || {};
     
-    // Obtener URLs de Firestore, si existen
     const avatarURL = userData.photoURL || user.photoURL || `https://via.placeholder.com/100/363a45/FFFFFF?text=${initialChar}`;
     const bannerURL = userData.bannerURL; 
 
@@ -311,7 +336,6 @@ async function loadUserProfileData(user) {
         profileBannerArea.style.backgroundColor = DEFAULT_BANNER_COLOR;
     }
     
-    // Limpiar archivos pendientes después de la carga exitosa
     pendingAvatarFile = null;
     pendingBannerFile = null;
 }
@@ -329,31 +353,27 @@ async function updateUserProfile() {
 
     try {
         const userDocRef = db.collection('usernames').doc(user.uid);
-        let updateData = { displayName: newName, alias: newName.toLowerCase() }; // Actualiza alias
+        let updateData = { displayName: newName, alias: newName.toLowerCase() };
         let avatarURL = user.photoURL;
         
-        // 1. Subir Avatar si hay uno pendiente
         if (pendingAvatarFile) {
             const uploadedURL = await uploadFileToStorage(pendingAvatarFile, 'avatars', user);
             updateData.photoURL = uploadedURL;
-            avatarURL = uploadedURL; // Usamos esta URL para actualizar Firebase Auth
+            avatarURL = uploadedURL;
             pendingAvatarFile = null;
         }
 
-        // 2. Subir Banner si hay uno pendiente
         if (pendingBannerFile) {
             const uploadedURL = await uploadFileToStorage(pendingBannerFile, 'banners', user);
             updateData.bannerURL = uploadedURL;
             pendingBannerFile = null;
         }
 
-        // 3. Actualizar Firebase Authentication (nombre y avatar)
         await user.updateProfile({ 
             displayName: newName,
             photoURL: avatarURL
         });
 
-        // 4. Actualizar Firestore
         await userDocRef.set(updateData, { merge: true });
         
         loginText.textContent = newName; 
@@ -372,7 +392,6 @@ function displayProfileStatus(message, isError) {
     profileStatus.className = 'status-' + (isError ? 'error' : 'success');
     profileStatus.style.display = message ? 'block' : 'none';
 }
-
 
 function renderContentCard(item) {
     const card = document.createElement('div');
@@ -470,10 +489,6 @@ function filterContent(tagToFilter) {
     }
 }
 
-// =================================================================
-// === LÓGICA DE CHAT ==============================================
-// =================================================================
-
 async function startOrGetChat(alias) {
     const currentUser = auth.currentUser;
     if (!currentUser) {
@@ -502,8 +517,6 @@ async function startOrGetChat(alias) {
         
         const chatRef = db.collection('chats');
         
-        // La consulta array-contains-any es más robusta, pero requiere índices. 
-        // Usaremos la búsqueda por UID y filtro manual por el momento.
         const existingChat = await chatRef
             .where('participants', 'array-contains', currentUser.uid)
             .get();
@@ -562,11 +575,6 @@ async function sendMessage(chatId, text) {
         console.error("Error al enviar mensaje:", error);
     }
 }
-
-
-// =================================================================
-// === AUTH STATE CHANGED ==========================================
-// =================================================================
 
 auth.onAuthStateChanged(async (user) => {
     
@@ -640,6 +648,7 @@ window.addEventListener('resize', () => {
 document.addEventListener('DOMContentLoaded', () => showScreen('home-screen'));
 
 window.showScreen = showScreen;
+window.goBack = goBack;
 window.toggleMenu = toggleMenu;
 window.handleProfileClick = handleProfileClick;
 window.signInWithGoogle = signInWithGoogle;
