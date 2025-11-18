@@ -72,7 +72,7 @@
         <div class="profile-container">
             <div id="profileBannerArea" class="profile-banner-area">
                 <div class="banner-upload-wrapper">
-                    <input type="file" id="bannerFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'profileBannerArea', 'banner')">
+                    <input type="file" id="bannerFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'banner')">
                     <label for="bannerFileInput" class="banner-upload-btn">
                         <i class="fas fa-camera"></i> Elegir Banner
                     </label>
@@ -81,7 +81,7 @@
             <div class="profile-avatar-wrapper">
                 <img id="profileAvatar" class="profile-avatar" src="https://via.placeholder.com/100/363a45/FFFFFF?text=G" style="visibility: hidden;" onload="this.style.visibility='visible'">
                 <div class="avatar-upload-wrapper">
-                    <input type="file" id="avatarFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'profileAvatar', 'avatar')">
+                    <input type="file" id="avatarFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'avatar')">
                     <label for="avatarFileInput" class="avatar-upload-btn">
                         <i class="fas fa-camera"></i> Elegir Ícono
                     </label>
@@ -306,16 +306,16 @@
                 <a href="https://x.com/gatosauriocrack" target="_blank" class="red-link">
                     <i class="fab fa-twitter social-icon twitter"></i> X [Twitter]
                 </a>
-                <span class="red-link disabled-link">
-                    <i class="fab fa-tiktok social-icon tiktok"></i> TikTok (Por agregar link)
-                </span>
-                <span class="red-link disabled-link">
-                    <i class="fab fa-twitch social-icon twitch"></i> Twitch (Por agregar link)
-                </span>
-                <span class="red-link disabled-link">
-                    <i class="fab fa-discord social-icon discord"></i> Discord (Por agregar link)
-                </span>
-            </div>
+                <a href="https://www.tiktok.com/@gatosauriocrack?_r=1&_t=ZS-91VAbcZUul5" target="_blank" class="red-link">
+                    <i class="fab fa-tiktok social-icon tiktok"></i> TikTok
+                </a>
+                <a href="https://m.twitch.tv/gatosauriocrack0/home" target="_blank" class="red-link">
+                    <i class="fab fa-twitch social-icon twitch"></i> Twitch
+                </a>
+                <a href="https://discord.gg/8wVxZs8eFJ" target="_blank" class="red-link">
+                    <i class="fab fa-discord social-icon discord"></i> Discord 
+                </a>
+                </div>
         </div>
     </div>
     <div id="apoyo-screen" class="main-content">
