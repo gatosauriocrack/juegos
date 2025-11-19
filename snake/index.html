@@ -37,6 +37,11 @@
             color: var(--color-texto);
             gap: 15px;
             touch-action: manipulation; 
+            
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+            -webkit-user-select: none; 
+            -ms-user-select: none; 
         }
         #scoreContainer {
             display: flex;
@@ -95,6 +100,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            
+            -webkit-tap-highlight-color: transparent;
         }
         .control-btn:hover { background-color: #ff8c00; }
         .control-btn:active {
@@ -409,9 +416,10 @@
             
             <h2>Snake (disfruta)</h2>
             <p style="color: var(--color-texto); margin-bottom: 20px;">Selecciona la velocidad:</p>
-            <button onclick="showCountdown(200, 'Lento (Fácil)')">Lento (Fácil)</button>
-            <button onclick="showCountdown(100, 'Normal (Medio)')">Normal (Medio)</button>
-            <button onclick="showCountdown(60, 'Rápido (Difícil)')">Rápido (Difícil)</button>
+            
+            <button class="speed-btn" data-speed="200" data-name="Lento (Fácil)">Lento (Fácil)</button>
+            <button class="speed-btn" data-speed="100" data-name="Normal (Medio)">Normal (Medio)</button>
+            <button class="speed-btn" data-speed="60" data-name="Rápido (Difícil)">Rápido (Difícil)</button>
             
             <hr style="width: 100%; margin: 20px 0; border-top: 1px solid #555;">
 
@@ -462,7 +470,7 @@
     <div id="pauseModal" class="game-modal">
         <div class="modal-content">
             <h2>JUEGO EN PAUSA</h2>
-            <button id="resumeButton">REANUDAR (Espacio)</button>
+            <button id="resumeButton">REANUDAR</button>
         </div>
     </div>
 
@@ -543,7 +551,6 @@
                     createdAt: FieldValue.serverTimestamp(),
                     snakeHighscore: 0, 
                 }, { merge: true });
-                console.log("Usuario registrado en Firestore (Colección usernames).");
             }
         }
 
@@ -567,7 +574,6 @@
                 const user = auth.currentUser; 
                 return (user.displayName || user.email.split('@')[0]) || "Usuario Desconocido"; 
              } catch(e) {
-                console.error("Fallo al buscar el alias por UID:", e);
                 return "Error al cargar alias";
              }
         }
@@ -587,7 +593,6 @@
             const currentHighscore = leaderboardDoc.exists ? (leaderboardDoc.data().score || 0) : 0;
 
             if (score <= currentHighscore) {
-                console.log(`Puntaje (${score}) no es mayor que el récord actual (${currentHighscore}). No se guarda.`);
                 showNotification(false);
                 return { success: false, message: "El puntaje no superó el récord actual." };
             }
@@ -602,15 +607,12 @@
 
             try {
                 await leaderboardDocRef.set(recordData, { merge: true }); 
-                console.log("Nuevo Récord personal guardado/actualizado en Firebase Leaderboard.");
 
                 await usernamesCol.doc(uid).update({ snakeHighscore: score });
-                console.log("Highscore actualizado en la colección usernames.");
 
                 showNotification(true); 
                 return { success: true };
             } catch (error) {
-                console.error("Error al actualizar el récord en Firebase:", error);
                 showNotification(false); 
                 return { success: false, message: "Error interno al guardar el récord." };
             }
@@ -624,6 +626,7 @@
         const ctx = canvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const highScoreElement = document.getElementById('highScore');
+        
         const startModal = document.getElementById('startModal');
         const gameOverModal = document.getElementById('gameOverModal');
         const pauseButton = document.getElementById('pauseButton');
@@ -984,6 +987,14 @@
             button.addEventListener('mousedown', handleInput);
             button.addEventListener('touchstart', handleInput);
         });
+
+        document.querySelectorAll('.speed-btn').forEach(button => {
+            button.addEventListener('click', (event) => {
+                const speed = parseInt(event.currentTarget.getAttribute('data-speed'));
+                const name = event.currentTarget.getAttribute('data-name');
+                showCountdown(speed, name);
+            });
+        });
         
         pauseButton.addEventListener('click', togglePause);
         resumeButton.addEventListener('click', togglePause);
@@ -992,6 +1003,7 @@
             gameOverModal.style.display = 'none';
             pauseButton.style.display = 'none'; 
             startModal.style.display = 'flex'; 
+            drawGame(); 
         });
         
         document.getElementById('btnClasificatoria').addEventListener('click', () => {
@@ -1005,5 +1017,3 @@
     </script>
 </body>
 </html>
-
-
