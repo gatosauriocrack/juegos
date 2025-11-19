@@ -538,21 +538,20 @@ input[type="file"] {
     color: white;
 }
 
-/* --- ACTUALIZACIÓN DE FUENTE Y CÓDIGOS DE ICOMON --- */
 @font-face {
-  font-family: 'Gatosauriocrack-fonts-awesome'; /* Nombre de fuente actualizado */
-  src:  url('fonts/Gatosauriocrack-fonts-awesome.eot?f7fp5j');
-  src:  url('fonts/Gatosauriocrack-fonts-awesome.eot?f7fp5j#iefix') format('embedded-opentype'),
-    url('fonts/Gatosauriocrack-fonts-awesome.ttf?f7fp5j') format('truetype'),
-    url('fonts/Gatosauriocrack-fonts-awesome.woff?f7fp5j') format('woff'),
-    url('fonts/Gatosauriocrack-fonts-awesome.svg?f7fp5j#Gatosauriocrack-fonts-awesome') format('svg');
+  font-family: 'FontAwesome-Gatosauriocrack';
+  src:  url('fonts/FontAwesome-Gatosauriocrack.eot?ye7esj');
+  src:  url('fonts/FontAwesome-Gatosauriocrack.eot?ye7esj#iefix') format('embedded-opentype'),
+    url('fonts/FontAwesome-Gatosauriocrack.ttf?ye7esj') format('truetype'),
+    url('fonts/FontAwesome-Gatosauriocrack.woff?ye7esj') format('woff'),
+    url('fonts/FontAwesome-Gatosauriocrack.svg?ye7esj#FontAwesome-Gatosauriocrack') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
 }
 
-.icon {
-  font-family: 'Gatosauriocrack-fonts-awesome' !important; /* Familia de fuente actualizada */
+[class^="icon-"], [class*=" icon-"], .icon {
+  font-family: 'FontAwesome-Gatosauriocrack' !important;
   speak: never;
   font-style: normal;
   font-weight: normal;
@@ -563,17 +562,50 @@ input[type="file"] {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-dino:before {
-  content: "\e900"; /* Código de dino actualizado */
-}
-.icon-gato:before {
-  content: "\e901"; /* Código de gato actualizado */
+.icon-meli-icono:before {
+  content: "\e900";
 }
 .icon-Meli:before {
-  content: "\e902"; /* Código de Meli actualizado */
+  content: "\e901";
+  color: #5e5e5e;
+}
+.icon-Ambar:before {
+  content: "\e902";
+}
+.icon-Melody:before {
+  content: "\e903";
+  color: #5e5e5e;
+}
+.icon-Melissa:before {
+  content: "\e904";
+}
+.icon-Nelle:before {
+  content: "\e905";
+  color: #5e5e5e;
+}
+.icon-calculadora:before {
+  content: "\e906";
+}
+.icon-icono-snake:before {
+  content: "\e907";
+}
+.icon-album:before {
+  content: "\e908";
+}
+.icon-dino:before {
+  content: "\e909";
+}
+.icon-gato:before {
+  content: "\e90a";
+}
+.icon-icono-ia:before {
+  content: "\e90b";
+}
+.icon-meli-chibi:before {
+  content: "\e90c";
 }
 .icon-michi:before {
-  content: "\e903"; /* Código de michi actualizado */
+  content: "\e90d";
 }
 
 .icon-display-container {
@@ -589,7 +621,7 @@ input[type="file"] {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #FFFFFF; /* Recuadro blanco */
+    background-color: #FFFFFF;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -598,7 +630,7 @@ input[type="file"] {
 
 .icon-item .icon {
     font-size: 50px;
-    color: #000000; /* Símbolo negro */
+    color: #000000;
     margin-bottom: 10px;
 }
 
