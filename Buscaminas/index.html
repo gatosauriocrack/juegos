@@ -37,6 +37,13 @@
             padding-bottom: 20px;
             box-sizing: border-box;
             position: relative;
+            
+            /* INICIO de ajustes para táctil y selección */
+            user-select: none; 
+            -webkit-user-select: none; 
+            -ms-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            /* FIN de ajustes para táctil y selección */
         }
 
         #game-info-panel {
@@ -72,6 +79,7 @@
             font-size: 1em;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
             transition: background-color 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #game-info-panel button:hover {
@@ -114,6 +122,7 @@
             color: #333;
             position: relative;
             transition: background-color 0.1s ease-out;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .cell.selected-for-action {
@@ -194,6 +203,7 @@
             align-items: center;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
             transition: transform 0.1s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #flag-action-btn { background-color: #FBC02D; }
@@ -210,6 +220,7 @@
             border-radius: 50%;
             border: none;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+            -webkit-tap-highlight-color: transparent;
         }
 
         #game-over-modal {
@@ -284,6 +295,7 @@
             font-weight: bold;
             position: relative;
             z-index: 1;
+            -webkit-tap-highlight-color: transparent;
         }
         #modal-content-win button:hover {
             background-color: #e67e00;
@@ -333,6 +345,7 @@
             transform: rotate(-15deg) scale(1); 
             z-index: 1;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            -webkit-tap-highlight-color: transparent;
         }
 
         #game-over-modal.defeat #modal-message-defeat.defeat {
@@ -349,6 +362,7 @@
             cursor: pointer;
             transition: transform 0.1s ease-in-out;
             transform-origin: center;
+            -webkit-tap-highlight-color: transparent;
         }
         
         #game-over-modal.defeat #modal-message-defeat.defeat:active {
@@ -418,6 +432,7 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            -webkit-tap-highlight-color: transparent;
         }
         .auth-content {
             background-color: #000000;
@@ -436,7 +451,6 @@
         .auth-content h2 {
             color: var(--color-mine-revealed);
         }
-        /* Estilos para los 3 campos */
         .auth-content input[type="email"], .auth-content input[type="password"], .auth-content input[type="text"] {
             padding: 10px; 
             margin: 5px; 
@@ -455,6 +469,7 @@
             border-radius: 5px;
             cursor: pointer;
             transition: opacity 0.2s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         #btnClasificatoria {
@@ -479,6 +494,7 @@
             font-size: 1.5em;
             z-index: 200;
             display: none !important; 
+            -webkit-tap-highlight-color: transparent;
         }
         #btnClasificatoria:active {
             box-shadow: 0 1px #008c99;
@@ -523,16 +539,14 @@
             animation: scale-in-out 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
 
-        /* NUEVA MEDIA QUERY: Aumentar el tamaño de la celda en PC */
         @media (min-width: 992px) {
             :root {
-                --cell-size: 30px; /* Tamaño de celda ligeramente mayor */
+                --cell-size: 30px; 
             }
 
-            /* Ajustar el panel de información */
             #game-info-panel {
                 font-size: 1.2em; 
-            }
+            }            
         }
     </style>
 </head>
@@ -624,11 +638,7 @@
     </div>
 
     <script>
-// =======================================================
-// 1. CONFIGURACIÓN E INICIALIZACIÓN DE FIREBASE (¡MANTÉN TUS PROPIAS CLAVES!)
-// =======================================================
 const firebaseConfig = {
-    // ⚠️ Asegúrate de que esta configuración coincida con la de tu proyecto Firebase ⚠️
     apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
     authDomain: "procesador-56b7a.firebaseapp.com",
     projectId: "procesador-56b7a",
@@ -640,27 +650,18 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const FieldValue = firebase.firestore.FieldValue; // Para el timestamp
+const FieldValue = firebase.firestore.FieldValue;
 
-// 🔥 COLECCIONES ESPECÍFICAS DE FIRESTORE
 const leaderboardCol = db.collection('leaderboard_buscaminas_game');
-const usernamesCol = db.collection('usernames'); // Colección para guardar el Alias
-// =======================================================
-
-
-// ⚠️ URLs
+const usernamesCol = db.collection('usernames');
 const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/BuscaminasRecords"; 
 const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`; 
 
-// 🎯 DETALLES DEL JUEGO
 const GAME_API_KEY = 'buscaminas_game'; 
 const DIFFICULTIES = {
     'normal': { rows: 29, cols: 30, mines: 99, name: "Experto (29x30)" }
 };
 
-// =======================================================
-// VARIABLES GLOBALES DEL JUEGO
-// =======================================================
 let CURRENT_ROWS;
 let CURRENT_COLS;
 let CURRENT_MINES;
@@ -676,13 +677,12 @@ const defeatWrapper = document.getElementById('defeat-wrapper');
 const sessionStatusElement = document.getElementById('sessionStatus');
 const notificationIcon = document.getElementById('notification-icon');
 
-// 💡 Variables para los inputs de autenticación (los 3 campos)
 const authEmailInput = document.getElementById('authEmail'); 
 const authUsernameInput = document.getElementById('authUsername'); 
 const authPasswordInput = document.getElementById('authPassword'); 
 const logoutButton = document.getElementById('logoutButton');
 
-let currentUser = null; // El nombre de usuario (alias)
+let currentUser = null; 
 let gameGrid = [];
 let flagsPlaced = 0;
 let gameOver = false;
@@ -697,13 +697,6 @@ const celebrationEmojis = [
     '🌸', '🌼', '🌻', '🌷', '🌹', '🌺', '💐' 
 ];
 
-// =======================================================
-// 2. FUNCIONES DE AUTENTICACIÓN Y SESIÓN (MODIFICADAS)
-// =======================================================
-
-/**
- * Trae el alias guardado en Firestore usando el UID del usuario.
- */
 async function getAliasFromUID(uid) {
     if (!uid) return "Usuario";
     try {
@@ -718,13 +711,7 @@ async function getAliasFromUID(uid) {
     }
 }
 
-/**
- * Actualiza la interfaz del estado de la sesión.
- * Ahora es asíncrona porque necesita buscar el alias en Firestore.
- * @param {object | null} user - El objeto de usuario de Firebase, o null si está desconectado.
- */
 async function updateSessionUI(user) {
-    // Restaurar los botones de autenticación
     document.querySelectorAll('#authModal button').forEach(btn => {
         if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
             btn.style.display = 'inline-block';
@@ -732,7 +719,6 @@ async function updateSessionUI(user) {
     });
 
     if (user) {
-        // 1. Obtener el alias del Firestore
         const username = await getAliasFromUID(user.uid); 
         currentUser = username; 
         
@@ -742,11 +728,9 @@ async function updateSessionUI(user) {
         logoutButton.style.display = 'block';
         logoutButton.textContent = `Cerrar Sesión (${username})`;
         
-        // 2. Deshabilitar y rellenar los campos de entrada
         if (authEmailInput) { authEmailInput.value = user.email; authEmailInput.disabled = true; } 
         if (authUsernameInput) { authUsernameInput.value = username; authUsernameInput.disabled = true; }
         
-        // 3. Ocultar campos innecesarios
         if (authPasswordInput) authPasswordInput.style.display = 'none'; 
         document.querySelectorAll('#authModal button').forEach(btn => {
              if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
@@ -755,14 +739,12 @@ async function updateSessionUI(user) {
         });
 
     } else {
-        // Usuario desconectado
         currentUser = null;
         sessionStatusElement.textContent = `Sesión: No iniciada`;
         sessionStatusElement.style.color = 'var(--color-mine-revealed)';
         
         logoutButton.style.display = 'none';
         
-        // Restablecer campos
         if (authEmailInput) { authEmailInput.value = ''; authEmailInput.disabled = false; }
         if (authUsernameInput) { authUsernameInput.value = ''; authUsernameInput.disabled = false; }
         if (authPasswordInput) {
@@ -772,19 +754,10 @@ async function updateSessionUI(user) {
     }
 }
 
-/**
- * Observador de estado de Firebase: Llama a updateSessionUI.
- */
 auth.onAuthStateChanged((user) => {
     updateSessionUI(user);
 });
 
-
-/**
- * Función de Autenticación (Login/Registro) con 3 campos.
- *
- * ***AJUSTE CLAVE: Validación de unicidad de Alias antes de registrar.***
- */
 async function handleAuthentication(isRegister) {
     const email = document.getElementById('authEmail').value.trim();
     const username = document.getElementById('authUsername').value.trim();
@@ -799,25 +772,21 @@ async function handleAuthentication(isRegister) {
     }
     
     try {
-        // 1. Persistencia de sesión (DEBE HACERSE ANTES DE LA AUTENTICACIÓN)
         const persistenceType = rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
         await auth.setPersistence(persistenceType);
 
         let userCredential;
         
         if (isRegister) {
-            // *** VALIDACIÓN DE UNICIDAD DE ALIAS ***
             const aliasQuery = await usernamesCol.where('alias', '==', username).limit(1).get();
             if (!aliasQuery.empty) {
                 showNotification(false, "Este nombre de usuario (Alias) ya está tomado. Elige otro.");
                 return; 
             }
             
-            // 2. Crear usuario en Firebase Auth (con Correo y Contraseña)
             userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const uid = userCredential.user.uid;
 
-            // 3. Guardar el Alias en Firestore usando el UID
             await usernamesCol.doc(uid).set({
                 alias: username,
                 email: email, 
@@ -826,19 +795,16 @@ async function handleAuthentication(isRegister) {
 
             showNotification(true, `¡Registro exitoso! Bienvenido, ${username}.`);
         } else {
-            // 4. Iniciar sesión (solo requiere correo y contraseña)
             userCredential = await auth.signInWithEmailAndPassword(email, password);
             showNotification(true, `¡Bienvenido de nuevo!`);
             
-            // 5. Si el usuario existe pero no tiene alias (ej: usó un código antiguo), lo creamos/actualizamos.
             const aliasExists = await getAliasFromUID(userCredential.user.uid);
             if (aliasExists === "Usuario") {
-                 // Usamos el alias ingresado si no existe en la BD
                  await usernamesCol.doc(userCredential.user.uid).set({
                     alias: username,
                     email: email, 
                     createdAt: FieldValue.serverTimestamp()
-                }, { merge: true }); // Usamos merge para evitar sobrescribir si el documento ya existe
+                }, { merge: true }); 
             }
         }
 
@@ -858,10 +824,6 @@ async function handleAuthentication(isRegister) {
     }
 }
 
-
-/**
- * Cierre de Sesión con Firebase.
- */
 function logout() {
     auth.signOut()
         .then(() => {
@@ -873,13 +835,6 @@ function logout() {
         });
 }
 
-// =======================================================
-// 3. FUNCIÓN DE GUARDADO DE RÉCORD (Ajustada)
-// =======================================================
-
-/**
- * Envía el récord a la colección 'leaderboard_buscaminas_game'.
- */
 async function saveUserRecord(finalTime) {
     const user = auth.currentUser;
     if (!user) {
@@ -889,23 +844,20 @@ async function saveUserRecord(finalTime) {
     }
 
     const uid = user.uid;
-    // Recuperar el alias de Firestore que se estableció durante el registro
     const username = await getAliasFromUID(uid); 
     
-    // Si el alias es "Usuario", algo falló.
     if (username === "Usuario") {
         showNotification(false, "Error: No se encontró tu alias. Inicia sesión de nuevo.");
         return;
     }
 
-    // Obtener el nombre de la dificultad actual
     const difficultyData = DIFFICULTIES['normal']; 
     const difficultyName = difficultyData.name; 
 
     const recordData = {
         uid: uid,
-        username: username, // Usamos el alias de Firestore
-        score: finalTime, // El tiempo es el score (más bajo es mejor)
+        username: username, 
+        score: finalTime, 
         difficulty: difficultyName, 
         timestamp: FieldValue.serverTimestamp()
     };
@@ -919,21 +871,14 @@ async function saveUserRecord(finalTime) {
     }
 }
 
-// =======================================================
-// 4. FUNCIONES AUXILIARES Y LÓGICA DEL JUEGO (Resto del Código)
-// =======================================================
-
 let notificationTimeout;
 function showNotification(isSuccess, message) {
-    // Usamos el elemento de estado de sesión para mostrar el mensaje temporalmente
     clearTimeout(notificationTimeout);
     
     sessionStatusElement.textContent = message;
     sessionStatusElement.style.color = isSuccess ? '#4CAF50' : '#F44336';
     
-    // Configuración de auto-cierre y restauración del estado
     notificationTimeout = setTimeout(() => {
-        // Solo restaura la UI si el usuario no ha reabierto el modal de autenticación
         if (document.getElementById('authModal').style.display !== 'flex') {
             const user = auth.currentUser;
             user ? updateSessionUI(user) : updateSessionUI(null);
@@ -1029,7 +974,6 @@ function createBoard() {
 
             cell.addEventListener('touchstart', handleCellTouchStart);
             
-            // Manejo de clics de ratón
             cell.addEventListener('mousedown', handleCellMouseDown); 
             cell.addEventListener('contextmenu', (e) => e.preventDefault());
             
@@ -1043,7 +987,6 @@ function createBoard() {
     scrollToLeftEdge();
 }
 
-// Manejo de clic de ratón (PC)
 function handleCellMouseDown(event) {
     if (gameOver || floatingActionsContainer.style.display !== 'none') return;
     
@@ -1058,13 +1001,11 @@ function handleCellMouseDown(event) {
     }
 
     if (event.button === 0) {
-        // Clic Izquierdo -> Revelar
         event.preventDefault(); 
         if (!cellData.isFlagged) {
              revealCell(r, c);
         }
     } else if (event.button === 2) {
-        // Clic Derecho -> Bandera
         event.preventDefault(); 
         toggleFlag(r, c);
     }
@@ -1154,7 +1095,6 @@ function endGame(won) {
     }
 
     if (won) {
-        // Llamada a la función de Firebase para guardar récord
         saveUserRecord(timer); 
 
         startCelebrationAnimation();
@@ -1321,11 +1261,8 @@ function startCelebrationAnimation() {
 document.getElementById('btnClasificatoria').addEventListener('click', openClasificacion);
 
 window.onload = () => {
-    // onAuthStateChanged se encarga de cargar la sesión al inicio
     createBoard();
 };
     </script>
 </body>
 </html>
-
-
