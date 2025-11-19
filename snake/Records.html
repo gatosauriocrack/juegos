@@ -25,6 +25,12 @@
             flex-direction: column;
             align-items: center;
             padding: 30px; 
+            
+            /* Ajustes para móvil: evita selección y resaltado táctil */
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         h1 {
             color: var(--color-naranja-principal);
@@ -65,6 +71,7 @@
             background-size: 14px; 
             text-align: center;
             text-align-last: center;
+            -webkit-tap-highlight-color: transparent;
         }
         
         #records-table {
@@ -114,6 +121,7 @@
         
         #returnButtonContainer a {
             font-size: 1.2em; 
+            -webkit-tap-highlight-color: transparent;
         }
 
         @media (max-width: 950px) {
@@ -296,4 +304,3 @@
     </script>
 </body>
 </html>
-
