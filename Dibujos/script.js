@@ -77,7 +77,7 @@ function updateHeaderIcon() {
 
     switch (today) {
         case 0:
-            iconHTML = '<span class="icon icon-Meli"></span>';
+            iconHTML = '<span class="icon icon-meli-icono"></span>';
             colorClass = 'icon-color-negro';
             break;
         case 1:
@@ -85,11 +85,11 @@ function updateHeaderIcon() {
             colorClass = 'icon-color-rosa';
             break;
         case 2:
-            iconHTML = '<span class="icon icon-Meli"></span>';
+            iconHTML = '<span class="icon icon-meli-icono"></span>';
             colorClass = 'icon-color-negro';
             break;
         case 3:
-            iconHTML = '<span class="icon icon-Meli"></span>';
+            iconHTML = '<span class="icon icon-meli-icono"></span>';
             colorClass = 'icon-color-negro';
             break;
         case 4:
