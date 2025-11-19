@@ -9,6 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
 <style>
         :root {
             --cell-size: 28px;
@@ -38,12 +40,10 @@
             box-sizing: border-box;
             position: relative;
             
-            /* INICIO de ajustes para táctil y selección */
             user-select: none; 
             -webkit-user-select: none; 
             -ms-user-select: none;
             -webkit-tap-highlight-color: transparent;
-            /* FIN de ajustes para táctil y selección */
         }
 
         #game-info-panel {
@@ -538,6 +538,60 @@
         .show-animation {
             animation: scale-in-out 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
+        
+        .social-auth-container {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px; 
+            width: 100%;
+        }
+
+        .social-auth-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s, opacity 0.3s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .social-auth-btn:hover {
+            opacity: 0.9;
+        }
+
+        .social-auth-btn i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .google-btn {
+            background-color: #4285F4;
+            color: white;
+        }
+
+        .play-games-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        #btnClasificacionModal {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: auto;
+            background: none; 
+            border: none; 
+            font-size: 2em; 
+            cursor: pointer; 
+            padding: 5px;
+        }
 
         @media (min-width: 992px) {
             :root {
@@ -576,36 +630,31 @@
     
     <div id="authModal" class="game-modal">
         <div class="auth-content">
-            <button id="btnClasificacionModal" onclick="openClasificacion()" 
-                    style="position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 2em; cursor: pointer; padding: 5px;">
+            
+            <button id="btnClasificacionModal" onclick="openClasificacion()">
                 🏆
             </button>
             
-            <h2>Iniciar Sesión/Registro</h2>
-            <div style="margin-bottom: 20px; width: 100%;">
-                <input type="email" id="authEmail" placeholder="Correo Electrónico" required> 
-                <input type="text" id="authUsername" placeholder="Nombre de Usuario (Alias)" required>
-                <input type="password" id="authPassword" placeholder="Contraseña (Mínimo 6 caracteres)" required>
-                
-                <div style="text-align: left; margin-top: 15px; width: 80%; margin-left: auto; margin-right: auto;">
-                    <input type="checkbox" id="rememberMe">
-                    <label for="rememberMe" style="font-size: 1em; color: white;">Mantener sesión iniciada</label>
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button onclick="handleAuthentication(false)" style="background-color: #007bff; color: white;">Iniciar Sesión</button>
-                <button onclick="handleAuthentication(true)" style="background-color: var(--color-mine-revealed); color: white;">Registrarse</button>
-            </div>
+            <h2>Iniciar Sesión</h2>
             
+            <div id="socialAuthContainer" class="social-auth-container">
+                <button class="social-auth-btn google-btn" onclick="signInWithGoogle()">
+                    <i class="fab fa-google"></i> Iniciar Sesión con Google
+                </button>
+                
+                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()"> 
+                    <i class="fas fa-gamepad"></i> Iniciar Sesión con Play Juegos
+                </button>
+                
+            </div>
+
             <button id="logoutButton" onclick="logout()" 
                     style="margin-top: 20px; padding: 10px 20px; background-color: #D32F2F; color: white; display: none;">
                 Cerrar Sesión
             </button>
-
-            <p style="margin-top: 15px; font-size: 0.8em; color: #aaa;">Solo necesitas iniciar sesión una vez.</p>
             
             <button onclick="document.getElementById('authModal').style.display = 'none';" 
-                    style="margin-top: 10px; padding: 8px 15px; background-color: #555;">
+                    style="margin-top: 15px; padding: 8px 15px; background-color: #555;">
                 Cerrar
             </button>
         </div>
@@ -654,7 +703,7 @@ const FieldValue = firebase.firestore.FieldValue;
 
 const leaderboardCol = db.collection('leaderboard_buscaminas_game');
 const usernamesCol = db.collection('usernames');
-const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/BuscaminasRecords"; 
+const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/Buscaminas/Records"; 
 const URL_CLASIFICACION_CON_ORIGEN = `${CLASIFICACION_URL}?from=game`; 
 
 const GAME_API_KEY = 'buscaminas_game'; 
@@ -676,10 +725,13 @@ const winTimeDisplay = document.getElementById('win-time-display');
 const defeatWrapper = document.getElementById('defeat-wrapper');
 const sessionStatusElement = document.getElementById('sessionStatus');
 const notificationIcon = document.getElementById('notification-icon');
+// const classicAuthButtons = document.getElementById('classicAuthButtons'); // Eliminado del HTML
+const socialAuthContainer = document.getElementById('socialAuthContainer');
 
-const authEmailInput = document.getElementById('authEmail'); 
-const authUsernameInput = document.getElementById('authUsername'); 
-const authPasswordInput = document.getElementById('authPassword'); 
+// Eliminamos referencias a inputs de login clásico, ya no existen
+// const authEmailInput = document.getElementById('authEmail'); 
+// const authUsernameInput = document.getElementById('authUsername'); 
+// const authPasswordInput = document.getElementById('authPassword'); 
 const logoutButton = document.getElementById('logoutButton');
 
 let currentUser = null; 
@@ -701,23 +753,17 @@ async function getAliasFromUID(uid) {
     if (!uid) return "Usuario";
     try {
         const doc = await usernamesCol.doc(uid).get();
-        if (doc.exists) {
+        if (doc.exists && doc.data().alias) {
             return doc.data().alias;
         }
-        return "Usuario";
+        const user = auth.currentUser;
+        return (user.displayName || user.email.split('@')[0]) || "Usuario";
     } catch (error) {
-        console.error("Error al obtener el alias:", error);
         return "Usuario";
     }
 }
 
 async function updateSessionUI(user) {
-    document.querySelectorAll('#authModal button').forEach(btn => {
-        if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
-            btn.style.display = 'inline-block';
-        }
-    });
-
     if (user) {
         const username = await getAliasFromUID(user.uid); 
         currentUser = username; 
@@ -728,15 +774,8 @@ async function updateSessionUI(user) {
         logoutButton.style.display = 'block';
         logoutButton.textContent = `Cerrar Sesión (${username})`;
         
-        if (authEmailInput) { authEmailInput.value = user.email; authEmailInput.disabled = true; } 
-        if (authUsernameInput) { authUsernameInput.value = username; authUsernameInput.disabled = true; }
-        
-        if (authPasswordInput) authPasswordInput.style.display = 'none'; 
-        document.querySelectorAll('#authModal button').forEach(btn => {
-             if (btn.textContent.includes('Iniciar Sesión') || btn.textContent.includes('Registrarse')) {
-                btn.style.display = 'none';
-             }
-        });
+        // Ocultar la sección social cuando ya está logeado
+        if (socialAuthContainer) socialAuthContainer.style.display = 'none';
 
     } else {
         currentUser = null;
@@ -745,12 +784,8 @@ async function updateSessionUI(user) {
         
         logoutButton.style.display = 'none';
         
-        if (authEmailInput) { authEmailInput.value = ''; authEmailInput.disabled = false; }
-        if (authUsernameInput) { authUsernameInput.value = ''; authUsernameInput.disabled = false; }
-        if (authPasswordInput) {
-            authPasswordInput.style.display = 'block';
-            authPasswordInput.value = '';
-        }
+        // Mostrar la sección social para logearse
+        if (socialAuthContainer) socialAuthContainer.style.display = 'flex';
     }
 }
 
@@ -758,71 +793,49 @@ auth.onAuthStateChanged((user) => {
     updateSessionUI(user);
 });
 
-async function handleAuthentication(isRegister) {
-    const email = document.getElementById('authEmail').value.trim();
-    const username = document.getElementById('authUsername').value.trim();
-    const password = document.getElementById('authPassword').value;
-    const rememberMe = document.getElementById('rememberMe').checked; 
+async function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
-
-    if (!emailRegex.test(email) || password.length < 6 || username.length < 3) {
-         showNotification(false, "Verifica: Correo, Contraseña (mín. 6) y Alias (mín. 3).");
-         return;
-    }
-    
     try {
-        const persistenceType = rememberMe ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION;
-        await auth.setPersistence(persistenceType);
-
-        let userCredential;
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
         
-        if (isRegister) {
-            const aliasQuery = await usernamesCol.where('alias', '==', username).limit(1).get();
-            if (!aliasQuery.empty) {
-                showNotification(false, "Este nombre de usuario (Alias) ya está tomado. Elige otro.");
-                return; 
-            }
-            
-            userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            const uid = userCredential.user.uid;
+        const userDocRef = usernamesCol.doc(user.uid);
+        const doc = await userDocRef.get();
+        let alias = user.displayName || user.email.split('@')[0];
 
-            await usernamesCol.doc(uid).set({
-                alias: username,
-                email: email, 
+        if (!doc.exists) {
+            await userDocRef.set({
+                alias: alias,
+                email: user.email,
                 createdAt: FieldValue.serverTimestamp()
-            });
-
-            showNotification(true, `¡Registro exitoso! Bienvenido, ${username}.`);
+            }, { merge: true });
         } else {
-            userCredential = await auth.signInWithEmailAndPassword(email, password);
-            showNotification(true, `¡Bienvenido de nuevo!`);
-            
-            const aliasExists = await getAliasFromUID(userCredential.user.uid);
-            if (aliasExists === "Usuario") {
-                 await usernamesCol.doc(userCredential.user.uid).set({
-                    alias: username,
-                    email: email, 
-                    createdAt: FieldValue.serverTimestamp()
-                }, { merge: true }); 
-            }
+            alias = doc.data().alias || alias;
         }
 
         document.getElementById('authModal').style.display = 'none';
+        showNotification(true, `¡Éxito! Bienvenido/a, ${alias}.`); 
 
     } catch (error) {
-        let message = "Error desconocido de autenticación.";
-        if (error.code === 'auth/email-already-in-use') {
-            message = "Ya existe una cuenta con ese correo. Intenta iniciar sesión.";
-        } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-            message = "Correo o contraseña incorrectos.";
-        } else if (error.code === 'auth/weak-password') {
-            message = "La contraseña debe tener al menos 6 caracteres.";
+        let errorMessage = 'Error al iniciar sesión con Google. Inténtalo de nuevo.';
+        if (error.code === 'auth/popup-closed-by-user') {
+            errorMessage = 'La ventana de inicio de sesión fue cerrada.';
+        } else if (error.code === 'auth/cancelled-popup-request') {
+            errorMessage = 'El inicio de sesión fue cancelado.';
         }
-        showNotification(false, message); 
-        console.error("Error de autenticación/registro:", error);
+        console.error("Error de autenticación con Google:", error);
+        showNotification(false, errorMessage);
     }
 }
+
+// Eliminamos la función handleAuthentication ya que el login clásico fue eliminado.
+/*
+async function handleAuthentication(isRegister) {
+    // Código de autenticación clásico eliminado
+}
+*/
 
 function logout() {
     auth.signOut()
