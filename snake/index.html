@@ -180,7 +180,7 @@
 
         #startModal button {
             padding: 15px 30px;
-            margin: 10px 40;
+            margin: 10px 0;
             font-size: 1.2em;
             font-weight: bold;
             background-color: var(--color-naranja-principal);
@@ -1014,7 +1014,7 @@
             loadHighScore();
             drawGame(); 
         };
-         // INICIO DE CAMBIOS PARA OFFLINE (REGISTRO DEL SERVICE WORKER)
+        // INICIO DE CAMBIOS PARA OFFLINE (REGISTRO DEL SERVICE WORKER)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
