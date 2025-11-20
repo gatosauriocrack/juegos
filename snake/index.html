@@ -180,7 +180,7 @@
 
         #startModal button {
             padding: 15px 30px;
-            margin: 10px 0;
+            margin: 10px 40;
             font-size: 1.2em;
             font-weight: bold;
             background-color: var(--color-naranja-principal);
@@ -377,13 +377,6 @@
             animation: scale-in-out 2.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
         
-        @media (min-width: 768px) {
-            #gameCanvas { width: 500px; height: 500px; }
-            #scoreContainer, #mainControls { width: 500px; max-width: none; }
-            #controls { width: 350px; }
-            .control-btn { width: 110px; height: 110px; font-size: 2.5em; }
-            #pauseButton { width: 75px; height: 75px; font-size: 2em; }
-        }
     </style>
 </head>
 <body>
@@ -1014,6 +1007,19 @@
             loadHighScore();
             drawGame(); 
         };
+        // INICIO DE CAMBIOS PARA OFFLINE (REGISTRO DEL SERVICE WORKER)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => {
+                        console.log('Service Worker registrado con éxito:', reg.scope);
+                    })
+                    .catch(err => {
+                        console.log('Fallo el registro del Service Worker:', err);
+                    });
+            });
+        }
+        // FIN DE CAMBIOS PARA OFFLINE
     </script>
 </body>
 </html>
