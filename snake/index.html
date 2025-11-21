@@ -475,25 +475,71 @@
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
-            authDomain: "procesador-56b7a.firebaseapp.com",
-            projectId: "procesador-56b7a",
-            storageBucket: "procesador-56b7a.firebasestorage.app",
-            messagingSenderId: "1029072924025",
-            appId: "1:1029072924025:web:c32d735e453416ecfd93a8"
-        };
+    	// Definición de configuraciones y variables de Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
+    authDomain: "procesador-56b7a.firebaseapp.com",
+    projectId: "procesador-56b7a",
+    storageBucket: "procesador-56b7a.firebasestorage.app",
+    messagingSenderId: "1029072924025",
+    appId: "1:1029072924025:web:c32d735e453416ecfd93a8"
+};
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const FieldValue = firebase.firestore.FieldValue;
-        
-        const leaderboardCol = db.collection('leaderboard_snake_game');
-        const usernamesCol = db.collection('usernames'); 
-        
-        const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?from=game";
+let auth;
+let db;
+let FieldValue;
+let leaderboardCol;
+let usernamesCol;
 
+try {
+    firebase.initializeApp(firebaseConfig);
+    
+    auth = firebase.auth();
+    db = firebase.firestore();
+    FieldValue = firebase.firestore.FieldValue;
+    leaderboardCol = db.collection('leaderboard_snake_game');
+    usernamesCol = db.collection('usernames'); 
+
+} catch (e) {
+    console.warn("ADVERTENCIA: Fallo al cargar Firebase. El juego base es jugable, pero el login y los récords no están disponibles.", e);
+    
+    // Define objetos de seguridad para que el resto del código no falle
+    auth = { 
+        currentUser: null, 
+        onAuthStateChanged: (callback) => callback(null),
+        signOut: () => Promise.resolve(),
+        setPersistence: () => Promise.resolve() 
+    };
+    db = null;
+    FieldValue = { serverTimestamp: () => new Date() }; // Simula un timestamp
+    leaderboardCol = null;
+    usernamesCol = null;
+    
+    // Sobrescribe funciones dependientes de Firebase para que no hagan nada
+    window.signInWithGoogle = () => alert("La conexión para iniciar sesión no está disponible.");
+    window.logout = () => alert("No hay sesión para cerrar.");
+    
+    // Modifica saveUserRecord para evitar errores al llamar a la base de datos
+    window.saveUserRecord = (score, speed) => {
+        console.log("Récord local no enviado al servidor (offline).");
+        showNotification(false);
+        return { success: false, message: "Sin conexión." };
+    };
+
+    // Asegura que updateSessionUI no falle al llamar a auth
+    window.updateSessionUI = (userEmail) => {
+        const statusElement = document.getElementById('sessionStatus');
+        statusElement.textContent = `Sesión: Desconectada (Offline)`;
+        statusElement.style.color = '#F44336';
+        document.getElementById('mainLoginButton').style.display = 'block';
+        document.getElementById('mainLogoutButton').style.display = 'none';
+    };
+
+    // Llama a la función de estado UI inmediatamente ya que onAuthStateChanged no funciona
+    window.updateSessionUI(null);
+}
+
+const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?from=game";
 
         function openAuthModal() {
             document.getElementById('authModal').style.display = 'flex';
@@ -1014,19 +1060,7 @@
             loadHighScore();
             drawGame(); 
         };
-        // INICIO DE CAMBIOS PARA OFFLINE (REGISTRO DEL SERVICE WORKER)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => {
-                        console.log('Service Worker registrado con éxito:', reg.scope);
-                    })
-                    .catch(err => {
-                        console.log('Fallo el registro del Service Worker:', err);
-                    });
-            });
-        }
-        // FIN DE CAMBIOS PARA OFFLINE
+       
     </script>
 </body>
 </html>
