@@ -448,7 +448,6 @@
         </div>
     </div>
     <script>
-    	// Definición de configuraciones y variables de Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk", 
     authDomain: "procesador-56b7a.firebaseapp.com",
@@ -462,17 +461,17 @@ let db;
 let FieldValue;
 let leaderboardCol;
 let usernamesCol;
+let isFirebaseConnected = false;
 try {
-    // 🛡️ BLOQUE PROTEGIDO: Si falla la carga de Firebase, el juego continúa
     firebase.initializeApp(firebaseConfig);
     auth = firebase.auth();
     db = firebase.firestore();
     FieldValue = firebase.firestore.FieldValue;
     leaderboardCol = db.collection('leaderboard_snake_game');
     usernamesCol = db.collection('usernames'); 
+    isFirebaseConnected = true;
 } catch (e) {
-    console.warn("ADVERTENCIA: Fallo al cargar Firebase. El juego base es jugable, pero el login y los récords no están disponibles.", e);
-    // Define objetos de seguridad (dummies)
+    console.warn("ADVERTENCIA: Fallo al cargar Firebase.", e);
     auth = { 
         currentUser: null, 
         onAuthStateChanged: (callback) => callback(null),
@@ -480,13 +479,12 @@ try {
         setPersistence: () => Promise.resolve() 
     };
     db = null;
-    FieldValue = { serverTimestamp: () => new Date() }; // Simula un timestamp
+    FieldValue = { serverTimestamp: () => new Date() }; 
     leaderboardCol = null;
     usernamesCol = null;
-    // Sobrescribe funciones para que no fallen al ser llamadas
     window.signInWithGoogle = () => alert("La conexión para iniciar sesión no está disponible.");
     window.logout = () => alert("No hay sesión para cerrar.");
-    window.saveUserRecord = (score, speed) => {
+    window.saveUserRecord = (score, speed) => { 
         console.log("Récord local no enviado al servidor (offline).");
         showNotification(false);
         return { success: false, message: "Sin conexión." };
@@ -499,6 +497,43 @@ try {
         document.getElementById('mainLogoutButton').style.display = 'none';
     };
     window.updateSessionUI(null);
+}
+if (isFirebaseConnected) {
+    window.saveUserRecord = async function (score, speedLevel) {
+        const user = auth.currentUser;
+        if (!user) {
+            return { success: false, message: "Debes iniciar sesión para guardar tu récord." };
+        }
+        const uid = user.uid;
+        const username = await getAliasFromUID(uid); 
+        const leaderboardDocRef = leaderboardCol.doc(uid); 
+        const leaderboardDoc = await leaderboardDocRef.get();
+        const currentHighscore = leaderboardDoc.exists ? (leaderboardDoc.data().score || 0) : 0;
+        
+        if (score < currentHighscore) { 
+            showNotification(false);
+            return { success: false, message: "El puntaje no superó el récord actual." };
+        }
+        
+        const recordData = {
+            uid: uid,
+            username: username, 
+            score: score,
+            speed: speedLevel,
+            timestamp: FieldValue.serverTimestamp()
+        };
+        
+        try {
+            await leaderboardDocRef.set(recordData, { merge: true }); 
+            await usernamesCol.doc(uid).update({ snakeHighscore: score });
+            showNotification(true); 
+            return { success: true };
+        } catch (error) {
+            console.error("Error al guardar el récord:", error);
+            showNotification(false); 
+            return { success: false, message: "Error interno al guardar el récord." };
+        }
+    }
 }
 const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?from=game";
         function openAuthModal() {
@@ -528,7 +563,7 @@ const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?
                 if (error.code === 'auth/popup-closed-by-user') {
                     errorMessage = 'La ventana de inicio de sesión fue cerrada.';
                 } else if (error.code === 'auth/cancelled-popup-request') {
-                    errorMessage = 'El inicio de sesión fue cancelado. No se permite abrir múltiples ventanas emergentes.';
+                    errorMessage = 'La cancelación fue cancelada.';
                 }
                 console.error("Error de autenticación con Google:", error);
                 displayAuthMessage(errorMessage, true);
@@ -560,6 +595,7 @@ const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?
             });
         }
         async function getAliasFromUID(uid) {
+             if (!isFirebaseConnected) return "Usuario Offline";
              try {
                 const doc = await usernamesCol.doc(uid).get();
                 if (doc.exists && doc.data().displayName) {
@@ -571,36 +607,8 @@ const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?
                 return "Error al cargar alias";
              }
         }
-        async function saveUserRecord(score, speedLevel) {
-            const user = auth.currentUser;
-            if (!user) {
-                return { success: false, message: "Debes iniciar sesión para guardar tu récord." };
-            }
-            const uid = user.uid;
-            const username = await getAliasFromUID(uid); 
-            const leaderboardDocRef = leaderboardCol.doc(uid); 
-            const leaderboardDoc = await leaderboardDocRef.get();
-            const currentHighscore = leaderboardDoc.exists ? (leaderboardDoc.data().score || 0) : 0;
-            if (score <= currentHighscore) {
-                showNotification(false);
-                return { success: false, message: "El puntaje no superó el récord actual." };
-            }
-            const recordData = {
-                uid: uid,
-                username: username, 
-                score: score,
-                speed: speedLevel,
-                timestamp: FieldValue.serverTimestamp()
-            };
-            try {
-                await leaderboardDocRef.set(recordData, { merge: true }); 
-                await usernamesCol.doc(uid).update({ snakeHighscore: score });
-                showNotification(true); 
-                return { success: true };
-            } catch (error) {
-                showNotification(false); 
-                return { success: false, message: "Error interno al guardar el récord." };
-            }
+        async function sendRecordToServer(score, speed) {
+            const result = await window.saveUserRecord(score, speed);
         }
         const canvas = document.getElementById('gameCanvas');
         canvas.width = 375; 
@@ -689,11 +697,6 @@ const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?
              auth.onAuthStateChanged((user) => {
                  updateSessionUI(user ? user.email : null);
              });
-        }
-        async function sendRecordToServer(score, speed) {
-            if (window.saveUserRecord !== saveUserRecord) { 
-                 const result = await saveUserRecord(score, speed);
-            } 
         }
         function placeFood() {
             let newFoodPos;
