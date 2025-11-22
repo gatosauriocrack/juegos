@@ -1,3 +1,8 @@
+/* * Copyright (c) 2025 Gatosauriocrack.
+ * Todos los derechos reservados.
+ * Licencia: Uso exclusivo. 
+*/
+
 :root {
     --color-naranja-principal: #EA7900; 
     --color-naranja-claro: #ffb86c;     
@@ -1369,3 +1374,25 @@ input[type="file"] {
     position: relative; 
     z-index: 100; 
 }
+/* Clase para asegurar que el iframe ocupe todo el ancho disponible */
+.apoyo-contenedor-full {
+    /* 1. Ocupa el 100% del ancho del main-content */
+    width: 100%; 
+    
+    /* 2. MUY IMPORTANTE: Elimina el ancho máximo que lo limitaba */
+    max-width: none; 
+    
+    /* 3. Ajusta o elimina márgenes horizontales si los tenías */
+    margin: 0 auto; 
+    
+    /* 4. Asegúrate de que no haya padding interno que lo separe mucho de los bordes */
+    padding: 0; 
+}
+
+/* Si tu main-content tiene padding, ajústalo para esta sección */
+#apoyo-screen {
+    /* Opcional: Esto ayuda si el main-content tiene padding interno */
+    padding-left: 0;
+    padding-right: 0;
+}
+
