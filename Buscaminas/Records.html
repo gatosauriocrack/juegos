@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏆 Clasificación Global: Buscaminas</title>
-    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    
     <style>
         :root {
             --color-naranja-principal: #EA7900;
@@ -25,7 +23,6 @@
             flex-direction: column;
             align-items: center;
             padding: 30px; 
-            
             user-select: none;
             -webkit-user-select: none;
             -ms-user-select: none;
@@ -78,6 +75,11 @@
             color: var(--color-azul-puntaje); 
             font-size: 1.1em;
         }
+        .date-cell {
+             font-size: 0.85em;
+             color: #999;
+             text-align: right;
+        }
         #message {
             color: var(--color-naranja-principal);
             font-size: 1.4em; 
@@ -105,6 +107,7 @@
                 padding: 10px 5px;
                 font-size: 1em;
             }
+            #records-table th:last-child, #records-table td:last-child { display: none; }
         }
     </style>
 </head>
@@ -116,10 +119,11 @@
     <table id="records-table">
         <thead>
             <tr>
-                <th>Posición</th>
-                <th>Usuario</th>
-                <th>Tiempo (s)</th>
-                <th>Dificultad</th>
+                <th style="width: 10%;">Posición</th>
+                <th style="width: 30%;">Usuario</th>
+                <th style="width: 15%;">Tiempo (s)</th>
+                <th style="width: 20%;">Dificultad</th>
+                <th style="width: 25%; text-align: right;">Fecha/Hora</th>
             </tr>
         </thead>
         <tbody>
@@ -150,14 +154,30 @@
         const messageElement = document.getElementById('message');
         const trophyEmojis = ['🏆', '🥈', '🥉']; 
 
+        function formatTimestamp(timestamp) {
+            if (!timestamp || !timestamp.toDate) return 'N/A';
+            const date = timestamp.toDate();
+            const options = { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: false 
+            };
+            return date.toLocaleString('es-ES', options).replace(/\//g, '/');
+        }
+
         async function fetchAndDisplayRecords() {
             messageElement.textContent = "Cargando récords de Firebase...";
             tbody.innerHTML = ""; 
 
             try {
                 const querySnapshot = await leaderboardCol
-                    .orderBy('score', 'asc')
-                    .limit(10)
+                    .orderBy('score', 'asc') 
+                    .orderBy('timestamp', 'asc') 
+                    .limit(100)
                     .get();
                 
                 const highscores = [];
@@ -166,7 +186,8 @@
                     highscores.push({
                         username: data.username,
                         score: parseInt(data.score), 
-                        difficulty: data.difficulty 
+                        difficulty: data.difficulty,
+                        timestamp: data.timestamp
                     });
                 });
                 
@@ -185,6 +206,7 @@
                     const userCell = row.insertCell();
                     const scoreCell = row.insertCell();
                     const difficultyCell = row.insertCell();
+                    const dateCell = row.insertCell(); 
                     
                     if (position <= 3) {
                         posCell.innerHTML = trophyEmojis[index] + " " + position;
@@ -196,15 +218,17 @@
                     scoreCell.textContent = record.score + 's';
                     scoreCell.classList.add('score-cell'); 
                     difficultyCell.textContent = record.difficulty || 'Experto';
+                    dateCell.textContent = formatTimestamp(record.timestamp);
+                    dateCell.classList.add('date-cell');
                 });
 
             } catch (error) {
                 console.error("Error al obtener récords de Firestore:", error);
-                messageElement.innerHTML = `
-                    Error al conectar con la base de datos de Firebase.<br>
-                    <strong>¡Acción Requerida!</strong> Debes hacer las reglas de lectura para 
-                    '${LEADERBOARD_COLLECTION}' públicas.
-                `;
+                let displayError = error.message;
+                if (error.code === 'failed-precondition') {
+                    displayError = `⚠️ La clasificación falló. Debes crear el índice compuesto en Firestore para ordenar por 'score' y 'timestamp'.`;
+                }
+                messageElement.textContent = displayError;
             }
         }
         
