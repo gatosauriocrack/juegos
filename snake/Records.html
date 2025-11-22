@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🏆 Tabla de Récords Globales - Snake</title>
-    
     <link rel="icon" type="image/png" href="snake.png">
-    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    
     <style>
         :root {
             --color-naranja-principal: #EA7900;
@@ -27,8 +24,6 @@
             flex-direction: column;
             align-items: center;
             padding: 30px; 
-            
-            /* Ajustes para móvil: evita selección y resaltado táctil */
             user-select: none;
             -webkit-user-select: none;
             -ms-user-select: none;
@@ -41,7 +36,6 @@
             margin-bottom: 30px; 
             font-size: 2.5em; 
         }
-        
         #filter-container {
             width: 100%;
             max-width: var(--max-width-pc); 
@@ -75,7 +69,6 @@
             text-align-last: center;
             -webkit-tap-highlight-color: transparent;
         }
-        
         #records-table {
             width: 100%;
             max-width: var(--max-width-pc); 
@@ -83,7 +76,7 @@
             border-spacing: 0 15px; 
         }
         #records-table th, #records-table td {
-            padding: 18px 25px; 
+            padding: 18px 15px; 
             text-align: left;
             font-size: 1.05em;
         }
@@ -115,24 +108,23 @@
             color: var(--color-azul-puntaje); 
             font-size: 1.1em;
         }
+        .date-cell {
+             font-size: 0.85em;
+             color: #999;
+             text-align: right;
+        }
         #message {
             color: var(--color-naranja-principal);
             font-size: 1.4em; 
             margin-top: 30px;
         }
-        
         #returnButtonContainer a {
             font-size: 1.2em; 
             -webkit-tap-highlight-color: transparent;
         }
-
         @media (max-width: 950px) {
-             
-            #records-table, #filter-container {
-                max-width: 95%;
-            }
+            #records-table, #filter-container { max-width: 95%; }
         }
-        
         @media (max-width: 650px) {
             #records-table, #filter-container {
                 font-size: 0.9em;
@@ -151,15 +143,13 @@
                 margin-right: 0;
                 margin-bottom: 10px;
             }
-            #speedFilter {
-                max-width: 90%;
-            }
+            #speedFilter { max-width: 90%; }
+            #records-table th:last-child, #records-table td:last-child { display: none; }
         }
     </style>
 </head>
 <body>
     <h1>🐍 Tabla de Récords Globales 🏆</h1>
-    
     <div id="filter-container">
         <label for="speedFilter">Filtrar por Velocidad:</label>
         <select id="speedFilter" onchange="filterAndDisplayRecords()">
@@ -169,26 +159,23 @@
             <option value="Rápido (Difícil)">Rápido (Difícil)</option>
         </select>
     </div>
-
     <p id="message">Cargando récords de Firebase...</p>
-
     <table id="records-table">
         <thead>
             <tr>
-                <th>Posición</th>
-                <th>Usuario</th>
-                <th>Puntaje</th>
-                <th>Velocidad</th>
+                <th style="width: 10%;">Posición</th>
+                <th style="width: 30%;">Usuario</th>
+                <th style="width: 15%;">Puntaje</th>
+                <th style="width: 20%;">Velocidad</th>
+                <th style="width: 25%; text-align: right;">Fecha/Hora</th>
             </tr>
         </thead>
         <tbody>
             </tbody>
     </table>
-    
     <p id="returnButtonContainer" style="margin-top: 20px; display:none;">
         <a href="https://gatosauriocrack.github.io/Worl/snake" style="color: var(--color-naranja-principal); text-decoration: none; font-weight: bold;">← Volver al juego</a>
     </p>
-
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyBcAqXK3qFD8j1T7h6cjO0U3d5nBoVAgVk",
@@ -198,110 +185,106 @@
             messagingSenderId: "1029072924025",
             appId: "1:1029072924025:web:c32d735e453416ecfd93a8"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
         const leaderboardCol = db.collection('leaderboard_snake_game');
-        
         const tbody = document.querySelector('#records-table tbody');
         const messageElement = document.getElementById('message');
         const speedFilter = document.getElementById('speedFilter');
-        
         let allRecords = []; 
         const trophyEmojis = ['🏆', '🥈', '🥉']; 
-
+        function formatTimestamp(timestamp) {
+            if (!timestamp || !timestamp.toDate) return 'N/A';
+            const date = timestamp.toDate();
+            const options = { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit', 
+                hour12: false 
+            };
+            return date.toLocaleString('es-ES', options).replace(/\//g, '/');
+        }
         function filterAndDisplayRecords() {
             const selectedSpeed = speedFilter.value;
-            
             const filteredRecords = allRecords.filter(record => {
-                if (selectedSpeed === 'Todas las Velocidades') {
-                    return true;
-                }
+                if (selectedSpeed === 'Todas las Velocidades') { return true; }
                 return record.speed === selectedSpeed; 
             });
-            
-            filteredRecords.sort((a, b) => b.score - a.score);
-
             const recordsToShow = filteredRecords.slice(0, 10);
-            
             tbody.innerHTML = ""; 
-            
             if (allRecords.length === 0) {
                  messageElement.textContent = "Aún no hay récords registrados.";
                  return;
             }
-
             if (recordsToShow.length === 0) {
                 messageElement.textContent = `No hay récords para la velocidad "${selectedSpeed}".`;
                 return;
             }
-            
             messageElement.textContent = ""; 
-
             recordsToShow.forEach((record, index) => {
                 const row = tbody.insertRow();
                 const position = index + 1;
-                
                 const posCell = row.insertCell();
                 const userCell = row.insertCell();
                 const scoreCell = row.insertCell();
                 const speedCell = row.insertCell();
-                
+                const dateCell = row.insertCell();
                 if (position <= 3) {
                     posCell.innerHTML = trophyEmojis[index] + " " + position;
                 } else {
                     posCell.textContent = position;
                 }
-                
                 userCell.textContent = record.username;
                 scoreCell.textContent = record.score;
                 scoreCell.classList.add('score-cell'); 
                 speedCell.textContent = record.speed;
+                dateCell.textContent = formatTimestamp(record.timestamp);
+                dateCell.classList.add('date-cell');
             });
         }
-
         async function fetchRecords() {
             messageElement.textContent = "Cargando récords de Firebase...";
-            
             try {
-                const querySnapshot = await leaderboardCol.get();
-                
+                const querySnapshot = await leaderboardCol
+                    .orderBy('score', 'desc')
+                    .orderBy('timestamp', 'asc') 
+                    .limit(100)
+                    .get();
                 const fetchedRecords = [];
                 querySnapshot.forEach(doc => {
                     const data = doc.data();
                     fetchedRecords.push({
                         username: data.username,
                         score: parseInt(data.score), 
-                        speed: data.speed 
+                        speed: data.speed,
+                        timestamp: data.timestamp
                     });
                 });
-                
                 allRecords = fetchedRecords; 
                 filterAndDisplayRecords(); 
-
             } catch (error) {
                 console.error("Error al obtener récords de Firestore:", error);
-                messageElement.textContent = `Error al conectar con la base de datos de Firebase. Asegúrate de que las reglas de lectura para 'leaderboard_snake_game' sean públicas: ${error.message}`;
+                let displayError = error.message;
+                if (error.code === 'failed-precondition') {
+                    displayError = `⚠️ La clasificación falló. Debes crear el índice compuesto en Firestore. Abre la consola de desarrollador y haz clic en el enlace de error para crearlo.`;
+                }
+                messageElement.textContent = displayError;
             }
         }
-        
         function checkURLOrigin() {
             const urlParams = new URLSearchParams(window.location.search);
             const returnButton = document.getElementById('returnButtonContainer');
-            
             if (urlParams.get('from') === 'game') {
-                if (returnButton) {
-                    returnButton.style.display = 'block';
-                }
+                if (returnButton) { returnButton.style.display = 'block'; }
             } 
         }
-
         window.onload = () => {
              fetchRecords();
              checkURLOrigin();
         }
-        
         setInterval(() => fetchRecords(), 30000); 
     </script>
 </body>
