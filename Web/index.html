@@ -4,13 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
     <title>App Gatosauriocrack - Contenido web</title>
+    
+    <meta property="og:title" content="Gatosauriocrack - Juegos, Apps y Contenido Digital">
+    <meta property="og:description" content="Bienvenido a la web de Gatosauriocrack. Encuentra enlaces de descarga de Apps (APK), juegos beta en línea, contenido de YouTube y enlaces a redes sociales.">
+    <meta property="og:image" content="https://gatosauriocrack.github.io/Worl/Web/Gatoworl.png">
+    <meta property="og:url" content="https://gatosauriocrack.github.io/Worl/Web/">
+    <meta property="og:type" content="website">
+    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="icon" type="image/png" href="Gatoworl.png">
-
     <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
@@ -229,17 +235,16 @@
         <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-download"></i> Descargar Apps <i class="fas fa-save"></i></h2>
         <div class="welcome-section" style="max-width: 600px; margin-bottom: 20px;">
             <p>Aquí se encuentran los links de descarga "APK" (versión de prueba) o de "Play Store" (versión final). Consulta la sección "Cómo Descargar" si tienes dudas.</p>
-            <p>Los demás apps no están disponibles ni en apk y Play store!<p>
-        	<p>¡Snake en apk Ya disponible!<p>
+            <p>Los demás apps no están disponibles ni en apk y Play store!</p>
+        	<p>¡Snake en apk Ya disponible!</p>
         </div>
         <div class="app-list-download">
             <div class="app-item-download">
                 <span class="app-name-icon">Snake <i class="fas fa-snake" style="color: #4CAF50;"></i></span>
                 <div class="download-buttons">
                     <a href="https://gatosauriocrack.github.io/Worl/Web/Apk/snake1.3.apk" class="download-btn apk-btn" target="_blank">
-    <i class="fab fa-android"></i> APK
-</a>
-
+                        <i class="fab fa-android"></i> APK
+                    </a>
                     <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
                 </div>
             </div>
@@ -328,17 +333,16 @@
         </div>
     </div>
     <div id="apoyo-screen" class="main-content">
-    <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-handshake"></i> Apoyo</h2>
-    
-    <div class="apoyo-contenedor-full"> 
-        <iframe 
-            src="https://gatosauriocrack.github.io/Worl/Web/apoyo" 
-            title="Opciones de Apoyo"
-            frameborder="0"
-            style="width: 100%; min-height: 700px; border: none; display: block;" 
-        ></iframe>
+        <h2 style="color: var(--color-naranja-principal);"><i class="fas fa-handshake"></i> Apoyo</h2>
+        <div class="apoyo-contenedor-full"> 
+            <iframe 
+                src="https://gatosauriocrack.github.io/Worl/Web/apoyo" 
+                title="Opciones de Apoyo"
+                frameborder="0"
+                style="width: 100%; min-height: 700px; border: none; display: block;" 
+            ></iframe>
+        </div>
     </div>
-</div>
 
     <div id="authModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)" style="display: none;">
         <div class="modal-content">
@@ -496,6 +500,18 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
+        function closeModalOnOutsideClick(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.style.display = 'none';
+                if (event.target.id === 'rickrollModal') {
+                    if (RICKROLL_VIDEO && !RICKROLL_VIDEO.paused) {
+                        RICKROLL_VIDEO.pause();
+                    }
+                    startMeliTimerLogic();
+                }
+            }
+        }
+
         function updateMeliTimer() {
             const now = new Date();
             const minutes = now.getMinutes();
@@ -593,9 +609,11 @@
         window.toggleGameOptions = toggleGameOptions;
         window.openModal = openModal;
         window.closeModal = closeModal;
+        window.closeModalOnOutsideClick = closeModalOnOutsideClick;
     </script>
+
+    <div class="app-footer">
+        <p>&copy; 2025 Gatosauriocrack. Todos los derechos reservados.</p>
+    </div>
 </body>
 </html>
-<footer>
-    <p>&copy; 2025 Gatosauriocrack. Todos los derechos reservados.</p>
-</footer>

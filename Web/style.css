@@ -1,8 +1,3 @@
-/* * Copyright (c) 2025 Gatosauriocrack.
- * Todos los derechos reservados.
- * Licencia: Uso exclusivo. 
-*/
-
 :root {
     --color-naranja-principal: #EA7900; 
     --color-naranja-claro: #ffb86c;     
@@ -25,39 +20,73 @@
 }
 
 @font-face {
-    font-family: 'Gatosauriocrack-fonts-awesome';
-    src: url('fonts/Gatosauriocrack-fonts-awesome.eot');
-    src: url('fonts/Gatosauriocrack-fonts-awesome.eot?#iefix') format('embedded-opentype'),
-         url('fonts/Gatosauriocrack-fonts-awesome.woff2') format('woff2'),
-         url('fonts/Gatosauriocrack-fonts-awesome.ttf') format('truetype'),
-         url('fonts/Gatosauriocrack-fonts-awesome.woff') format('woff');
-    font-weight: normal;
-    font-style: normal;
-    font-display: block;
+  font-family: 'FontAwesome-Gatosauriocrack';
+  src:  url('fonts/FontAwesome-Gatosauriocrack.eot?ye7esj');
+  src:  url('fonts/FontAwesome-Gatosauriocrack.eot?ye7esj#iefix') format('embedded-opentype'),
+    url('fonts/FontAwesome-Gatosauriocrack.ttf?ye7esj') format('truetype'),
+    url('fonts/FontAwesome-Gatosauriocrack.woff?ye7esj') format('woff'),
+    url('fonts/FontAwesome-Gatosauriocrack.svg?ye7esj#FontAwesome-Gatosauriocrack') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
 }
 
 [class^="icon-"], [class*=" icon-"] {
-    font-family: 'Gatosauriocrack-fonts-awesome' !important;
-    speak: none;
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-family: 'FontAwesome-Gatosauriocrack' !important;
+  speak: never;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-gato:before {
-    content: "\e900";
+.icon-meli-icono:before {
+  content: "\e900";
 }
 .icon-Meli:before {
-    content: "\e902";
+  content: "\e901";
+  color: #5e5e5e;
 }
-
-.icon-Meli {
-    font-size: 80px;
-    color: black;
+.icon-Ambar:before {
+  content: "\e902";
+}
+.icon-Melody:before {
+  content: "\e903";
+  color: #5e5e5e;
+}
+.icon-Melissa:before {
+  content: "\e904";
+}
+.icon-Nelle:before {
+  content: "\e905";
+  color: #5e5e5e;
+}
+.icon-calculadora:before {
+  content: "\e906";
+}
+.icon-icono-snake:before {
+  content: "\e907";
+}
+.icon-album:before {
+  content: "\e908";
+}
+.icon-dino:before {
+  content: "\e909";
+}
+.icon-gato:before {
+  content: "\e90a";
+}
+.icon-icono-ia:before {
+  content: "\e90b";
+}
+.icon-meli-chibi:before {
+  content: "\e90c";
+}
+.icon-michi:before {
+  content: "\e90d";
 }
 
 body {
@@ -1229,12 +1258,6 @@ input[type="file"] {
     transform: scale(1.05);
 }
 
-#meliGif {
-    width: 100%;
-    height: auto;
-    display: block;
-}
-
 #meliTimer {
     width: 100%;
     background-color: var(--color-naranja-fuerte);
@@ -1374,25 +1397,22 @@ input[type="file"] {
     position: relative; 
     z-index: 100; 
 }
-/* Clase para asegurar que el iframe ocupe todo el ancho disponible */
 .apoyo-contenedor-full {
-    /* 1. Ocupa el 100% del ancho del main-content */
     width: 100%; 
-    
-    /* 2. MUY IMPORTANTE: Elimina el ancho máximo que lo limitaba */
     max-width: none; 
-    
-    /* 3. Ajusta o elimina márgenes horizontales si los tenías */
     margin: 0 auto; 
-    
-    /* 4. Asegúrate de que no haya padding interno que lo separe mucho de los bordes */
     padding: 0; 
 }
 
-/* Si tu main-content tiene padding, ajústalo para esta sección */
 #apoyo-screen {
-    /* Opcional: Esto ayuda si el main-content tiene padding interno */
     padding-left: 0;
     padding-right: 0;
 }
 
+.app-list-download .app-item-download:nth-child(1) .app-name-icon i.fas.fa-snake:before {
+    content: "\e907";
+    font-family: 'FontAwesome-Gatosauriocrack' !important;
+    font-weight: normal; 
+    font-style: normal;
+    color: #EA7900 !important; 
+}
