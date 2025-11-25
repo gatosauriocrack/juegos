@@ -189,7 +189,7 @@
                         <i class="fas fa-play"></i> Jugar
                     </button>
                     <button class="option-button" onclick="showScreen('descargar-apps-screen')"> 
-                        <i class="fas fa-download"></i> Descargar (Pronto)
+                        <i class="fas fa-download"></i> Descargar
                     </button>
                 </div>
             </div>
@@ -229,6 +229,24 @@
                     </button>
                 </div>
             </div>
+            <div class="game-item-container" id="aleatory-container">
+                <div class="game-item">
+                    <button class="game-button" onclick="toggleGameOptions('aleatory')">
+                        Aleatory <span class="game-status"><i class="fas fa-random"></i> (beta)</span>
+                    </button>
+                    <button class="info-button" onclick="openModal('aleatoryModal')">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+                <div class="game-options" id="aleatory-options">
+                    <button class="option-button" onclick="window.open('https://gatosauriocrack.github.io/Worl/Aleatory/', '_blank')">
+                        <i class="fas fa-play"></i> Jugar (pronto)
+                    </button>
+                    <button class="option-button" onclick="showScreen('descargar-apps-screen')"> 
+                        <i class="fas fa-download"></i> Descargar (pronto)
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     <div id="descargar-apps-screen" class="main-content">
@@ -248,29 +266,31 @@
                 <span class="app-name-icon">Snake <i class="fas fa-snake" style="color: #4CAF50;"></i></span>
                 <div class="download-buttons">
                     <a href="https://gatosauriocrack.github.io/Worl/Web/Apk/snake1.3.apk" class="download-btn apk-btn" target="_blank">
-                        <i class="fab fa-android"></i> APK
-                    </a>
+                        <i class="fab fa-android"></i> APK</a>
                     <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
                 </div>
             </div>
             <div class="app-item-download">
                 <span class="app-name-icon">Buscaminas <i class="fas fa-flag" style="color: #E81A25;"></i></span>
                 <div class="download-buttons">
-                    <a href="https://gatosauriocrack.github.io/Worl/Web/Apk/Buscaminas1.0.apk" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
+                    <a href="https://gatosauriocrack.github.io/Worl/Web/Apk/Buscaminas1.0.apk" class="download-btn apk-btn" target="_blank">
+                        <i class="fab fa-android"></i> APK</a>
                     <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
                 </div>
             </div>
             <div class="app-item-download">
                 <span class="app-name-icon">Tetris <i class="fas fa-cube" style="color: #9b59b6;"></i></span>
                 <div class="download-buttons">
-                    <a href="https://gatosauriocrack.github.io/Worl/Web/Apk/Tetris1.0.apk" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
+                    <a href="https://gatosauriocrack.github.io/Worl/Web/Apk/Tetris1.0.apk" class="download-btn apk-btn" target="_blank">
+                        <i class="fab fa-android"></i> APK</a>
                     <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
                 </div>
             </div>
             <div class="app-item-download">
                 <span class="app-name-icon">Batalla Naval <i class="fas fa-ship" style="color: #929292;"></i></span>
                 <div class="download-buttons">
-                    <a href="#" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
+                    <a href="#" class="download-btn apk-btn" onclick="return false;">
+                        <i class="fab fa-android"></i> APK</a>
                     <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
                 </div>
             </div>
@@ -279,6 +299,15 @@
                 <div class="download-buttons">
                     <a href="#" class="download-btn apk-btn" onclick="return false;"><i class="fab fa-android"></i> APK</a>
                     <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store</a>
+                </div>
+            </div>
+            <div class="app-item-download">
+                <span class="app-name-icon">Aleatory <i class="fas fa-random" style="color: #4dc2c2;"></i></span>
+                <div class="download-buttons">
+                    <a href="https://gatosauriocrack.github.io/Worl/Web/Apk/Aleatory1.0.apk" class="download-btn apk-btn" target="_blank">
+                        <i class="fab fa-android"></i> APK
+                    </a>
+                    <a href="#" class="download-btn playstore-btn" onclick="return false;"><i class="fab fa-google-play"></i> Play Store (Pronto)</a>
                 </div>
             </div>
         </div>
@@ -473,6 +502,22 @@
             </div>
             <h3 class="modal-subtitle-game">Descarga y Web</h3>
             <p>Los enlaces para jugar en la web y descargar la App se habilitarán una vez que la fase de desarrollo multijugador esté estable y lista para pruebas beta.</p>
+        </div>
+    </div>
+    <div id="aleatoryModal" class="modal-overlay game-modal" style="display: none;" onclick="closeModalOnOutsideClick(event)">
+        <div class="modal-content-game" onclick="event.stopPropagation()">
+            <span class="close-game-modal" onclick="closeModal('aleatoryModal')">&times;</span>
+            <h2 class="modal-title-game" style="color: #4dc2c2;"><i class="fas fa-random"></i> Aleatory</h2>
+            <div class="modal-alert-box alert-green">
+                Versión Beta Disponible
+            </div>
+            <h3 class="modal-subtitle-game">Descripción del Juego</h3>
+            <p>Aqui pondrás a prueba tu suerte, tu intuición o vista al 100% porque tendrás que ver la mínima diferencia de color o atinarle al recuadro correcto.</p>
+            <h3 class="modal-subtitle-game">Funcionalidades</h3>
+            <ul>
+                <li>Juego en desarrollo</li>
+                <li>Versión APK pronto disponible .</li>
+            </ul>
         </div>
     </div>
     
