@@ -1409,6 +1409,37 @@ input[type="file"] {
     padding-right: 0;
 }
 
+.support-button {
+    display: inline-block;
+    padding: 15px 30px;
+    margin-top: 25px; 
+    margin-bottom: 25px; 
+    background-color: #FF5E5B; 
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1.3em;
+    transition: background-color 0.3s ease;
+    box-shadow: 0 6px #d14745;
+    border: none;
+    cursor: pointer;
+}
+
+.support-button:hover {
+    background-color: #e74c3c;
+}
+
+.support-button:active {
+    box-shadow: 0 2px #d14745;
+    transform: translateY(4px);
+}
+
+.support-button i {
+    margin-right: 10px;
+}
+
+
 .app-list-download .app-item-download:nth-child(1) .app-name-icon i.fas.fa-snake:before {
     content: "\e907";
     font-family: 'FontAwesome-Gatosauriocrack' !important;
