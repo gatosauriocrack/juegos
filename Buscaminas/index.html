@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Buscaminas - Gatosauriocrack</title>
+    <title>Buscaminas | Récords Globales</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <meta property="og:title" content="Buscaminas - Gatosauriocrack" />
-    <meta property="og:description" content="¡Juega la versión Experto del clásico Buscaminas y entra en la clasificación global!" />
-    <meta property="og:image" content="https://gatosauriocrack.github.io/Worl/Buscaminas/Buscaminas.png" />
-    <meta property="og:url" content="https://gatosauriocrack.github.io/Worl/Buscaminas/" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Gatosauriocrack Games" />
-
+    <meta property="og:title" content="Buscaminas | Récords Globales">
+    <meta property="og:description" content="Juega la versión Experto (29x30) del Buscaminas y compite por los mejores récords globales.">
+    <meta property="og:image" content="https://gatosauriocrack.github.io/Worl/Buscaminas/Buscaminas.png">
+    <meta property="og:url" content="https://gatosauriocrack.github.io/Worl/Buscaminas/index.html">
+    <meta property="og:type" content="website">
     <link rel="icon" type="image/png" href="https://gatosauriocrack.github.io/Worl/Buscaminas/Buscaminas.png">
 
 <style>
@@ -1010,7 +1008,7 @@ function handleCellMouseDown(event) {
 }
 
 function revealCell(r, c) {
-    if (r < 0 || r >= CURRENT_ROWS || c < 0 || c < CURRENT_COLS) return;
+    if (r < 0 || r >= CURRENT_ROWS || c < 0 || c >= CURRENT_COLS) return;
     const cellData = gameGrid[r][c];
     if (cellData.isRevealed || cellData.isFlagged || gameOver) return;
 
