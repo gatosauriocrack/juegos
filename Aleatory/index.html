@@ -33,7 +33,7 @@
             z-index: 10;
         }
 
-        #gameArea {
+        #gameArea, #leaderboardArea {
             display: none; 
         }
 
@@ -44,7 +44,7 @@
             border-radius: 10px;
         }
 
-        .login-button {
+        .login-button, #leaderboardButton {
             padding: 15px 30px;
             font-size: 1.2em;
             cursor: pointer;
@@ -59,9 +59,18 @@
             background-color: #4285F4;
             color: white;
         }
+
+        #leaderboardButton {
+            background-color: #4CAF50;
+            width: 340px; 
+            margin-top: 15px;
+        }
         
         .login-button:hover {
             background-color: #357ae8;
+        }
+        #leaderboardButton:hover {
+            background-color: #45a049;
         }
 
         .info-bar { 
@@ -148,6 +157,47 @@
             text-align: center;
             line-height: 1.2;
         }
+        
+        /* Estilos del Leaderboard */
+        #leaderboardArea {
+            width: 400px;
+            background-color: #111;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        #leaderboardArea h2 {
+            color: #4CAF50;
+        }
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        .leaderboard-table th {
+            background-color: #222;
+        }
+        .leaderboard-table tr:nth-child(1) {
+            color: gold;
+            font-weight: bold;
+        }
+        #backToGameButton {
+            background-color: #555;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+        }
+        #backToGameButton:hover {
+            background-color: #777;
+        }
     </style>
 </head>
 <body>
@@ -168,6 +218,16 @@
         </div>
         <div class="grid-container" id="gridContainer">
         </div>
+        <button id="leaderboardButton" class="login-button">
+            <i class="fas fa-list-ol"></i> Ver Clasificación Global
+        </button>
+    </div>
+
+    <div id="leaderboardArea" class="game-container">
+        <h2>🏆 Clasificación Global 🏆</h2>
+        <div id="leaderboardContent">
+            </div>
+        <button id="backToGameButton">Volver al Juego</button>
     </div>
     
     <div id="feedback-overlay">
@@ -192,6 +252,10 @@
         
         const loginArea = document.getElementById('loginArea');
         const gameArea = document.getElementById('gameArea');
+        const leaderboardArea = document.getElementById('leaderboardArea');
+        const leaderboardButton = document.getElementById('leaderboardButton');
+        const backToGameButton = document.getElementById('backToGameButton');
+        const leaderboardContent = document.getElementById('leaderboardContent');
         const signInButton = document.getElementById('googleSignInButton');
         const recordStatus = document.getElementById('recordStatus');
 
@@ -208,12 +272,14 @@
             if (user) {
                 loginArea.style.display = 'none';
                 gameArea.style.display = 'block';
+                leaderboardArea.style.display = 'none';
                 if (!timerInterval) {
                     initGame();
                 }
             } else {
                 loginArea.style.display = 'block';
                 gameArea.style.display = 'none';
+                leaderboardArea.style.display = 'none';
                 stopTimer();
             }
         });
@@ -278,6 +344,44 @@
                 recordStatus.textContent = '❌ Error al guardar el récord.';
             }
         }
+
+        // --- FUNCIÓN PARA OBTENER Y MOSTRAR LA CLASIFICACIÓN ---
+        async function fetchLeaderboard() {
+            leaderboardContent.innerHTML = 'Cargando récords...';
+            try {
+                // Consulta a Firestore: Ordenar por score (desc) y luego por timeSeconds (asc)
+                const snapshot = await db.collection("records")
+                    .orderBy("score", "desc")
+                    .orderBy("timeSeconds", "asc")
+                    .limit(10) 
+                    .get();
+
+                if (snapshot.empty) {
+                    leaderboardContent.innerHTML = '<p>Aún no hay récords.</p>';
+                    return;
+                }
+
+                let html = '<table class="leaderboard-table">';
+                html += '<tr><th>#</th><th>Jugador</th><th>Puntos</th><th>Tiempo</th></tr>';
+
+                snapshot.docs.forEach((doc, index) => {
+                    const data = doc.data();
+                    html += `<tr>
+                        <td>${index + 1}</td>
+                        <td>${data.username || 'Anónimo'}</td>
+                        <td>${data.score}</td>
+                        <td>${data.timeFormatted}</td>
+                    </tr>`;
+                });
+
+                html += '</table>';
+                leaderboardContent.innerHTML = html;
+
+            } catch (error) {
+                console.error("Error al cargar el leaderboard:", error);
+                leaderboardContent.innerHTML = '<p>Error al cargar la clasificación. Verifica las reglas de Firestore.</p>';
+            }
+        }
         
         function loseGame() {
             stopTimer(); 
@@ -337,7 +441,22 @@
                 loseGame();
             }
         }
+
+        // --- MANEJO DE VISTAS ---
+        leaderboardButton.addEventListener('click', () => {
+            stopTimer();
+            gameArea.style.display = 'none';
+            leaderboardArea.style.display = 'block';
+            fetchLeaderboard(); 
+        });
+
+        backToGameButton.addEventListener('click', () => {
+            leaderboardArea.style.display = 'none';
+            gameArea.style.display = 'block';
+            if (auth.currentUser && !timerInterval) {
+                initGame();
+            }
+        });
     </script>
 </body>
 </html>
-
