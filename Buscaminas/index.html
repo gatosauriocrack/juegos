@@ -1010,7 +1010,7 @@ function handleCellMouseDown(event) {
 }
 
 function revealCell(r, c) {
-    if (r < 0 || r >= CURRENT_ROWS || c < 0 || c >= CURRENT_COLS) return;
+    if (r < 0 || r >= CURRENT_ROWS || c < 0 || c < CURRENT_COLS) return;
     const cellData = gameGrid[r][c];
     if (cellData.isRevealed || cellData.isFlagged || gameOver) return;
 
