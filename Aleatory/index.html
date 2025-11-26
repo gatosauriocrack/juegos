@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Juego de Reflejos</title>
+    <title>Juego de Reflejos - Login Requerido</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
@@ -12,6 +12,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <style>
+        :root {
+            --color-principal: #4285F4;
+            --color-fondo: black;
+            --color-texto: white;
+            --color-fondo-menu: #1c1c1c;
+            --color-verde-seleccion: #4CAF50;
+            --color-rojo-salir: #D32F2F;
+        }
+
         body {
             display: flex;
             justify-content: center;
@@ -19,24 +28,84 @@
             min-height: 100vh;
             margin: 0;
             font-family: 'Arial', sans-serif;
-            background-color: black;
+            background-color: var(--color-fondo);
             overflow: hidden;
-            color: white;
+            color: var(--color-texto);
         }
 
         .game-container {
             text-align: center;
             padding: 20px;
             border-radius: 15px;
-            background-color: black;
+            background-color: var(--color-fondo);
             position: relative;
             z-index: 10;
         }
 
-        #gameArea, #leaderboardArea {
+        #gameArea {
             display: none; 
         }
-
+        
+        .game-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background-color: var(--color-fondo-menu);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            width: 90%;
+            max-width: 350px;
+        }
+        .social-auth-container {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+        .social-auth-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+        .social-auth-btn i {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+        .google-btn {
+            background-color: #4285F4;
+            color: white;
+        }
+        .play-games-btn {
+            background-color: var(--color-verde-seleccion);
+            color: white;
+        }
+        
         #loginArea {
             text-align: center;
             padding: 50px;
@@ -44,33 +113,19 @@
             border-radius: 10px;
         }
 
-        .login-button, #leaderboardButton {
+        #loginButton {
             padding: 15px 30px;
             font-size: 1.2em;
             cursor: pointer;
+            background-color: var(--color-principal);
+            color: white;
             border: none;
             border-radius: 5px;
             margin-top: 20px;
             transition: background-color 0.2s;
-            width: 80%;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            background-color: #4285F4;
-            color: white;
         }
-
-        #leaderboardButton {
-            background-color: #4CAF50;
-            width: 340px; 
-            margin-top: 15px;
-        }
-        
-        .login-button:hover {
+        #loginButton:hover {
             background-color: #357ae8;
-        }
-        #leaderboardButton:hover {
-            background-color: #45a049;
         }
 
         .info-bar { 
@@ -86,11 +141,11 @@
         .score-display, .time-display {
             font-size: 1.5em;
             font-weight: bold;
-            color: white;
+            color: var(--color-texto);
         }
 
         #score, #timer {
-            color: #4CAF50;
+            color: var(--color-verde-seleccion);
         }
 
         .grid-container {
@@ -145,7 +200,7 @@
         }
 
         .fail-icon {
-            color: #ff0000;
+            color: var(--color-rojo-salir);
             font-size: 150px;
             margin-bottom: 20px;
         }
@@ -157,57 +212,18 @@
             text-align: center;
             line-height: 1.2;
         }
-        
-        /* Estilos del Leaderboard */
-        #leaderboardArea {
-            width: 400px;
-            background-color: #111;
-            padding: 30px;
-            border-radius: 10px;
-        }
-        #leaderboardArea h2 {
-            color: #4CAF50;
-        }
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .leaderboard-table th, .leaderboard-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
-        .leaderboard-table th {
-            background-color: #222;
-        }
-        .leaderboard-table tr:nth-child(1) {
-            color: gold;
-            font-weight: bold;
-        }
-        #backToGameButton {
-            background-color: #555;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 20px;
-            width: 100%;
-        }
-        #backToGameButton:hover {
-            background-color: #777;
-        }
     </style>
 </head>
 <body>
 
     <div id="loginArea" class="game-container">
-        <h2>Inicia Sesión para Jugar</h2>
-        <p>Necesitas iniciar sesión para registrar tu récord y tiempo.</p>
-        
-        <button id="googleSignInButton" class="login-button">
-            <i class="fab fa-google"></i> Iniciar Sesión con Google
+        <h2>Juego de Reflejos</h2>
+        <p><span id="sessionStatus">Sesión: No iniciada</span></p>
+        <button id="loginButton">
+            Iniciar Sesión para Jugar
+        </button>
+        <button onclick="logout()" id="mainLogoutButton" style="background-color: var(--color-rojo-salir); color: white; padding: 10px 20px; display: none; margin-top: 15px; border: none; border-radius: 5px;">
+            Cerrar Sesión
         </button>
     </div>
 
@@ -218,22 +234,30 @@
         </div>
         <div class="grid-container" id="gridContainer">
         </div>
-        <button id="leaderboardButton" class="login-button">
-            <i class="fas fa-list-ol"></i> Ver Clasificación Global
-        </button>
-    </div>
-
-    <div id="leaderboardArea" class="game-container">
-        <h2>🏆 Clasificación Global 🏆</h2>
-        <div id="leaderboardContent">
-            </div>
-        <button id="backToGameButton">Volver al Juego</button>
     </div>
     
     <div id="feedback-overlay">
         <i class="fas fa-times fail-icon"></i>
         <div class="feedback-text" id="feedbackText"></div> 
         <div class="feedback-text" id="recordStatus" style="font-size: 0.8em; margin-top: 20px; color: #90EE90;"></div>
+    </div>
+
+    <div id="authModal" class="game-modal">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="font-size: 2em;">Elige cómo iniciar sesión</h2>
+            <div id="authMessage" style="color: #F44336; margin: 10px 0;"></div>
+            <div id="socialAuthContainer" class="social-auth-container">
+                <button class="social-auth-btn google-btn" onclick="signInWithGoogle()">
+                    <i class="fab fa-google"></i> Iniciar Sesión con Google
+                </button>
+                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()">
+                    <i class="fas fa-gamepad"></i> Iniciar Sesión con Play Juegos
+                </button>
+            </div>
+             <button onclick="closeAuthModal()" style="margin-top: 20px; padding: 10px 20px; background-color: #555; color: white; font-size: 1em; border: none; border-radius: 5px;">
+                ← Regresar
+            </button>
+        </div>
     </div>
 
     <script>
@@ -246,43 +270,147 @@
             appId: "1:1029072924025:web:c32d735e453416ecfd93a8",
         };
         
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(); 
-        const db = firebase.firestore(); 
+        let auth;
+        let db;
+        let FieldValue;
+        let isFirebaseConnected = false;
+        let usernamesCol; 
         
+        try {
+            firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            FieldValue = firebase.firestore.FieldValue;
+            usernamesCol = db.collection('usernames');
+            isFirebaseConnected = true;
+        } catch (e) {
+            auth = { 
+                currentUser: null, 
+                onAuthStateChanged: (callback) => callback(null),
+                signOut: () => Promise.resolve(),
+                setPersistence: () => Promise.resolve() 
+            };
+            db = null;
+            FieldValue = { serverTimestamp: () => new Date() }; 
+            usernamesCol = null;
+            window.signInWithGoogle = () => alert("La conexión para iniciar sesión no está disponible.");
+            window.logout = () => alert("No hay sesión para cerrar.");
+            window.updateSessionUI(null);
+        }
+
         const loginArea = document.getElementById('loginArea');
         const gameArea = document.getElementById('gameArea');
-        const leaderboardArea = document.getElementById('leaderboardArea');
-        const leaderboardButton = document.getElementById('leaderboardButton');
-        const backToGameButton = document.getElementById('backToGameButton');
-        const leaderboardContent = document.getElementById('leaderboardContent');
-        const signInButton = document.getElementById('googleSignInButton');
+        const loginButton = document.getElementById('loginButton');
+        const mainLogoutButton = document.getElementById('mainLogoutButton');
         const recordStatus = document.getElementById('recordStatus');
+        const sessionStatusElement = document.getElementById('sessionStatus');
 
-        signInButton.addEventListener('click', () => {
+        function openAuthModal() {
+            document.getElementById('authModal').style.display = 'flex';
+            document.getElementById('authMessage').textContent = ''; 
+        }
+        
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+        
+        function displayAuthMessage(message, isError) {
+            const authMessage = document.getElementById('authMessage');
+            authMessage.textContent = message;
+            authMessage.style.color = isError ? '#F44336' : '#4CAF50';
+        }
+
+        async function signInWithGoogle() {
+            if (!isFirebaseConnected) {
+                displayAuthMessage("Error: Conexión a Firebase fallida.", true);
+                return;
+            }
+
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {})
-                .catch((error) => {
-                    alert("Error al iniciar sesión con Google: " + error.message);
-                });
-        });
-
-        auth.onAuthStateChanged((user) => {
-            if (user) {
+            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            try {
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                await initializeUserRecord(user);
+                closeAuthModal();
+            } catch (error) {
+                let errorMessage = 'Error al iniciar sesión. Inténtalo de nuevo.';
+                if (error.code === 'auth/popup-closed-by-user') {
+                    errorMessage = 'La ventana de inicio de sesión fue cerrada.';
+                }
+                displayAuthMessage(errorMessage, true);
+            }
+        }
+        
+        async function initializeUserRecord(user) {
+            if (!usernamesCol) return;
+            const userDocRef = usernamesCol.doc(user.uid);
+            const doc = await userDocRef.get();
+            if (!doc.exists) {
+                const initialDisplayName = user.displayName || user.email.split('@')[0];
+                await userDocRef.set({
+                    uid: user.uid,
+                    displayName: initialDisplayName,
+                    email: user.email,
+                    photoURL: user.photoURL || null,
+                    createdAt: FieldValue.serverTimestamp(),
+                }, { merge: true });
+            }
+        }
+        
+        function logout() {
+            auth.signOut()
+            .then(() => {
+                updateSessionUI(null);
+                alert("¡Sesión cerrada correctamente!");
+            }).catch((error) => {
+                 alert("Error al cerrar sesión.");
+            });
+        }
+        
+        async function getAliasFromUID(uid) {
+             if (!isFirebaseConnected) return "Usuario Offline";
+             try {
+                const doc = await usernamesCol.doc(uid).get();
+                if (doc.exists && doc.data().displayName) {
+                    return doc.data().displayName;
+                }
+                const user = auth.currentUser; 
+                return (user.displayName || user.email.split('@')[0]) || "Usuario Desconocido"; 
+             } catch(e) {
+                return "Error al cargar alias";
+             }
+        }
+        
+        async function updateSessionUI(userEmail) {
+            if (userEmail) {
+                const uid = auth.currentUser.uid;
+                const username = await getAliasFromUID(uid);
+                sessionStatusElement.textContent = `Sesión: ${username} (Activa)`;
+                sessionStatusElement.style.color = 'lightgreen';
                 loginArea.style.display = 'none';
                 gameArea.style.display = 'block';
-                leaderboardArea.style.display = 'none';
                 if (!timerInterval) {
                     initGame();
                 }
             } else {
+                sessionStatusElement.textContent = `Sesión: No iniciada`;
+                sessionStatusElement.style.color = '#F44336';
                 loginArea.style.display = 'block';
                 gameArea.style.display = 'none';
-                leaderboardArea.style.display = 'none';
                 stopTimer();
             }
-        });
+            loginButton.style.display = userEmail ? 'none' : 'block';
+            mainLogoutButton.style.display = userEmail ? 'block' : 'none';
+        }
+
+        if (auth.onAuthStateChanged) { 
+             auth.onAuthStateChanged((user) => {
+                 updateSessionUI(user ? user.email : null);
+             });
+        }
+        
+        loginButton.addEventListener('click', openAuthModal);
 
         const NUM_SQUARES = 9;
         let score = 0;
@@ -321,65 +449,42 @@
         }
         
         async function saveRecord(finalScore, finalTimeSeconds) {
-            recordStatus.textContent = 'Guardando récord...';
+            recordStatus.textContent = 'Verificando récord...';
             const user = auth.currentUser;
             
-            if (!user) {
-                 recordStatus.textContent = 'Error: No hay usuario autenticado.';
+            if (!user || !db) {
+                 recordStatus.textContent = 'Error: Sin autenticación o conexión a DB.';
                  return;
             }
 
+            const bestRecordRef = db.collection("leaderboard_aleatory_game").doc(user.uid);
+            
             try {
-                await db.collection("records").add({
-                    userId: user.uid,
-                    username: user.displayName || 'Anónimo',
-                    score: finalScore,
-                    timeSeconds: finalTimeSeconds, 
-                    timeFormatted: formatTime(finalTimeSeconds), 
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+                const doc = await bestRecordRef.get();
+                const currentBestScore = doc.exists ? doc.data().score : 0;
+                const username = await getAliasFromUID(user.uid);
                 
-                recordStatus.textContent = `✅ Récord (${finalScore} puntos) guardado con éxito.`;
-            } catch (e) {
-                recordStatus.textContent = '❌ Error al guardar el récord.';
-            }
-        }
+                if (finalScore > currentBestScore) {
+                    
+                    const recordData = {
+                        userId: user.uid,
+                        username: username,
+                        score: finalScore,
+                        timeSeconds: finalTimeSeconds, 
+                        timeFormatted: formatTime(finalTimeSeconds), 
+                        timestamp: FieldValue.serverTimestamp()
+                    };
 
-        // --- FUNCIÓN PARA OBTENER Y MOSTRAR LA CLASIFICACIÓN ---
-        async function fetchLeaderboard() {
-            leaderboardContent.innerHTML = 'Cargando récords...';
-            try {
-                // Consulta a Firestore: Ordenar por score (desc) y luego por timeSeconds (asc)
-                const snapshot = await db.collection("records")
-                    .orderBy("score", "desc")
-                    .orderBy("timeSeconds", "asc")
-                    .limit(10) 
-                    .get();
-
-                if (snapshot.empty) {
-                    leaderboardContent.innerHTML = '<p>Aún no hay récords.</p>';
-                    return;
+                    await bestRecordRef.set(recordData, { merge: true });
+                    
+                    recordStatus.textContent = `🎉 ¡NUEVO RÉCORD PERSONAL! (${finalScore} puntos).`;
+                    
+                } else {
+                    recordStatus.textContent = `Tu puntuación fue ${finalScore}. Mejor récord: ${currentBestScore}.`;
                 }
-
-                let html = '<table class="leaderboard-table">';
-                html += '<tr><th>#</th><th>Jugador</th><th>Puntos</th><th>Tiempo</th></tr>';
-
-                snapshot.docs.forEach((doc, index) => {
-                    const data = doc.data();
-                    html += `<tr>
-                        <td>${index + 1}</td>
-                        <td>${data.username || 'Anónimo'}</td>
-                        <td>${data.score}</td>
-                        <td>${data.timeFormatted}</td>
-                    </tr>`;
-                });
-
-                html += '</table>';
-                leaderboardContent.innerHTML = html;
-
-            } catch (error) {
-                console.error("Error al cargar el leaderboard:", error);
-                leaderboardContent.innerHTML = '<p>Error al cargar la clasificación. Verifica las reglas de Firestore.</p>';
+            } catch (e) {
+                console.error("Error al guardar/comparar el récord:", e);
+                recordStatus.textContent = '❌ Error al guardar el récord.';
             }
         }
         
@@ -396,7 +501,11 @@
             feedbackText.innerHTML = message; 
             feedbackOverlay.classList.add('visible');
 
-            saveRecord(finalScore, finalTimeSeconds);
+            if (auth.currentUser) {
+                saveRecord(finalScore, finalTimeSeconds);
+            } else {
+                 recordStatus.textContent = 'Récord no guardado (inicia sesión).';
+            }
             
             setTimeout(() => {
                 feedbackOverlay.classList.remove('visible');
@@ -405,8 +514,11 @@
                 timerDisplay.textContent = formatTime(gameTimeSeconds);
                 if (auth.currentUser) { 
                     initGame();
+                } else {
+                    loginArea.style.display = 'block';
+                    gameArea.style.display = 'none';
                 }
-            }, 1000);
+            }, 1500);
         }
 
         function initGame() {
@@ -441,22 +553,6 @@
                 loseGame();
             }
         }
-
-        // --- MANEJO DE VISTAS ---
-        leaderboardButton.addEventListener('click', () => {
-            stopTimer();
-            gameArea.style.display = 'none';
-            leaderboardArea.style.display = 'block';
-            fetchLeaderboard(); 
-        });
-
-        backToGameButton.addEventListener('click', () => {
-            leaderboardArea.style.display = 'none';
-            gameArea.style.display = 'block';
-            if (auth.currentUser && !timerInterval) {
-                initGame();
-            }
-        });
     </script>
 </body>
 </html>
