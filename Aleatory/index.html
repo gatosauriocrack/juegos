@@ -126,10 +126,6 @@
             background-color: #4285F4;
             color: white;
         }
-        .play-games-btn {
-            background-color: var(--color-verde-seleccion);
-            color: white;
-        }
         
         #loginArea {
             text-align: center;
@@ -269,16 +265,13 @@
 
     <div id="authModal" class="game-modal">
         <div class="modal-content">
-            <h2 id="modalTitle" style="font-size: 2em;">Elige cómo iniciar sesión</h2>
+            <h2 id="modalTitle" style="font-size: 2em;">Iniciar Sesión</h2>
             <div id="authMessage" style="color: #F44336; margin: 10px 0;"></div>
             <div id="socialAuthContainer" class="social-auth-container">
                 <button class="social-auth-btn google-btn" onclick="signInWithGoogle()">
                     <i class="fab fa-google"></i> Iniciar Sesión con Google
                 </button>
-                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()">
-                    <i class="fas fa-gamepad"></i> Iniciar Sesión con Play Juegos
-                </button>
-            </div>
+                </div>
              <button onclick="closeAuthModal()" style="margin-top: 20px; padding: 10px 20px; background-color: #555; color: white; font-size: 1em; border: none; border-radius: 5px;">
                 ← Regresar
             </button>
