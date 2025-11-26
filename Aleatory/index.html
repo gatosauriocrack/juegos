@@ -39,6 +39,23 @@
             background-color: var(--color-fondo);
             overflow: hidden;
             color: var(--color-texto);
+
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        button, .social-auth-btn, .square {
+            outline: none;
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        #loginButton:focus, #mainLogoutButton:focus, .social-auth-btn:focus, 
+        .square:focus, .square:active, .social-auth-btn:active, 
+        #loginButton:active, #mainLogoutButton:active {
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         .game-container {
