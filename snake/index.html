@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake</title>
+    <title>Snake - Gatosauriocrack</title>
     
     <link rel="icon" type="image/png" href="snake.png">
     
@@ -471,7 +471,6 @@ try {
     usernamesCol = db.collection('usernames'); 
     isFirebaseConnected = true;
 } catch (e) {
-    console.warn("ADVERTENCIA: Fallo al cargar Firebase.", e);
     auth = { 
         currentUser: null, 
         onAuthStateChanged: (callback) => callback(null),
@@ -485,7 +484,6 @@ try {
     window.signInWithGoogle = () => alert("La conexión para iniciar sesión no está disponible.");
     window.logout = () => alert("No hay sesión para cerrar.");
     window.saveUserRecord = (score, speed) => { 
-        console.log("Récord local no enviado al servidor (offline).");
         showNotification(false);
         return { success: false, message: "Sin conexión." };
     };
@@ -529,13 +527,12 @@ if (isFirebaseConnected) {
             showNotification(true); 
             return { success: true };
         } catch (error) {
-            console.error("Error al guardar el récord:", error);
             showNotification(false); 
             return { success: false, message: "Error interno al guardar el récord." };
         }
     }
 }
-const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?from=game";
+const CLASIFICACION_URL = "https://gatosauriocrack.github.io/snake/Records?from=game";
         function openAuthModal() {
             document.getElementById('authModal').style.display = 'flex';
             document.getElementById('authMessage').textContent = ''; 
@@ -565,7 +562,6 @@ const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?
                 } else if (error.code === 'auth/cancelled-popup-request') {
                     errorMessage = 'La cancelación fue cancelada.';
                 }
-                console.error("Error de autenticación con Google:", error);
                 displayAuthMessage(errorMessage, true);
             }
         }
@@ -901,6 +897,37 @@ const CLASIFICACION_URL = "https://gatosauriocrack.github.io/Worl/snake/Records?
             finalHighScoreValueElement.textContent = loadHighScore();
             gameOverModal.style.display = 'flex';
         }
+        
+        document.addEventListener('keydown', (event) => {
+            const keyMap = {
+                'ArrowUp': 'ArrowUp',
+                'w': 'ArrowUp',
+                'W': 'ArrowUp',
+                'ArrowDown': 'ArrowDown',
+                's': 'ArrowDown',
+                'S': 'ArrowDown',
+                'ArrowLeft': 'ArrowLeft',
+                'a': 'ArrowLeft',
+                'A': 'ArrowLeft',
+                'ArrowRight': 'ArrowRight',
+                'd': 'ArrowRight',
+                'D': 'ArrowRight'
+            };
+
+            const mappedKey = keyMap[event.key];
+
+            if (mappedKey) {
+                event.preventDefault(); 
+                if (gameRunning && !gamePaused) {
+                    changeDirection(mappedKey);
+                } else if (!gameRunning && startModal.style.display === 'flex') {
+                    showCountdown(100, 'Normal (Medio)'); 
+                }
+            } else if (event.key === 'p' || event.key === 'P' || event.key === 'Escape') {
+                togglePause();
+            }
+        });
+
         document.querySelectorAll('.control-btn').forEach(button => {
             const direction = button.getAttribute('data-direction');
             const handleInput = (event) => {
