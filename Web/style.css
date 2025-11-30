@@ -1,22 +1,31 @@
 :root {
-    --color-naranja-principal: #EA7900; 
-    --color-naranja-claro: #ffb86c;     
-    --color-naranja-fuerte: #CC6600;    
-    --color-fondo: #373737; 
+    --color-naranja-principal: #EA7900;
+    --color-naranja-claro: #ffb86c;
+    --color-naranja-fuerte: #CC6600;
+    --color-fondo: #373737;
     --color-texto: #e0e0e0;
     --color-success-bg: #4CAF50;
-    --color-error-bg: #f44336; 
-    --color-azul-principal: #1A73E8; 
-    --color-verde-seleccion: #4CAF50; 
-    --color-rosado-pata: #FFADCE; 
-    --color-purple: #9b59b6; 
-    --color-pink: #e91e63; 
-    --color-gray-alert: #6c757d; 
+    --color-error-bg: #f44336;
+    --color-azul-principal: #1A73E8;
+    --color-verde-seleccion: #4CAF50;
+    --color-rosado-pata: #FFADCE;
+    --color-purple: #9b59b6;
+    --color-pink: #e91e63;
+    --color-gray-alert: #6c757d;
     --color-barra-principal: var(--color-naranja-principal);
     --color-fondo-oscuro: var(--color-fondo);
     --color-texto-principal: var(--color-texto);
-    --color-fondo-claro-menu: #373737; 
+    --color-fondo-claro-menu: #373737;
     --color-fondo-secundario: #363a45;
+    --color-negro: #363a45;
+}
+
+.app-icon-custom .icon-color-rosa {
+    color: var(--color-rosado-pata) !important;
+}
+
+.app-icon-custom .icon-color-negro {
+    color: var(--color-negro) !important;
 }
 
 @font-face {
@@ -45,6 +54,7 @@
 
 .icon-meli-icono:before {
   content: "\e900";
+  color: var(--color-negro); 
 }
 .icon-Meli:before {
   content: "\e901";
@@ -139,21 +149,21 @@ body {
 }
 
 .menu-icon {
-    font-size: 28px; 
+    font-size: 28px;
     cursor: pointer;
-    margin-right: 15px; 
+    margin-right: 15px;
 }
 
 .app-icon-custom {
-    color: var(--color-rosado-pata); 
-    font-size: 30px; 
+    color: var(--color-rosado-pata);
+    font-size: 38px !important;
     margin-right: 15px;
-    line-height: 1; 
+    line-height: 1;
 }
 
 .app-icon {
-    display: none; 
-    width: 40px; 
+    display: none;
+    width: 40px;
     height: 40px;
     object-fit: contain;
     margin-right: 10px;
@@ -163,12 +173,12 @@ body {
     font-weight: bold;
     font-size: 1.5em;
     color: var(--color-texto);
-    line-height: 1; 
+    line-height: 1;
 }
 
 .sidebar {
     height: 100%;
-    width: 0; 
+    width: 0;
     position: fixed;
     z-index: 999;
     top: 0;
@@ -189,7 +199,7 @@ body {
     padding: 15px;
     display: flex;
     align-items: center;
-    flex-direction: column; 
+    flex-direction: column;
     text-align: center;
     border-bottom: 1px solid var(--color-naranja-fuerte);
     margin-bottom: 10px;
@@ -197,7 +207,7 @@ body {
 }
 
 .profile-photo-container {
-    width: 70px; 
+    width: 70px;
     height: 70px;
     margin-bottom: 10px;
     display: flex;
@@ -205,18 +215,18 @@ body {
     justify-content: center;
     border-radius: 50%;
     border: 2px solid var(--color-naranja-claro);
-    background-color: #363a45; 
+    background-color: #363a45;
     position: relative;
 }
 
 .default-profile-icon {
-    font-size: 50px; 
+    font-size: 50px;
     color: var(--color-naranja-claro);
 }
 
 .profile-photo {
     object-fit: cover;
-    transition: opacity 0.3s; 
+    transition: opacity 0.3s;
 }
 
 .profile-photo.hidden {
@@ -229,7 +239,7 @@ body {
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    position: absolute; 
+    position: absolute;
     top: 0;
     left: 0;
     border: none;
@@ -260,7 +270,7 @@ body {
     margin-right: 15px;
     width: 20px;
     text-align: center;
-    font-size: 1.1em; 
+    font-size: 1.1em;
 }
 
 .closebtn {
@@ -273,7 +283,7 @@ body {
 }
 
 .main-content {
-    padding-top: 65px; 
+    padding-top: 65px;
     padding-left: 20px;
     padding-right: 20px;
     width: 100%;
@@ -282,32 +292,32 @@ body {
     box-sizing: border-box;
     display: none;
     flex-direction: column;
-    align-items: center; 
+    align-items: center;
 }
 
 .main-content.active {
-    display: flex; 
+    display: flex;
 }
 
 @media (min-width: 900px) {
     .sidebar {
-        width: 250px; 
+        width: 250px;
         box-shadow: none;
     }
     .sidebar .closebtn {
-        display: none; 
+        display: none;
     }
     .header-bar .menu-icon {
-        display: none; 
+        display: none;
     }
     .main-content {
-        margin-left: 250px; 
+        margin-left: 250px;
         width: calc(100% - 250px);
-        padding-left: 40px; 
+        padding-left: 40px;
         padding-right: 40px;
     }
     .main-content:not(#home-screen) ~ .back-button {
-        left: 250px; 
+        left: 250px;
     }
 }
 
@@ -318,7 +328,7 @@ body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.4);
-    z-index: 998; 
+    z-index: 998;
     display: none;
     cursor: pointer;
 }
@@ -330,7 +340,7 @@ body {
     padding: 25px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-    margin-bottom: 30px; 
+    margin-bottom: 30px;
     text-align: left;
 }
 
@@ -361,7 +371,7 @@ body {
     font-size: 1.5em;
     margin-top: 20px;
     margin-bottom: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1); 
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding-top: 15px;
 }
 
@@ -389,7 +399,7 @@ body {
 .index-list li .fas {
     color: var(--color-naranja-principal);
     margin-right: 10px;
-    width: 20px; 
+    width: 20px;
     text-align: center;
 }
 
@@ -482,9 +492,9 @@ body {
     max-width: 450px;
     display: flex;
     flex-direction: column;
-    gap: 15px; 
+    gap: 15px;
     margin-top: 20px;
-    margin-bottom: 30px; 
+    margin-bottom: 30px;
 }
 
 .game-item-container {
@@ -513,7 +523,7 @@ body {
 }
 
 .game-button {
-    flex-grow: 1; 
+    flex-grow: 1;
     background-color: var(--color-naranja-principal);
     color: white;
     padding: 15px 20px;
@@ -538,7 +548,7 @@ body {
 .game-status {
     font-size: 0.85em;
     font-weight: normal;
-    color: var(--color-fondo-oscuro); 
+    color: var(--color-fondo-oscuro);
     margin-left: 10px;
 }
 
@@ -552,7 +562,7 @@ body {
     transition: background-color 0.2s;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
-    width: 55px; 
+    width: 55px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -607,7 +617,7 @@ body {
 }
 
 #juegos-screen .back-to-home-button {
-    display: none; 
+    display: none;
 }
 
 .back-to-home-button {
@@ -622,7 +632,7 @@ body {
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s;
-    margin-bottom: 20px; 
+    margin-bottom: 20px;
 }
 .back-to-home-button:hover {
     background-color: #777;
@@ -656,7 +666,7 @@ body {
 
 .card-media {
     width: 100%;
-    height: 250px; 
+    height: 250px;
     object-fit: cover;
     display: block;
     background-color: #333;
@@ -747,7 +757,7 @@ body {
 .banner-upload-wrapper, .avatar-upload-wrapper {
     position: relative;
     display: inline-block;
-    margin-left: 10px; 
+    margin-left: 10px;
 }
 
 .banner-upload-btn, .avatar-upload-btn {
@@ -762,12 +772,12 @@ body {
 }
 
 input[type="file"] {
-    display: none; 
+    display: none;
 }
 
 .profile-avatar-wrapper {
     position: relative;
-    margin-top: -50px; 
+    margin-top: -50px;
     padding-left: 20px;
     display: flex;
     align-items: flex-end;
@@ -798,7 +808,7 @@ input[type="file"] {
 }
 
 .profile-field input[type="text"] {
-    width: calc(100% - 24px); 
+    width: calc(100% - 24px);
     padding: 10px;
     border: 1px solid #555;
     border-radius: 5px;
@@ -838,13 +848,13 @@ input[type="file"] {
 
 .modal-overlay {
     position: fixed;
-    z-index: 2000; 
+    z-index: 2000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); 
-    backdrop-filter: blur(3px); 
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(3px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -852,7 +862,7 @@ input[type="file"] {
 
 .modal-content {
     background-color: var(--color-fondo-claro-menu);
-    padding: 20px; 
+    padding: 20px;
     width: 90%;
     max-width: 350px;
     border-radius: 10px;
@@ -886,7 +896,7 @@ input[type="file"] {
     padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 15px; 
+    gap: 15px;
 }
 
 .social-auth-btn {
@@ -913,25 +923,25 @@ input[type="file"] {
 }
 
 .google-btn {
-    background-color: #4285F4; 
+    background-color: #4285F4;
     color: white;
 }
 
 .play-games-btn {
-    background-color: #4CAF50; 
+    background-color: #4CAF50;
     color: white;
 }
 
 .game-modal {
     position: fixed;
-    z-index: 2000; 
+    z-index: 2000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); 
+    background-color: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
-    display: none; 
+    display: none;
     align-items: center;
     justify-content: center;
 }
@@ -944,11 +954,11 @@ input[type="file"] {
     border-radius: 10px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.7);
     position: relative;
-    max-height: 90vh; 
+    max-height: 90vh;
     overflow-y: auto;
     border: 3px solid var(--color-naranja-principal);
-    transform: none; 
-    transition: none; 
+    transform: none;
+    transition: none;
 }
 
 .close-game-modal {
@@ -960,7 +970,7 @@ input[type="file"] {
     color: var(--color-texto);
     cursor: pointer;
     transition: color 0.2s;
-    display: block !important; 
+    display: block !important;
 }
 
 .close-game-modal:hover {
@@ -968,7 +978,7 @@ input[type="file"] {
 }
 
 .slide-close-button {
-    display: none !important; 
+    display: none !important;
 }
 
 .modal-title-game {
@@ -979,7 +989,7 @@ input[type="file"] {
     font-size: 1.8em;
     border-bottom: 1px solid #555;
     padding-bottom: 10px;
-    padding-left: 0; 
+    padding-left: 0;
     padding-right: 0;
 }
 
@@ -1005,7 +1015,7 @@ input[type="file"] {
 
 .modal-content-game ul li:before {
     content: "•";
-    color: var(--color-verde-seleccion); 
+    color: var(--color-verde-seleccion);
     font-weight: bold;
     display: inline-block;
     width: 1em;
@@ -1022,31 +1032,31 @@ input[type="file"] {
 }
 
 .alert-red {
-    background-color: rgba(244, 67, 54, 0.2); 
+    background-color: rgba(244, 67, 54, 0.2);
     color: var(--color-error-bg);
     border: 1px solid var(--color-error-bg);
 }
 
 .alert-orange {
-    background-color: rgba(255, 152, 0, 0.2); 
+    background-color: rgba(255, 152, 0, 0.2);
     color: #ff9800;
     border: 1px solid #ff9800;
 }
 
 .alert-blue {
-    background-color: rgba(33, 150, 243, 0.2); 
+    background-color: rgba(33, 150, 243, 0.2);
     color: #2196F3;
     border: 1px solid #2196F3;
 }
 
 .alert-purple {
-    background-color: rgba(155, 89, 182, 0.2); 
+    background-color: rgba(155, 89, 182, 0.2);
     color: var(--color-purple);
     border: 1px solid var(--color-purple);
 }
 
 .alert-pink {
-    background-color: rgba(233, 30, 99, 0.2); 
+    background-color: rgba(233, 30, 99, 0.2);
     color: var(--color-pink);
     border: 1px solid var(--color-pink);
 }
@@ -1079,7 +1089,7 @@ input[type="file"] {
 }
 
 .apk-steps-list li::before {
-    content: none; 
+    content: none;
 }
 
 .canales-card {
@@ -1191,7 +1201,7 @@ input[type="file"] {
 }
 
 .apk-btn {
-    background-color: #2F80ED; 
+    background-color: #2F80ED;
     color: #fff;
     border: 1px solid #2F80ED;
 }
@@ -1207,7 +1217,7 @@ input[type="file"] {
 }
 
 .playstore-btn .fab.fa-google-play {
-    color: var(--color-naranja-principal); 
+    color: var(--color-naranja-principal);
 }
 
 .playstore-btn:hover {
@@ -1222,32 +1232,32 @@ input[type="file"] {
     display: flex;
     align-items: center;
     margin-left: 10px;
-    height: 2em; 
+    height: 2em;
 }
 
 #meliGifInline {
-    height: 1.5em; 
+    height: 1.5em;
     width: auto;
     border: none;
     border-radius: 0;
     background-color: transparent;
     cursor: pointer;
     line-height: 1;
-    display: block; 
+    display: block;
 }
 
 #meliGifContainer {
     position: fixed;
     right: 20px;
     bottom: 20px;
-    z-index: 1050; 
+    z-index: 1050;
     width: 150px;
     background-color: var(--color-fondo-claro-menu);
     border: 3px solid var(--color-naranja-principal);
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-    display: none; 
+    display: none;
     flex-direction: column;
     align-items: center;
     cursor: pointer;
@@ -1279,7 +1289,7 @@ input[type="file"] {
 }
 
 #rickrollModal .modal-content {
-    background-color: #000; 
+    background-color: #000;
     padding: 0;
     max-width: 600px;
     width: 95%;
@@ -1293,8 +1303,8 @@ input[type="file"] {
 
 #rickrollVideo {
     width: 100%;
-    aspect-ratio: 16 / 9; 
-    display: none; 
+    aspect-ratio: 16 / 9;
+    display: none;
 }
 
 #redeemText {
@@ -1322,7 +1332,7 @@ input[type="file"] {
 #rewardContainer {
     padding: 20px;
     text-align: center;
-    display: none; 
+    display: none;
 }
 
 #rewardContainer h3 {
@@ -1360,48 +1370,48 @@ input[type="file"] {
 }
 
 #localClock {
-    position: absolute; 
+    position: absolute;
     right: 10px;
     top: 50%;
     transform: translateY(-50%);
     font-size: 0.8em;
-    color: #fff; 
+    color: #fff;
     font-weight: normal;
-    white-space: nowrap; 
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5); 
+    white-space: nowrap;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
 #meliGifContainer {
-    position: fixed; 
-    bottom: 20px; 
-    right: 20px; 
-    z-index: 1000; 
-    display: none; 
-    cursor: pointer; 
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none;
+    cursor: pointer;
     padding: 0;
     margin: 0;
 }
 
 #meliTimer, #meliGifContainer > #localClock {
-    display: none !important; 
+    display: none !important;
 }
 
 #meliGif {
-    width: 80px; 
+    width: 80px;
     height: auto;
-    border-radius: 10px; 
+    border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
 }
 
 .header-bar {
-    position: relative; 
-    z-index: 100; 
+    position: relative;
+    z-index: 100;
 }
 .apoyo-contenedor-full {
-    width: 100%; 
-    max-width: none; 
-    margin: 0 auto; 
-    padding: 0; 
+    width: 100%;
+    max-width: none;
+    margin: 0 auto;
+    padding: 0;
 }
 
 #apoyo-screen {
@@ -1412,9 +1422,9 @@ input[type="file"] {
 .support-button {
     display: inline-block;
     padding: 15px 30px;
-    margin-top: 25px; 
-    margin-bottom: 25px; 
-    background-color: #FF5E5B; 
+    margin-top: 25px;
+    margin-bottom: 25px;
+    background-color: #FF5E5B;
     color: white;
     text-decoration: none;
     border-radius: 50px;
@@ -1443,7 +1453,7 @@ input[type="file"] {
 .app-list-download .app-item-download:nth-child(1) .app-name-icon i.fas.fa-snake:before {
     content: "\e907";
     font-family: 'FontAwesome-Gatosauriocrack' !important;
-    font-weight: normal; 
+    font-weight: normal;
     font-style: normal;
-    color: #EA7900 !important; 
+    color: #EA7900 !important;
 }
