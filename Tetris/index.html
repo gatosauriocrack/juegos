@@ -17,6 +17,8 @@
   <meta name="twitter:description" content="¡Juega la versión móvil del clásico Tetris en GitHub Pages!">
   <meta name="twitter:image" content="https://gatosauriocrack.github.io/Tetris/tetris.png">
   
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
   <style>
         body {
             box-sizing: border-box;
@@ -51,8 +53,14 @@
 
         .header {
             width: 100%;
-            text-align: center;
             margin-bottom: 10px;
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
 
         .header h1 {
@@ -62,6 +70,27 @@
             color: #EA7900;
             text-transform: uppercase;
             letter-spacing: 2px;
+            text-align: center;
+            flex-grow: 1; 
+        }
+
+        #pauseBtn {
+            background: none;
+            border: 2px solid #EA7900;
+            color: #EA7900;
+            padding: 5px 10px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.1s;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 2px 0 #b85e00;
+        }
+
+        #pauseBtn:active {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #b85e00;
         }
 
         .stats {
@@ -96,6 +125,7 @@
             align-items: center;
             justify-content: center;
             width: 100%;
+            position: relative;
         }
 
         #gameCanvas {
@@ -127,7 +157,7 @@
             transition: all 0.1s;
             box-shadow: 0 4px 0 #b85e00;
             outline: none;
-            -webkit-tap-highlight-color: transparent; /* <--- CAMBIO APLICADO AQUÍ */
+            -webkit-tap-highlight-color: transparent; 
         }
         
         .control-btn:focus, .control-btn:focus-visible {
@@ -187,7 +217,7 @@
             letter-spacing: 2px;
             box-shadow: 0 6px 0 #b85e00;
             outline: none;
-            -webkit-tap-highlight-color: transparent; /* <--- CAMBIO APLICADO AQUÍ */
+            -webkit-tap-highlight-color: transparent; 
         }
 
         .start-btn:active {
@@ -201,13 +231,34 @@
             margin-bottom: 20px;
             text-transform: uppercase;
         }
+        
+        .pause-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            color: #EA7900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 999;
+        }
     </style>
   <style>@view-transition { navigation: auto; }</style>
  </head>
  <body>
   <div class="game-wrapper">
    <div class="header">
-    <h1 id="gameTitle">Tetris Móvil</h1>
+    <div class="header-controls">
+     <button id="pauseBtn">
+      <i class="fa-solid fa-pause"></i>
+     </button>
+     <h1 id="gameTitle">Tetris Móvil</h1>
+     <div style="width: 48px;"></div>
+    </div>
    </div>
    <div class="stats">
     <div class="stat-item">
@@ -237,6 +288,9 @@
    </div>
    <div class="game-area">
     <canvas id="gameCanvas" width="200" height="400"></canvas>
+     <div id="pauseText" class="pause-text" style="display: none;">
+     PAUSA
+    </div>
    </div>
    <div class="controls">
     <button class="control-btn" id="leftBtn">◀</button> 
@@ -291,6 +345,10 @@
         let level = 1;
         let gameInterval = null;
         let isGameRunning = false;
+        let isPaused = false;
+
+        const pauseBtn = document.getElementById('pauseBtn');
+        const pauseText = document.getElementById('pauseText');
 
         function newPiece() {
             const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
@@ -356,8 +414,10 @@
                 level = Math.floor(lines / 10) + 1;
                 updateStats();
                 
-                clearInterval(gameInterval);
-                gameInterval = setInterval(gameLoop, 500 - (level - 1) * 50); 
+                if (!isPaused) {
+                    clearInterval(gameInterval);
+                    gameInterval = setInterval(gameLoop, 500 - (level - 1) * 50); 
+                }
             }
         }
 
@@ -428,8 +488,34 @@
         }
 
         function gameLoop() {
+            if (isPaused) return; 
             moveDown();
             draw();
+        }
+        
+        function pauseGame() {
+            if (!isGameRunning || isPaused) return;
+            isPaused = true;
+            clearInterval(gameInterval);
+            pauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            pauseText.style.display = 'block';
+        }
+
+        function resumeGame() {
+            if (!isGameRunning || !isPaused) return;
+            isPaused = false;
+            gameInterval = setInterval(gameLoop, 500 - (level - 1) * 50); 
+            pauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            pauseText.style.display = 'none';
+        }
+
+        function togglePause() {
+            if (!isGameRunning) return;
+            if (isPaused) {
+                resumeGame();
+            } else {
+                pauseGame();
+            }
         }
 
         function startGame() {
@@ -437,14 +523,18 @@
             score = 0;
             lines = 0;
             level = 1;
+            isPaused = false; 
             updateStats();
             newPiece();
             isGameRunning = true;
             document.getElementById('startOverlay').classList.add('hidden');
             document.getElementById('gameOverText').style.display = 'none';
-            
+            pauseBtn.style.display = 'block';
+
             if (gameInterval) clearInterval(gameInterval);
             gameInterval = setInterval(gameLoop, 500); 
+            pauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            pauseText.style.display = 'none';
         }
 
         function gameOver() {
@@ -452,34 +542,38 @@
             clearInterval(gameInterval);
             document.getElementById('gameOverText').style.display = 'block';
             document.getElementById('startOverlay').classList.remove('hidden');
+            pauseBtn.style.display = 'none';
+            pauseText.style.display = 'none'; 
+            isPaused = false;
         }
 
         document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('pauseBtn').addEventListener('click', togglePause);
         
         document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (isGameRunning) {
+            if (isGameRunning && !isPaused) {
                 moveLeft();
                 draw();
             }
         });
         document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (isGameRunning) {
+            if (isGameRunning && !isPaused) {
                 moveRight();
                 draw();
             }
         });
         document.getElementById('rotateBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (isGameRunning) {
+            if (isGameRunning && !isPaused) {
                 rotate();
                 draw();
             }
         });
         document.getElementById('dropBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (isGameRunning) {
+            if (isGameRunning && !isPaused) {
                 drop();
                 draw();
             }
@@ -487,6 +581,13 @@
 
         document.addEventListener('keydown', (e) => {
             if (!isGameRunning) return;
+            
+            if (e.key === 'p' || e.key === 'P' || e.key === ' ') {
+                togglePause();
+                return; 
+            }
+            
+            if (isPaused) return;
             
             if (e.key === 'ArrowLeft') {
                 moveLeft();
@@ -502,6 +603,8 @@
                 draw();
             }
         });
+        
+        pauseBtn.style.display = 'none';
     </script>
  </body>
 </html>
