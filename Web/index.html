@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
     <title>App Gatosauriocrack - Contenido web</title>
-    
     <meta property="og:title" content="Gatosauriocrack - Juegos, Apps y Contenido Digital">
     <meta property="og:description" content="Bienvenido a la web de Gatosauriocrack. Encuentra enlaces de descarga de Apps (APK), juegos beta en línea, contenido de YouTube y enlaces a redes sociales.">
     <meta property="og:image" content="https://gatosauriocrack.github.io/Web/Gatoworl.png">
     <meta property="og:url" content="https://gatosauriocrack.github.io/Web/">
     <meta property="og:type" content="website">
-    
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
@@ -22,14 +20,18 @@
 <body>
     <div class="back-button" onclick="goBack()"><i class="fas fa-arrow-left"></i></div>
     <div id="menuOverlay" onclick="closeMenu()"></div>
-    <header class="header-bar">
-        <div class="header-content">
-            <span class="menu-icon" onclick="toggleMenu()">&#9776;</span>
-            <span id="appIconHolder" class="app-icon-custom"><i class="fas fa-paw"></i></span> 
-            <span class="app-title">Gatosauriocrack</span>
-            <span id="localClock"></span> 
+    
+<header class="header-bar">
+    <div class="header-content">
+        <span class="menu-icon" onclick="toggleMenu()">&#9776;</span>
+        <div class="app-title-container">
+            <i class="icon-meli-icono app-icon-header-custom icon-color-negro-oscuro"></i> 
+            
+            <i class="icon-Gatosauriocrack app-icon-superposition icon-color-negro"></i>
+            <span class="app-title-superposition">Gatosauriocrack</span>
         </div>
-    </header>
+    </div>
+</header>
     
     <div id="meliGifContainer"> 
         <span id="meliTimer" style="display:none;"></span> <img id="meliGif" src="Meli.gif" alt="Meli GIF" onclick="startMeliReward()">
@@ -415,7 +417,6 @@
             <span class="close-game-modal" onclick="closeModal('snakeModal')">&times;</span>
             <h2 class="modal-title-game"><i class="fas fa-snake" style="color: #6AA84F;"></i> Snake!</h2>
             <h3 class="modal-subtitle-game">El Clásico Juego de la Viborita</h3>
-            <p>Este juego es el clásico de los teléfonos viejos con 3 modalidades de velocidad para desafiar tu habilidad:</p>
             <ul>
                 <li><strong>Lento (Fácil)</strong></li>
                 <li><strong>Normal (Medio)</strong></li>
@@ -438,7 +439,6 @@
             <span class="close-game-modal" onclick="closeModal('minesweeperModal')">&times;</span>
             <h2 class="modal-title-game"><i class="fas fa-flag" style="color: red;"></i> Buscaminas | Modo Extremo</h2>
             <h3 class="modal-subtitle-game"><i class="fas fa-bomb"></i> El Desafío de Récord</h3>
-            <p>Esta versión está configurada para una única, pero extrema, partida de dificultad.</p>
             <ul>
                 <li>Dimensiones: <strong>30 columnas x 29 Filas</strong></li>
                 <li>Minas: 99 Bombas Totales</li>
@@ -529,7 +529,6 @@
         const MELI_GIF_CONTAINER = document.getElementById('meliGifContainer');
         const MELI_GIF_IMG = document.getElementById('meliGif');
         const MELI_TIMER_DISPLAY = document.getElementById('meliTimer');
-        const LOCAL_CLOCK_DISPLAY = document.getElementById('localClock');
         const RICKROLL_MODAL = document.getElementById('rickrollModal');
         const RICKROLL_VIDEO = document.getElementById('rickrollVideo');
         const REDEEM_TEXT = document.getElementById('redeemText');
@@ -568,8 +567,6 @@
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
             
-            LOCAL_CLOCK_DISPLAY.textContent = `${now.toLocaleTimeString()}`;
-
             const isGifWindow = (minutes % 20) === 0 && seconds < GIF_DURATION;
 
             if (isGifWindow) {
