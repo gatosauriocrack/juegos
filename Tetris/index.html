@@ -74,7 +74,7 @@
             flex-grow: 1; 
         }
 
-        #pauseBtn {
+        #pauseBtn, #infoBtn {
             background: none;
             border: 2px solid #EA7900;
             color: #EA7900;
@@ -86,12 +86,23 @@
             outline: none;
             -webkit-tap-highlight-color: transparent;
             box-shadow: 0 2px 0 #b85e00;
+            width: 48px; 
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none; 
         }
-
-        #pauseBtn:active {
+        
+        #pauseBtn:active, #infoBtn:active {
             transform: translateY(2px);
             box-shadow: 0 0 0 #b85e00;
         }
+        
+        #infoBtn {
+             box-shadow: 0 2px 0 #b85e00;
+        }
+
 
         .stats {
             width: 100%;
@@ -246,6 +257,81 @@
             border-radius: 10px;
             z-index: 999;
         }
+        
+        .info-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+        
+        .info-content {
+            max-width: 400px; 
+            margin: 20px;
+            padding: 30px 20px 20px;
+            border-radius: 15px;
+            background: #000000;
+            text-align: center;
+            position: relative; 
+        }
+        
+        .info-content h2 {
+            color: #fff; 
+            border-bottom: 2px solid #EA7900; 
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        .info-content p {
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+        
+        .info-content .info-btn-action {
+            display: block; 
+            width: 100%; 
+            padding: 12px 20px; 
+            margin: 15px 0; 
+            background: #EA7900; 
+            color: #000000; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            text-decoration: none; 
+            box-shadow: 0 4px 0 #b85e00;
+            cursor: pointer;
+        }
+        
+        .info-content .info-btn-action:active {
+            transform: translateY(4px); 
+            box-shadow: 0 0 0 #b85e00;
+        }
+        
+        #closeInfoBtn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            color: #EA7900;
+            font-size: 1.5em;
+            padding: 5px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent; 
+        }
+
     </style>
   <style>@view-transition { navigation: auto; }</style>
  </head>
@@ -257,7 +343,10 @@
       <i class="fa-solid fa-pause"></i>
      </button>
      <h1 id="gameTitle">Tetris Móvil</h1>
-     <div style="width: 48px;"></div>
+     
+     <button id="infoBtn">
+      <i class="fa-solid fa-info"></i>
+     </button>
     </div>
    </div>
    <div class="stats">
@@ -299,12 +388,51 @@
     <button class="control-btn drop" id="dropBtn">⬇ DROP</button>
    </div>
   </div>
+  
   <div class="start-overlay" id="startOverlay">
    <div class="game-over-text" id="gameOverText" style="display: none;">
     Game Over
    </div>
    <button class="start-btn" id="startBtn">Jugar</button>
   </div>
+  
+  <div id="infoModal" class="info-modal">
+    <div class='info-content'>
+        <button id="closeInfoBtn">
+            <i class='fa-solid fa-xmark'></i>
+        </button>
+        
+        <h2>Tetris</h2>
+        
+        <p>Bienvenido. Este es el clásico Tetris, pero con un diseño <b>minimalista de color naranja</b>. Para que el diseño se cargue al 100%, solo tiene que estar cargando como <b>máximo 1 minuto</b>.</p>
+        
+        <hr style='border-color: #EA790040;'>
+        
+        <p>Si estás en la <b>web</b>, puedes descargar el APK. <b>Nota:</b> La descarga será inmediata.</p>
+        <a href='https://gatosauriocrack.github.io/Web/Apk/Tetris1.0.apk' class='info-btn-action' download>
+            <i class='fa-brands fa-android'></i> Descargar APK
+        </a>
+        
+        <hr style='border-color: #EA790040;'>
+        
+        <p>Si estás en la <b>app APK</b>, puedes jugarlo en la web. <b>Nota:</b> Solo tienes que jugarlo 2 minutos máximo con internet para jugarlo luego sin internet.</p>
+        <a href='https://gatosauriocrack.github.io/Tetris/' class='info-btn-action'>
+            <i class='fa-solid fa-globe'></i> Jugar en la Web
+        </a>
+        
+        <hr style='border-color: #EA790040;'>
+        
+        <p>Puedes descubrir más juegos y contenido aquí:</p>
+        <a href='https://gatosauriocrack.github.io/Web/' class='info-btn-action'>
+            <i class='fa-solid fa-gamepad'></i> Más Juegos y Contenido
+        </a>
+        
+        <div class='copyright'>
+            © 2025 Gatosauriocrack
+        </div>
+    </div>
+  </div>
+  
   <script>
         const config = {
             game_title: "Tetris"
@@ -346,9 +474,15 @@
         let gameInterval = null;
         let isGameRunning = false;
         let isPaused = false;
+        
+        let wasPausedBeforeInfo = false; 
 
         const pauseBtn = document.getElementById('pauseBtn');
+        const infoBtn = document.getElementById('infoBtn'); 
         const pauseText = document.getElementById('pauseText');
+        const infoModal = document.getElementById('infoModal'); 
+        const closeInfoBtn = document.getElementById('closeInfoBtn'); 
+
 
         function newPiece() {
             const shape = SHAPES[Math.floor(Math.random() * SHAPES.length)];
@@ -368,8 +502,16 @@
                         const newX = currentX + x;
                         const newY = currentY + y;
                         
-                        if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && board[newY][newX])) {
-                            return true;
+                        if (newX < 0 || newX >= COLS) {
+                            return true; 
+                        }
+                        
+                        if (newY >= ROWS) {
+                            return true; 
+                        }
+                        
+                        if (newY >= 0 && board[newY][newX]) {
+                            return true; 
                         }
                     }
                 }
@@ -377,11 +519,14 @@
             return false;
         }
 
+
         function merge() {
             for (let y = 0; y < currentPiece.length; y++) {
                 for (let x = 0; x < currentPiece[y].length; x++) {
                     if (currentPiece[y][x]) {
-                        board[currentY + y][currentX + x] = 1; 
+                        if (currentY + y >= 0 && currentY + y < ROWS && currentX + x >= 0 && currentX + x < COLS) {
+                           board[currentY + y][currentX + x] = 1; 
+                        }
                     }
                 }
             }
@@ -432,13 +577,21 @@
         }
 
         function moveLeft() {
+            const previousX = currentX;
             currentX--;
-            if (collision()) currentX++;
+             
+            if (currentX < 0 || collision()) {
+                currentX = previousX;
+            }
         }
 
         function moveRight() {
+            const previousX = currentX;
             currentX++;
-            if (collision()) currentX--;
+            
+            if (collision()) {
+                currentX = previousX;
+            }
         }
 
         function drop() {
@@ -488,7 +641,7 @@
         }
 
         function gameLoop() {
-            if (isPaused) return; 
+            if (isPaused || infoModal.style.display === 'flex') return; 
             moveDown();
             draw();
         }
@@ -517,6 +670,34 @@
                 pauseGame();
             }
         }
+        
+        function openInfoModal() {
+            if (!isGameRunning) return; 
+            
+            wasPausedBeforeInfo = isPaused;
+            if (!wasPausedBeforeInfo) {
+                pauseGame();
+            }
+            
+            infoModal.style.display = 'flex';
+            
+            document.querySelector('.game-area').style.display = 'none';
+            document.querySelector('.controls').style.display = 'none';
+        }
+        
+        function closeInfoModal() {
+            infoModal.style.display = 'none';
+            
+            document.querySelector('.game-area').style.display = 'flex';
+            document.querySelector('.controls').style.display = 'grid';
+            
+            if (!wasPausedBeforeInfo) {
+                resumeGame();
+            } else {
+                draw(); 
+            }
+        }
+
 
         function startGame() {
             board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
@@ -524,17 +705,24 @@
             lines = 0;
             level = 1;
             isPaused = false; 
+            wasPausedBeforeInfo = false; 
             updateStats();
             newPiece();
             isGameRunning = true;
             document.getElementById('startOverlay').classList.add('hidden');
             document.getElementById('gameOverText').style.display = 'none';
-            pauseBtn.style.display = 'block';
+            
+            pauseBtn.style.display = 'flex';
+            infoBtn.style.display = 'flex'; 
 
             if (gameInterval) clearInterval(gameInterval);
             gameInterval = setInterval(gameLoop, 500); 
             pauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
             pauseText.style.display = 'none';
+            
+            document.querySelector('.game-area').style.display = 'flex';
+            document.querySelector('.controls').style.display = 'grid';
+            infoModal.style.display = 'none';
         }
 
         function gameOver() {
@@ -542,44 +730,57 @@
             clearInterval(gameInterval);
             document.getElementById('gameOverText').style.display = 'block';
             document.getElementById('startOverlay').classList.remove('hidden');
+            
             pauseBtn.style.display = 'none';
+            infoBtn.style.display = 'none'; 
+            
             pauseText.style.display = 'none'; 
             isPaused = false;
         }
-
+        
         document.getElementById('startBtn').addEventListener('click', startGame);
         document.getElementById('pauseBtn').addEventListener('click', togglePause);
+        document.getElementById('infoBtn').addEventListener('click', openInfoModal); 
+        document.getElementById('closeInfoBtn').addEventListener('click', closeInfoModal); 
         
         document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (isGameRunning && !isPaused) {
+            if (isGameRunning && !isPaused && infoModal.style.display !== 'flex') {
                 moveLeft();
                 draw();
             }
         });
         document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (isGameRunning && !isPaused) {
+            if (isGameRunning && !isPaused && infoModal.style.display !== 'flex') {
                 moveRight();
                 draw();
             }
         });
         document.getElementById('rotateBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (isGameRunning && !isPaused) {
+            if (isGameRunning && !isPaused && infoModal.style.display !== 'flex') {
                 rotate();
                 draw();
             }
         });
         document.getElementById('dropBtn').addEventListener('touchstart', (e) => {
             e.preventDefault();
-            if (isGameRunning && !isPaused) {
+            if (isGameRunning && !isPaused && infoModal.style.display !== 'flex') {
                 drop();
                 draw();
             }
         });
 
         document.addEventListener('keydown', (e) => {
+            
+            if (infoModal.style.display === 'flex') {
+                if (e.key === 'Escape') {
+                    closeInfoModal();
+                }
+                return;
+            }
+            
             if (!isGameRunning) return;
             
             if (e.key === 'p' || e.key === 'P' || e.key === ' ') {
@@ -605,6 +806,7 @@
         });
         
         pauseBtn.style.display = 'none';
+        infoBtn.style.display = 'none'; 
     </script>
  </body>
 </html>
