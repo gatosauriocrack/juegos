@@ -337,7 +337,6 @@ body {
 }
 
 @media (min-width: 900px) {
-    /* Eliminadas las reglas que forzaban el menú abierto en PC. Ahora se comporta como en móvil. */
     .main-content:not(#home-screen) ~ .back-button {
         left: 250px;
     }
@@ -529,6 +528,11 @@ body {
 
 .game-item-container.options-open {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+.texto-azul {
+    color: var(--color-azul-principal);
+    font-weight: bold;
 }
 
 .game-item {
@@ -1482,4 +1486,15 @@ input[type="file"] {
 
 .app-icon-custom.icon-meli-icono:before {
     font-size: 80px !important;
+}
+.eula-link {
+    color: var(--color-azul-principal);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.eula-link:hover {
+    color: var(--color-naranja-claro); /* Opcional: cambia a naranja al pasar el mouse */
+    text-decoration: underline;
 }
