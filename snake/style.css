@@ -138,7 +138,7 @@ body {
 }
 .modal-content {
     background-color: var(--color-fondo-claro-menu);
-    padding: 40px;
+    padding: 20px;
     border-radius: 15px;
     text-align: center;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
@@ -148,6 +148,9 @@ body {
     position: relative;
     width: 90%;
     max-width: 350px;
+    max-height: 85vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 .modal-content h2 {
     font-size: 3em;
@@ -438,6 +441,7 @@ body {
 }
 #infoModal .modal-content p {
     margin: 8px 0; 
+    font-size: 0.9em;
 }
 #infoModal .info-btn-action { 
     display: block; 
