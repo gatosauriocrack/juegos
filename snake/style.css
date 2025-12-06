@@ -7,6 +7,7 @@
     --color-texto: #e0e0e0;
     --color-fondo-claro-menu: #333742;
     --color-azul-principal: #1A73E8;
+    --color-sombra-azul: #1059b0;
     --color-verde-seleccion: #4CAF50;
     --color-rojo-salir: #D32F2F; 
     --color-sombra-rojo: #9a0007;
@@ -257,7 +258,7 @@ body {
     line-height: 1.2;
     left: 15px; 
     background-color: var(--color-azul-principal);
-    box-shadow: 0 4px #1059b0;
+    box-shadow: 0 4px var(--color-sombra-azul);
 }
 #btnClasificatoria:active, #btnInformacion:active {
     box-shadow: 0 1px;
@@ -334,11 +335,10 @@ body {
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    box-shadow: 0 4px var(--color-sombra-naranja);
     transition: all 0.1s;
 }
 #pauseModal button:active {
-    box-shadow: 0 1px var(--color-sombra-naranja);
+    box-shadow: 0 1px var(--color-sombra-rojo);
     transform: translateY(3px);
 }
 #resumeButton {
@@ -476,4 +476,34 @@ body {
 .eula-link:hover {
     color: var(--color-naranja-claro);
     text-decoration: underline;
+}
+#mainLoginButton {
+    background-color: var(--color-azul-principal) !important;
+    box-shadow: 0 4px var(--color-sombra-azul) !important;
+    transition: all 0.1s;
+    padding: 15px 30px !important;
+    margin: 10px 0 !important;
+    font-size: 1.2em !important;
+    font-weight: bold !important;
+    color: var(--color-blanco) !important;
+    border-radius: 10px !important;
+}
+#mainLoginButton:active {
+    box-shadow: 0 1px var(--color-sombra-azul) !important;
+    transform: translateY(3px) !important;
+}
+#mainLogoutButton {
+    background-color: var(--color-rojo-salir) !important;
+    box-shadow: 0 4px var(--color-sombra-rojo) !important;
+    transition: all 0.1s;
+    padding: 15px 30px !important;
+    margin: 10px 0 !important;
+    font-size: 1.2em !important;
+    font-weight: bold !important;
+    color: var(--color-blanco) !important;
+    border-radius: 10px !important;
+}
+#mainLogoutButton:active {
+    box-shadow: 0 1px var(--color-sombra-rojo) !important;
+    transform: translateY(3px) !important;
 }
