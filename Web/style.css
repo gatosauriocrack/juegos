@@ -233,32 +233,28 @@ body {
 }
 
 .sidebar-profile-login {
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    text-align: center;
-    border-bottom: 1px solid var(--color-naranja-fuerte);
-    margin-bottom: 10px;
-    cursor: pointer;
+    display: none;
 }
 
 .profile-photo-container {
-    width: 70px;
-    height: 70px;
-    margin-bottom: 10px;
+    width: auto;
+    height: auto;
+    margin-bottom: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    border: 2px solid var(--color-naranja-claro);
-    background-color: #363a45;
+    border-radius: 0;
+    border: none;
+    background-color: transparent;
     position: relative;
+    padding: 0; 
 }
 
 .default-profile-icon {
-    font-size: 50px;
+    font-size: 0;
     color: var(--color-naranja-claro);
+    font-family: 'FontAwesome-Gatosauriocrack' !important;
+    content: none;
 }
 
 .profile-photo {
@@ -280,13 +276,6 @@ body {
     top: 0;
     left: 0;
     border: none;
-}
-
-.login-text {
-    font-weight: bold;
-    font-size: 1.1em;
-    color: var(--color-texto);
-    text-decoration: none;
 }
 
 .sidebar a {
@@ -782,7 +771,7 @@ body {
 
 .banner-upload-wrapper, .avatar-upload-wrapper {
     position: relative;
-    display: inline-block;
+    display: none;
     margin-left: 10px;
 }
 
@@ -824,6 +813,7 @@ input[type="file"] {
 
 .profile-field {
     margin-bottom: 20px;
+    display: none;
 }
 
 .profile-field label {
@@ -859,6 +849,7 @@ input[type="file"] {
     transition: background-color 0.3s;
     font-weight: bold;
     width: 100%;
+    display: none;
 }
 
 #profileStatus, #uploadStatus {
@@ -884,78 +875,6 @@ input[type="file"] {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.modal-content {
-    background-color: var(--color-fondo-claro-menu);
-    padding: 20px;
-    width: 90%;
-    max-width: 350px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-    position: relative;
-}
-
-.modal-title {
-    color: var(--color-naranja-principal);
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 1.8em;
-}
-
-.auth-message {
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: bold;
-    display: none;
-}
-
-.auth-message.error {
-    background-color: var(--color-error-bg);
-    color: white;
-    display: block;
-}
-
-.social-auth-container {
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.social-auth-btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 1em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.3s, opacity 0.3s;
-}
-
-.social-auth-btn:hover {
-    opacity: 0.9;
-}
-
-.social-auth-btn i {
-    margin-right: 10px;
-    font-size: 1.2em;
-}
-
-.google-btn {
-    background-color: #4285F4;
-    color: white;
-}
-
-.play-games-btn {
-    background-color: #4CAF50;
-    color: white;
 }
 
 .game-modal {
@@ -1495,6 +1414,15 @@ input[type="file"] {
 }
 
 .eula-link:hover {
-    color: var(--color-naranja-claro); /* Opcional: cambia a naranja al pasar el mouse */
+    color: var(--color-naranja-claro);
     text-decoration: underline;
+}
+
+.sidebar [class*="icon-"]:before,
+.sidebar [class^="icon-"]:before,
+.sidebar .icon-meli-icono:before {
+    content: none !important; 
+    font-size: 0 !important; 
+    width: 0 !important;
+    margin-right: 0 !important;
 }

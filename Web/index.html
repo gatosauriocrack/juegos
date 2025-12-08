@@ -9,10 +9,6 @@
     <meta property="og:image" content="https://gatosauriocrack.github.io/Web/Gatoworl.png">
     <meta property="og:url" content="https://gatosauriocrack.github.io/Web/">
     <meta property="og:type" content="website">
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="icon" type="image/png" href="Gatoworl.png">
     <link rel="stylesheet" href="style.css"> 
@@ -39,13 +35,12 @@
     
     <div id="mySidebar" class="sidebar">
         <a href="javascript:void(0)" class="closebtn" onclick="closeMenu()">&times;</a> 
-        <div id="sidebarProfileSection" class="sidebar-profile-login" onclick="handleProfileClick()">
+        <div id="sidebarProfileSection" class="sidebar-profile-login" onclick="showScreen('info-screen')">
             <div id="profilePhotoContainer" class="profile-photo-container">
-                <i id="profileIcon" class="fas fa-user-circle default-profile-icon"></i>
+                <i id="profileIcon" class="icon-meli-icono default-profile-icon" style="font-size: 50px;"></i>
                 <img id="profilePhoto" src="" alt="Foto de Perfil" class="profile-photo hidden">
             </div>
-            <span id="loginText" class="login-text">Iniciar Sesión</span> 
-        </div>
+            </div>
         <a href="javascript:void(0)" onclick="showScreen('home-screen')"><span class="icon"><i class="fas fa-home"></i></span> Home</a>             
         <a href="javascript:void(0)" onclick="showScreen('juegos-screen')"><span class="icon"><i class="fas fa-gamepad"></i></span> Juegos</a> 
         <a href="javascript:void(0)" onclick="showScreen('descargar-apps-screen')"><span class="icon"><i class="fas fa-download"></i></span> Descargar Apps</a> 
@@ -54,8 +49,7 @@
         <a href="javascript:void(0)" onclick="showScreen('apoyo-screen')"><span class="icon"><i class="fas fa-handshake"></i></span> Apoyo</a>
         <a href="javascript:void(0)" onclick="showScreen('extra-screen')"><span class="icon"><i class="fas fa-star"></i></span> Extras</a>
         <a href="javascript:void(0)" onclick="showScreen('info-screen')"><span class="icon"><i class="fas fa-info-circle"></i></span> Información web</a> 
-        <a href="javascript:void(0)" id="logoutLink" style="display: none;" onclick="logout()"><span class="icon"><i class="fas fa-sign-out-alt"></i></span> Cerrar Sesión</a>
-    </div>
+        </div>
     <div id="home-screen" class="main-content active">
         <div class="welcome-section">
             <h1 class="welcome-title">¡Bienvenido!</h1>
@@ -83,36 +77,9 @@
         </div>
     </div>
     <div id="profile-screen" class="main-content">
-        <div class="profile-container">
-            <div id="profileBannerArea" class="profile-banner-area">
-                <div class="banner-upload-wrapper">
-                    <input type="file" id="bannerFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'banner')">
-                    <label for="bannerFileInput" class="banner-upload-btn">
-                        <i class="fas fa-camera"></i> Elegir Banner
-                    </label>
-                </div>
-            </div>
-            <div class="profile-avatar-wrapper">
-                <img id="profileAvatar" class="profile-avatar" src="https://via.placeholder.com/100/363a45/FFFFFF?text=G" style="visibility: hidden;" onload="this.style.visibility='visible'">
-                <div class="avatar-upload-wrapper">
-                    <input type="file" id="avatarFileInput" accept="image/*" onchange="displayLocalImage(this.files[0], 'avatar')">
-                    <label for="avatarFileInput" class="avatar-upload-btn">
-                        <i class="fas fa-camera"></i> Elegir Ícono
-                    </label>
-                </div>
-            </div>
-            <div class="profile-info">
-                <div class="profile-field">
-                    <label for="displayNameInput">Nombre (Apodo)</label>
-                    <input type="text" id="displayNameInput" placeholder="Tu nombre público">
-                </div>
-                <div class="profile-field">
-                    <label>Correo Electrónico</label>
-                    <span id="userEmailDisplay" class="email-display"></span>
-                </div>
-                <button class="profile-save-btn" onclick="updateUserProfile()">Guardar Nombre</button>
-                <div id="profileStatus" class="status-success"></div>
-            </div>
+        <div class="welcome-section" style="text-align: center;">
+            <h2 class="welcome-title">Sección de Perfil (Sin Iniciar Sesión)</h2>
+            <p>Esta sección estaba destinada a la gestión de perfil con inicio de sesión (Firebase), pero fue eliminada por su solicitud. Por favor, navegue a otra sección.</p>
         </div>
     </div>
     <div id="info-screen" class="main-content">
@@ -406,20 +373,6 @@
             </div>
     </div>
 
-    <div id="authModal" class="modal-overlay" onclick="closeModalOnOutsideClick(event)" style="display: none;">
-        <div class="modal-content">
-            <h2 id="modalTitle" class="modal-title">Elige cómo iniciar sesión</h2>
-            <div id="authMessage" class="auth-message"></div>
-            <div id="socialAuthContainer" class="social-auth-container">
-                <button class="social-auth-btn google-btn" onclick="signInWithGoogle()">
-                    <i class="fab fa-google"></i> Iniciar Sesión con Google
-                </button>
-                <button class="social-auth-btn play-games-btn" onclick="signInWithGoogle()">
-                    <i class="fas fa-gamepad"></i> Iniciar Sesión con Play Juegos
-                </button>
-            </div>
-        </div>
-    </div>
     <div id="rickrollModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 99999;">
         <div id="rickrollContent" style="position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
             <p id="redeemText" style="color: white; font-size: 20px; margin-bottom: 20px;">Canjeando recompensa en <span id="redeemCountdown">3</span>...</p>
@@ -447,12 +400,9 @@
                 <li><strong>Rápido (Difícil)</strong></li>
             </ul>
             <h3 class="modal-subtitle-game"><i class="fas fa-trophy"></i> Clasificación Mundial (¡Récords Globales!)</h3>
-            <p>Para poder registrar tu puntuación en la tabla clasificatoria solo necesitas iniciar sesión. Solo se pide:</p>
-            <ul>
-                <li>Cuenta de google</li>
-            </ul>
+            <p>La funcionalidad de registro de récords globales ha sido deshabilitada.</p>
             <div class="modal-alert-box alert-orange">
-                <strong>¡Importante!</strong> Necesitas internet para el registro de récords.
+                <strong>¡Importante!</strong> Necesitas internet para ver las clasificaciones.
             </div>
             <h3 class="modal-subtitle-game">Tabla Clasificatoria</h3>
             <p>Puedes ver la tabla de clasificación completa en el menú principal de Snake.</p>
@@ -476,12 +426,9 @@
                 <li><i class="fas fa-flag"></i> (Bandera): Marcar. (Coloca o quita una bandera (equivalente al "clic derecho").</li>
             </ul>
             <h3 class="modal-subtitle-game"><i class="fas fa-medal"></i> Envío de Tiempos a la Clasificación Global</h3>
-            <p>Para que tus victorias se registren en la tabla de récords mundial, solo necesitas iniciar sesión. Solo se pide una vez. Los datos necesarios son:</p>
-            <ul>
-                <li>cuenta de google</li>
-            </ul>
+            <p>La funcionalidad de registro de récords globales ha sido deshabilitada.</p>
             <div class="modal-alert-box alert-red">
-                ¡CLAVE! Solo los tiempos de las partidas ganadas mientras la sesión está activa son enviados y validados en línea.
+                ¡CLAVE! La función de guardar récords en línea está deshabilitada.
             </div>
             <h3 class="modal-subtitle-game"><i class="fas fa-chart-bar"></i> Ver la Tabla de Récords</h3>
             <p>¿Quién es el más rápido del mundo en esta dificultad? ¡Compruébalo en el ranking oficial!</p>
@@ -539,9 +486,9 @@
             <p>Aqui pondrás a prueba tu suerte, tu intuición o vista al 100% porque tendrás que ver la mínima diferencia de color o atinarle al recuadro correcto.</p>
             <h3 class="modal-subtitle-game">Funcionalidades</h3>
             <ul>
-            	<li>se requiere iniciar sesion si o si para registrar los puntajes y tiempos logrados</li>
+            	<li>El registro de puntajes ha sido deshabilitado.</li>
                 <li>Juego en vercion beta</li>
-                <li>Versión APK ya disponible .</li>
+                <li>Versión APK ya disponible.</li>
             </ul>
         </div>
     </div>
