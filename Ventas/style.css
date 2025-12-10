@@ -379,6 +379,15 @@ body {
 .icon-michi:before {
   content: "\e90d";
 }
+.icon-Rayas:before {
+  content: "\e90e";
+}
+.icon-X:before {
+  content: "\e90f";
+}
+.icon-uniE910:before {
+  content: "\e910";
+}
 
 .icon-display-container {
     display: flex;
