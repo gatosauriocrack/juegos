@@ -95,6 +95,18 @@
 .icon-michi:before {
   content: "\e90d";
 }
+.icon-Rayas:before {
+  content: "\e90e";
+}
+.icon-X:before {
+  content: "\e90f";
+}
+.icon-uniE910:before {
+  content: "\e910";
+}
+.icon-Puntos:before {
+  content: "\e911";
+}
 
 body {
     font-family: Arial, sans-serif;
